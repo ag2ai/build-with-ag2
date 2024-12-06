@@ -110,15 +110,61 @@ export const AgentConfigView = ({
   const hasChanged =
     (!controlChanged || !nameValidation.status) && agent?.id !== undefined;
 
+const agentConfigTab = {
+    label: (
+      <div>
+        <BugAntIcon className="h-4 w-4 inline-block mr-1" />
+        Agent Configuration
+      </div>
+    ),
+    key: "1",
+    children: (
+      <Form.Item
+        name="agent_config"
+        initialValue={agent?.config || {}}
+        style={{ marginBottom: 0 }}
+      >
+        <ControlRowView
+          title="Agent Name"
+          description="Name of the agent"
+          value={agent?.config?.name || ""}
+          control={
+            <Input
+              className="mt-2"
+              placeholder="Agent Name"
+              onChange={(e) => onControlChange(e.target.value, "name")}
+              defaultValue={agent?.config?.name || ""}
+            />
+          }
+        />
+        <ControlRowView
+          title="Human Input Mode"
+          description="Defines when to request human input"
+          value={agent?.config?.human_input_mode || "NEVER"}
+          control={
+            <Select
+              className="mt-2 w-full"
+              defaultValue={agent?.config?.human_input_mode || "NEVER"}
+              onChange={(value) => onControlChange(value, "human_input_mode")}
+              options={[
+                { label: "NEVER", value: "NEVER" },
+                { label: "ALWAYS", value: "ALWAYS" },
+              ]}
+            />
+          }
+        />
+        {/* Other configuration fields... */}
+      </Form.Item>
+    ),
+  };
+
   return (
     <div className="text-primary">
       <Form>
         <div
-          className={`grid  gap-3 ${
-            agent.type === "groupchat" ? "grid-cols-2" : "grid-cols-1"
-          }`}
+          className={`grid  gap-3 grid-cols-1`}
         >
-          <div className="">
+          <div className="grid  gap-3 grid-cols-2">
             <ControlRowView
               title="Agent Name"
               className=""
@@ -145,7 +191,7 @@ export const AgentConfigView = ({
 
             <ControlRowView
               title="Agent Description"
-              className="mt-4"
+              className=""
               description="Description of the agent, used by other agents
         (e.g. the GroupChatManager) to decide when to call upon this agent. (Default: system_message)"
               value={agent.config.description || ""}
@@ -201,6 +247,95 @@ export const AgentConfigView = ({
               }
             />
 
+            {/* ====================== Group Chat Config ======================= */}
+						{agent.type === "groupchat" && (
+							<>
+								<ControlRowView
+									title="Speaker Selection Method"
+									description="How the next speaker is selected"
+									className=""
+									value={agent?.config?.speaker_selection_method || "auto"}
+									control={
+										<Select
+											className="mt-2 w-full"
+											defaultValue={
+												agent?.config?.speaker_selection_method || "auto"
+											}
+											onChange={(value: any) => {
+												if (agent?.config) {
+													onControlChange(value, "speaker_selection_method");
+												}
+											}}
+											options={
+												[
+													{ label: "Auto", value: "auto" },
+													{ label: "Round Robin", value: "round_robin" },
+													{ label: "Random", value: "random" },
+												] as any
+											}
+										/>
+									}
+								/>
+
+								<ControlRowView
+									title="Admin Name"
+									className="mt-4"
+									description="Name of the admin of the group chat"
+									value={agent.config.admin_name || ""}
+									control={
+										<Input
+											className="mt-2"
+											placeholder="Agent Description"
+											value={agent.config.admin_name || ""}
+											onChange={(e) => {
+												onControlChange(e.target.value, "admin_name");
+											}}
+										/>
+									}
+								/>
+
+								<ControlRowView
+									title="Max Rounds"
+									className="mt-4"
+									description="Max rounds before termination."
+									value={agent.config?.max_round || 10}
+									control={
+										<Slider
+											min={10}
+											max={600}
+											defaultValue={agent.config.max_round}
+											step={1}
+											onChange={(value: any) => {
+												onControlChange(value, "max_round");
+											}}
+										/>
+									}
+								/>
+
+								<ControlRowView
+									title="Allow Repeat Speaker"
+									className="mt-4"
+									description="Allow the same speaker to speak multiple times in a row"
+									value={agent.config?.allow_repeat_speaker || false}
+									control={
+										<Select
+											className="mt-2 w-full"
+											defaultValue={agent.config.allow_repeat_speaker}
+											onChange={(value: any) => {
+												onControlChange(value, "allow_repeat_speaker");
+											}}
+											options={
+												[
+													{ label: "True", value: true },
+													{ label: "False", value: false },
+												] as any
+											}
+										/>
+									}
+								/>
+								</>
+						)}
+					</div>
             <ControlRowView
               title="System Message"
               className="mt-4"
@@ -217,7 +352,7 @@ export const AgentConfigView = ({
                 />
               }
             />
-
+						{/**************Advanced Options************/}
             <div className="mt-4">
               {" "}
               <CollapseBox
@@ -225,6 +360,7 @@ export const AgentConfigView = ({
                 open={false}
                 title="Advanced Options"
               >
+              <div className="grid gap-3 grid-cols-2">
                 <ControlRowView
                   title="Temperature"
                   className="mt-4"
@@ -308,98 +444,136 @@ export const AgentConfigView = ({
                     />
                   }
                 />
+                {(agent.type === "groupchat" || agent.type === "assistant") && (
+                  <>
+								<ControlRowView
+									title="Vector Database"
+									description="Choose the vector database to use."
+									value={agent.config.retrieve_config?.vector_db || "pgvector"}
+									control={
+										<Select
+											className="mt-2 w-full"
+											defaultValue={agent.config.retrieve_config?.vector_db || "pgvector"}
+											onChange={(value) => {
+												onControlChange({ ...agent.config.retrieve_config, vector_db: value }, "retrieve_config");
+											}}
+											options={[
+												{ label: "PGVector", value: "pgvector" },
+												{ label: "ChromaDB", value: "chromadb" },
+											]}
+										/>
+									}
+								/>
+
+								<ControlRowView
+									title="Collection Name"
+									description="Specify the collection name."
+									value={agent.config.retrieve_config?.collection_name || ""}
+									control={
+										<Input
+											className="mt-2"
+											placeholder="Collection Name"
+											value={agent.config.retrieve_config?.collection_name || ""}
+											onChange={(e) => {
+												const updatedConfig = {
+													...agent.config.retrieve_config,
+													collection_name: e.target.value,
+												};
+												onControlChange(updatedConfig, "retrieve_config");
+											}}
+										/>
+									}
+								/>
+								<ControlRowView
+									title="Embedding Model"
+									description="Name of Sentence Embedding Model."
+									value={agent.config.retrieve_config?.model || ""}
+									control={
+										<Input
+											className="mt-2"
+											placeholder="all-mpnet-base-v2"
+											value={agent.config.retrieve_config?.model || ""}
+											onChange={(e) => {
+												const updatedConfig = {
+													...agent.config.retrieve_config,
+													model: e.target.value
+												};
+												onControlChange(updatedConfig, "retrieve_config");
+											}}
+										/>
+									}
+								/>
+								<ControlRowView
+									title="Database Connection String"
+									description="Provide the connection string for the database."
+									value={agent.config.retrieve_config?.db_config?.connection_string || ""}
+									control={
+										<Input
+											className="mt-2"
+											placeholder="postgresql://user:password@localhost:5432/vectordb"
+											value={agent.config.retrieve_config?.db_config?.connection_string || ""}
+											onChange={(e) => {
+												const updatedConfig = {
+													...agent.config.retrieve_config,
+													db_config: {
+														...agent.config.retrieve_config?.db_config,
+														connection_string: e.target.value,
+													},
+												};
+												onControlChange(updatedConfig, "retrieve_config");
+											}}
+										/>
+									}
+								/>
+								<ControlRowView
+									title="Chunk Token Size"
+									description="Set the token size for document chunking."
+									value={agent?.config.retrieve_config?.chunk_token_size || 2000}
+									control={
+										<Slider
+											className="mt-2"
+											min={100}
+											max={20000}
+											step={100}
+											defaultValue={agent?.config.retrieve_config?.chunk_token_size || 2000}
+											onChange={(value) => {
+												const updatedConfig = {
+													...agent?.config.retrieve_config,
+													chunk_token_size: value,
+												};
+												onControlChange(updatedConfig, "retrieve_config");
+											}}
+										/>
+									}
+								/>
+								<ControlRowView
+									title="Create Collection If Not Exist"
+									description="Create the collection automatically if it does not exist."
+									value={agent?.config.retrieve_config?.get_or_create || true}
+									control={
+										<Select
+											className="w-full mt-2"
+											defaultValue={agent?.config.retrieve_config?.get_or_create || true}
+											onChange={(value) => {
+												const updatedConfig = {
+													...agent?.config.retrieve_config,
+													get_or_create: value,
+												};
+												onControlChange(updatedConfig, "retrieve_config");
+											}}
+											options={[
+												{ label: "True", value: true },
+												{ label: "False", value: false },
+											]}
+										/>
+									}
+								/>
+								</>
+							)}
+							</div>
               </CollapseBox>
             </div>
           </div>
-          {/* ====================== Group Chat Config ======================= */}
-          {agent.type === "groupchat" && (
-            <div>
-              <ControlRowView
-                title="Speaker Selection Method"
-                description="How the next speaker is selected"
-                className=""
-                value={agent?.config?.speaker_selection_method || "auto"}
-                control={
-                  <Select
-                    className="mt-2 w-full"
-                    defaultValue={
-                      agent?.config?.speaker_selection_method || "auto"
-                    }
-                    onChange={(value: any) => {
-                      if (agent?.config) {
-                        onControlChange(value, "speaker_selection_method");
-                      }
-                    }}
-                    options={
-                      [
-                        { label: "Auto", value: "auto" },
-                        { label: "Round Robin", value: "round_robin" },
-                        { label: "Random", value: "random" },
-                      ] as any
-                    }
-                  />
-                }
-              />
-
-              <ControlRowView
-                title="Admin Name"
-                className="mt-4"
-                description="Name of the admin of the group chat"
-                value={agent.config.admin_name || ""}
-                control={
-                  <Input
-                    className="mt-2"
-                    placeholder="Agent Description"
-                    value={agent.config.admin_name || ""}
-                    onChange={(e) => {
-                      onControlChange(e.target.value, "admin_name");
-                    }}
-                  />
-                }
-              />
-
-              <ControlRowView
-                title="Max Rounds"
-                className="mt-4"
-                description="Max rounds before termination."
-                value={agent.config?.max_round || 10}
-                control={
-                  <Slider
-                    min={10}
-                    max={600}
-                    defaultValue={agent.config.max_round}
-                    step={1}
-                    onChange={(value: any) => {
-                      onControlChange(value, "max_round");
-                    }}
-                  />
-                }
-              />
-
-              <ControlRowView
-                title="Allow Repeat Speaker"
-                className="mt-4"
-                description="Allow the same speaker to speak multiple times in a row"
-                value={agent.config?.allow_repeat_speaker || false}
-                control={
-                  <Select
-                    className="mt-2 w-full"
-                    defaultValue={agent.config.allow_repeat_speaker}
-                    onChange={(value: any) => {
-                      onControlChange(value, "allow_repeat_speaker");
-                    }}
-                    options={
-                      [
-                        { label: "True", value: true },
-                        { label: "False", value: false },
-                      ] as any
-                    }
-                  />
-                }
-              />
-            </div>
-          )}
-        </div>
       </Form>
 
       <div className="w-full mt-4 text-right">

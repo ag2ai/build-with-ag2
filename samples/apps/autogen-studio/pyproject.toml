@@ -24,7 +24,7 @@ dependencies = [
     "typer",
     "uvicorn",
     "arxiv",
-    "autogen[gemini]>=0.2.0",
+    "autogen[gemini,retrieve_chat_pgvector,graph_rag_falkor_db]>=0.4.0",
     "python-dotenv",
     "websockets",
     "numpy < 2.0.0",
@@ -39,7 +39,6 @@ dynamic = ["version"]
 
 [tool.setuptools]
 include-package-data = true
-
 
 [tool.setuptools.dynamic]
 version = {attr = "autogenstudio.version.VERSION"}
