@@ -41,6 +41,10 @@ There are two ways to install AutoGen Studio - from PyPi or from source. We **re
 
     If you prefer to install from source, ensure you have Python 3.10+ and Node.js (version above 14.15.0) installed. Here's how you get started:
 
+    - Ensure you have cloned all the LFS objects by running:
+      ```bash
+      git lfs pull
+      ```
     - Clone the AutoGen Studio repository and install its Python dependencies:
 
       ```bash

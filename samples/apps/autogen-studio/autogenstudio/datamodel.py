@@ -110,6 +110,31 @@ class LLMConfig(SQLModel, table=False):
     extra_body: Optional[dict] = None
 
 
+class RetrieveDBConfig(SQLModel, table=False):
+    """Data model for Retrieve DB Config for AutoGen"""
+    connection_string: Optional[str] = Field()
+    host: Optional[str] = Field()
+    port: Optional[str] = Field()
+    database: Optional[str] = Field()
+    username: Optional[str] = Field()
+    password: Optional[str] = Field()
+
+
+class RetrieveConfig(SQLModel, table=False):
+    """Data model for Retrieve Config for AutoGen"""
+    task: Optional[str] = Field()
+    docs_path: List[str] = Field(default_factory=list)
+    vector_db: Optional[str] = Field(default="pgvector")
+    collection_name: Optional[str] = Field(default="autogen_docs")
+    db_config: Optional[RetrieveDBConfig] = Field(
+        default=False, sa_column=Column(JSON)
+    )
+    custom_text_types: Optional[List[str]] = Field(default_factory=list)
+    chunk_token_size: Optional[int] = Field(default=2000)
+    model: Optional[str] = Field()
+    get_or_create: Optional[bool] = Field(default=True)
+
+
 class ModelTypes(str, Enum):
     openai = "open_ai"
     google = "google"
@@ -168,6 +193,9 @@ class AgentConfig(SQLModel, table=False):
     max_round: Optional[int] = 100
     speaker_selection_method: Optional[str] = "auto"
     allow_repeat_speaker: Optional[Union[bool, List["AgentConfig"]]] = True
+    retrieve_config: Optional[RetrieveConfig] = Field(
+        default=False, sa_column=Column(JSON)
+    )
 
 
 class AgentType(str, Enum):
