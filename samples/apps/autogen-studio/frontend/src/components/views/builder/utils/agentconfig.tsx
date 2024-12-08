@@ -193,7 +193,7 @@ const agentConfigTab = {
               title="Agent Description"
               className=""
               description="Description of the agent, used by other agents
-        (e.g. the GroupChatManager) to decide when to call upon this agent. (Default: system_message)"
+              (e.g. the GroupChatManager) to decide when to call upon this agent. (Default: system_message)"
               value={agent.config.description || ""}
               control={
                 <Input
@@ -444,7 +444,7 @@ const agentConfigTab = {
                     />
                   }
                 />
-                {(agent.type === "groupchat" || agent.type === "assistant") && (
+                {(agent.type === "userproxy") && (
                   <>
 								<ControlRowView
 									title="Vector Database"
