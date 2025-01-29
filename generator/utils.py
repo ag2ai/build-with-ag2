@@ -11,8 +11,9 @@ class ProjectCreator:
         self.folder = self.name
         self.dev_dependencies = ["ipykernel"]
         self.dependencies = ["ag2"]
-        self.template_notebook = os.path.join(os.path.dirname(__file__),
-                                              "template.ipynb")
+        self.template_notebook = os.path.join(
+            os.path.dirname(__file__), "template.ipynb"
+        )
 
     def normalize_name(self, name):
         """Converts a given name into a normalized format: 'this-is-my-name'."""
@@ -38,9 +39,7 @@ class ProjectCreator:
         notebook_path = os.path.join(self.folder, f"{self.name}.ipynb")
 
         if not os.path.exists(self.template_notebook):
-            print(
-                f"Warning: Template notebook {self.template_notebook} not found!"
-            )
+            print(f"Warning: Template notebook {self.template_notebook} not found!")
             return
 
         # Copy the template
@@ -61,16 +60,14 @@ class ProjectCreator:
 
     def copy_config_file(self):
         """Copies the template_OAI_CONFIG_LIST file and renames it to OAI_CONFIG_LIST in the project folder."""
-        template_config_path = os.path.join(os.path.dirname(__file__),
-                                            "template_OAI_CONFIG_LIST")
+        template_config_path = os.path.join(
+            os.path.dirname(__file__), "template_OAI_CONFIG_LIST"
+        )
         config_path = os.path.join(self.folder, "OAI_CONFIG_LIST")
-        destination_template_path = os.path.join(self.folder,
-                                                 "OAI_CONFIG_LIST_sample")
+        destination_template_path = os.path.join(self.folder, "OAI_CONFIG_LIST_sample")
 
         if not os.path.exists(template_config_path):
-            print(
-                f"Warning: Template config file {template_config_path} not found!"
-            )
+            print(f"Warning: Template config file {template_config_path} not found!")
             return
 
         shutil.copy(template_config_path, config_path)
