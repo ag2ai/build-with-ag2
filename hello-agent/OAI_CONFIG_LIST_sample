@@ -1,0 +1,18 @@
+[
+  {
+    "model": "gpt-4o",
+    "api_key": "<your OpenAI API key here>",
+    "tags": [
+      "gpt-4o",
+      "tool",
+      "vision"
+    ]
+  },
+  {
+    "model": "<your Azure OpenAI deployment name>",
+    "api_key": "<your Azure OpenAI API key here>",
+    "base_url": "<your Azure OpenAI API base here>",
+    "api_type": "azure",
+    "api_version": "<your Azure OpenAI API version here>"
+  }
+]
