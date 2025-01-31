@@ -15,6 +15,13 @@ An interactive travel planning system specifically designed for Italian destinat
 - 📊 Structured message format for clear communication
 - 🎨 Modern Streamlit UI with AG2 branding
 
+## Prerequisites
+
+- Python 3.8 or higher
+- Git
+- OpenAI API key
+- Google Maps API key
+
 ## Installation
 
 1. Clone the repository:
@@ -28,14 +35,45 @@ An interactive travel planning system specifically designed for Italian destinat
    pip install -r requirements.txt
    ```
 
-3. Set up environment variables:
-   - Create an `OAI_CONFIG_LIST` file with your OpenAI API key
-   - Set up your Google Maps API key in the environment
+3. Install pre-commit hooks:
+   ```bash
+   pre-commit install
+   ```
 
-4. Start the application:
+4. Set up FalkorDB:
+   ```bash
+   # Using Docker (recommended)
+   docker run -p 6379:6379 -p 3000:3000 -it --rm falkordb/falkordb:latest
+   ```
+   For other installation methods, refer to [FalkorDB documentation](https://docs.falkordb.com/).
+
+5. Set up environment variables:
+   ```bash
+   # Create OAI_CONFIG_LIST file
+   echo '[{"model": "gpt-4", "api_key": "your-api-key"}]' > OAI_CONFIG_LIST
+
+   # Set Google Maps API key (required for route timing)
+   # Get your key at: https://developers.google.com/maps/documentation/directions/overview
+   export GOOGLE_MAPS_API_KEY="your-google-maps-api-key"
+   ```
+
+6. Start the application:
    ```bash
    streamlit run main.py
    ```
+
+## Development
+
+- Run pre-commit checks:
+  ```bash
+  pre-commit run --all-files
+  ```
+
+- Format code:
+  ```bash
+  black .
+  ruff .
+  ```
 
 ## Usage
 
@@ -44,6 +82,19 @@ An interactive travel planning system specifically designed for Italian destinat
 3. Interact with the AI agents to refine your itinerary
 4. Review and confirm your travel plans
 5. Receive a structured itinerary with travel times
+
+## Example Interaction
+
+```
+User: "I want to plan a 3-day trip to Rome and Florence"
+
+Travel Planner: "I'll help you plan your Italian adventure! Let me ask about your preferences:
+- What types of attractions interest you (historical sites, museums, etc.)?
+- Do you have any specific dining preferences?
+- How would you like to split your time between Rome and Florence?"
+
+[Agents collaborate to create a personalized itinerary with attractions, restaurants, and travel times]
+```
 
 ## Contact
 
