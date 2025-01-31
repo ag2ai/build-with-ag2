@@ -279,10 +279,9 @@ def main():
             for path in input_paths
         ]
 
-        # Connect to existing graph if it exists, otherwise create a new one
-        # This allows data to persist between sessions, improving performance
+        # Connect to existing graph if either main or ontology graph exists
         existing_graphs = query_engine.falkordb.list_graphs()
-        if "trip_data" in existing_graphs:
+        if "trip_data" in existing_graphs or "trip_data_ontology" in existing_graphs:
             query_engine.connect_db()
         else:
             query_engine.init_db(input_doc=input_documents)
