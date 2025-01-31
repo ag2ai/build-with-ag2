@@ -202,7 +202,7 @@ def create_structured_itinerary(
 
 def setup_page():
     st.set_page_config(page_title="Italy Travel Planner", layout="wide")
-    st.image("assets/ag2-logo.png", width=100)
+    st.image("assets/ag2-logo.svg", width=100)
     st.title("🇮🇹 Italy Travel Planner")
 
     # Sidebar configuration
