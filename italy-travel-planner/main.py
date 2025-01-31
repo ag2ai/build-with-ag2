@@ -1,5 +1,5 @@
 import streamlit as st
-import autogen
+from datetime import datetime
 from typing import Any, Dict
 from autogen import (
     AFTER_WORK,
@@ -28,14 +28,49 @@ def initialize_agents(config_list):
 
     planner_agent = SwarmAgent(
         name="planner_agent",
-        system_message="You are a trip planner agent specializing in Italian travel. You must ask the customer what they want to do if you don't have LOCATION (must be in Italy), NUMBER OF DAYS, MEALS, and ATTRACTIONS. Work with graphrag_agent to get information for an itinerary. Each event MUST HAVE a 'type' ('Restaurant' or 'Attraction'), 'location' (name), 'city', and 'description'. Ask the customer if they are happy with the itinerary before marking it as complete.",
+        system_message="""You are a trip planner agent specializing in Italian travel. You must ask the customer what they want to do if you don't have LOCATION (must be in Italy), NUMBER OF DAYS, MEALS, and ATTRACTIONS. Work with graphrag_agent to get information for an itinerary. Each event MUST HAVE a 'type' ('Restaurant' or 'Attraction'), 'location' (name), 'city', and 'description'. Ask the customer if they are happy with the itinerary before marking it as complete.
+
+Format your responses as JSON with:
+{
+    "role": "assistant",
+    "type": "message",
+    "content": {
+        "message_type": "query" | "suggestion" | "itinerary" | "confirmation",
+        "text": "Your message here",
+        "data": {
+            "events": []
+        }
+    },
+    "metadata": {
+        "timestamp": "ISO timestamp",
+        "agent": "planner_agent"
+    }
+}""",
         functions=[mark_itinerary_as_complete],
         llm_config=llm_config,
     )
 
     graphrag_agent = SwarmAgent(
         name="graphrag_agent",
-        system_message="Return a list of restaurants and/or attractions in Italy. List them separately and provide ALL the options in the location.",
+        system_message="""Return a list of restaurants and/or attractions in Italy. List them separately and provide ALL the options in the location.
+
+Format your responses as JSON with:
+{
+    "role": "assistant",
+    "type": "message",
+    "content": {
+        "message_type": "info",
+        "text": "Here are the options in your selected location",
+        "data": {
+            "restaurants": [],
+            "attractions": []
+        }
+    },
+    "metadata": {
+        "timestamp": "ISO timestamp",
+        "agent": "graphrag_agent"
+    }
+}""",
     )
 
     structured_config_list = config_list.copy()
@@ -54,14 +89,53 @@ def initialize_agents(config_list):
 
     structured_output_agent = SwarmAgent(
         name="structured_output_agent",
-        system_message="Format the provided itinerary into a structured JSON format with message_type, content, and timestamp.",
+        system_message="""Format the provided itinerary into a structured JSON format.
+
+Format your responses as JSON with:
+{
+    "role": "assistant",
+    "type": "message",
+    "content": {
+        "message_type": "itinerary",
+        "text": "Here is your structured itinerary",
+        "data": {
+            "days": [
+                {
+                    "day": 1,
+                    "events": []
+                }
+            ]
+        }
+    },
+    "metadata": {
+        "timestamp": "ISO timestamp",
+        "agent": "structured_output_agent"
+    }
+}""",
         llm_config={"config_list": structured_config_list, "timeout": 120},
         functions=[create_structured_itinerary],
     )
 
     route_timing_agent = SwarmAgent(
         name="route_timing_agent",
-        system_message="Add travel times between locations using update_itinerary_with_travel_times. Confirm with 'Timed itinerary added' and format as a structured message.",
+        system_message="""Add travel times between locations using update_itinerary_with_travel_times. Confirm with 'Timed itinerary added' and format as a structured message.
+
+Format your responses as JSON with:
+{
+    "role": "assistant",
+    "type": "message",
+    "content": {
+        "message_type": "timing",
+        "text": "Travel times have been added to your itinerary",
+        "data": {
+            "travel_times": []
+        }
+    },
+    "metadata": {
+        "timestamp": "ISO timestamp",
+        "agent": "route_timing_agent"
+    }
+}""",
         llm_config=llm_config,
         functions=[update_itinerary_with_travel_times],
     )
@@ -78,9 +152,17 @@ def mark_itinerary_as_complete(
         agent="structured_output_agent",
         context_variables=context_variables,
         values={
-            "message_type": "status",
-            "content": {"status": "confirmed"},
-            "timestamp": "",
+            "role": "assistant",
+            "type": "message",
+            "content": {
+                "message_type": "status",
+                "text": "Itinerary confirmed",
+                "data": {"status": "confirmed"},
+            },
+            "metadata": {
+                "timestamp": datetime.now().isoformat(),
+                "agent": "planner_agent",
+            },
         },
     )
 
@@ -103,9 +185,17 @@ def create_structured_itinerary(
         agent="route_timing_agent",
         context_variables=context_variables,
         values={
-            "message_type": "status",
-            "content": {"status": "structured"},
-            "timestamp": "",
+            "role": "assistant",
+            "type": "message",
+            "content": {
+                "message_type": "status",
+                "text": "Itinerary structured",
+                "data": {"status": "structured"},
+            },
+            "metadata": {
+                "timestamp": datetime.now().isoformat(),
+                "agent": "structured_output_agent",
+            },
         },
     )
 
@@ -113,7 +203,41 @@ def create_structured_itinerary(
 def setup_page():
     st.set_page_config(page_title="Italy Travel Planner", layout="wide")
     st.image("assets/ag2-logo.png", width=100)
-    st.title("Italy Travel Planner")
+    st.title("🇮🇹 Italy Travel Planner")
+
+    # Sidebar configuration
+    st.sidebar.title("Configuration")
+    api_key = st.sidebar.text_input("Enter your OpenAI API Key", type="password")
+
+    # Add guidance in sidebar
+    st.sidebar.success(
+        """
+    ✨ **Getting Started**
+
+    Tell me about your dream Italian vacation! Consider:
+    - Which cities you'd like to visit
+    - How many days you'll be staying
+    - What types of attractions interest you
+    - Your dining preferences
+    - Any specific requirements
+
+    The AI agents will collaborate to create your perfect Italian itinerary.
+    """
+    )
+
+    # Add agent information
+    st.info(
+        """
+    **Your AI Travel Planning Team:**
+
+    🗺️ **Travel Planner** - Creates your personalized Italian itinerary
+    📚 **Information Agent** - Provides details about attractions and restaurants
+    📝 **Structured Output** - Formats your itinerary clearly
+    ⏱️ **Route Timer** - Calculates travel times between locations
+
+    These agents work together to plan your perfect Italian adventure.
+    """
+    )
 
     if "messages" not in st.session_state:
         st.session_state.messages = []
@@ -124,14 +248,18 @@ def setup_page():
             "structured_itinerary": None,
         }
 
+    return api_key
+
 
 def main():
-    setup_page()
+    api_key = setup_page()
 
     if "agents_initialized" not in st.session_state:
-        config_list = autogen.config_list_from_json(
-            "OAI_CONFIG_LIST", filter_dict={"model": ["gpt-4o"]}
-        )
+        if not api_key:
+            st.warning("Please enter your OpenAI API key in the sidebar to begin.")
+            return
+
+        config_list = [{"model": "gpt-4o", "api_key": api_key}]
 
         query_engine = FalkorGraphQueryEngine(
             name="trip_data",
@@ -201,8 +329,31 @@ def main():
         st.session_state.context = context_variables
 
         for message in chat_result:
-            with st.chat_message(message.get("agent", "assistant")):
-                st.write(message.get("content", ""))
+            agent_name = message.get("agent", "assistant")
+            content = message.get("content", "")
+
+            if isinstance(content, str):
+                content = {
+                    "role": "assistant",
+                    "type": "message",
+                    "content": {
+                        "message_type": "response",
+                        "text": content,
+                        "data": {},
+                    },
+                    "metadata": {
+                        "timestamp": datetime.now().isoformat(),
+                        "agent": agent_name,
+                    },
+                }
+
+            st.session_state.messages.append(content)
+
+            with st.chat_message(content["role"]):
+                st.write(content["content"]["text"])
+                if content["content"].get("data"):
+                    with st.expander("View Details"):
+                        st.json(content["content"]["data"])
 
 
 if __name__ == "__main__":
