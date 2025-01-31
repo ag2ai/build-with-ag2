@@ -1,0 +1,2 @@
+ag2[graph-rag-falkor-db]>=0.2.0
+streamlit>=1.41.0
