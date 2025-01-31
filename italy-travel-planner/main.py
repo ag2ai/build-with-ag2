@@ -280,18 +280,25 @@ def main():
         ]
 
         # Check if both main and ontology graphs exist
-        existing_graphs = query_engine.falkordb.list_graphs()
-        main_graph_exists = "trip_data" in existing_graphs
-        ontology_graph_exists = "trip_data_ontology" in existing_graphs
+        try:
+            existing_graphs = query_engine.falkordb.list_graphs()
+            main_graph_exists = "trip_data" in existing_graphs
+            ontology_graph_exists = "trip_data_ontology" in existing_graphs
 
-        # Only connect if both graphs exist, otherwise reinitialize
-        if main_graph_exists and ontology_graph_exists:
-            query_engine.connect_db()
-        else:
-            # Delete any existing graphs to ensure clean state
-            if main_graph_exists or ontology_graph_exists:
-                query_engine.delete()
-            query_engine.init_db(input_doc=input_documents)
+            # Only connect if both graphs exist, otherwise reinitialize
+            if main_graph_exists and ontology_graph_exists:
+                query_engine.connect_db()
+            else:
+                # Delete any existing graphs to ensure clean state
+                if main_graph_exists or ontology_graph_exists:
+                    query_engine.delete()
+                query_engine.init_db(input_doc=input_documents)
+        except ValueError as e:
+            st.error(f"Error initializing knowledge graph: {str(e)}")
+            return
+        except Exception as e:
+            st.error(f"Unexpected error while setting up the knowledge graph: {str(e)}")
+            return
 
         planner, graphrag, structured, route = initialize_agents(config_list)
         graph_rag_capability = FalkorGraphRagCapability(query_engine)
