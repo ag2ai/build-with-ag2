@@ -50,6 +50,7 @@ A curated collection of awesome agentic applications built with [AG2](https://gi
 - 🔬 [SciAgents: Automating scientific discovery through multi-agent intelligent graph reasoning](https://github.com/lamm-mit/SciAgentsDiscovery)
 - 🌐 [Agent-E: A browser automation agent for natural language-driven web interactions and task automation.](https://github.com/EmergenceAI/Agent-E)
 - 📱 [Aquinas: AI-Powered Social Media Engagement Tool](https://github.com/thomasturek/aquinas)
+- 🛡️ [disarmBot](https://github.com/ultra-supara/disarmBot): A multi-agent LM system for analyzing disinformation based on DISARM
 
 ## 🤝 Contributing to AG2 Open Source
 
