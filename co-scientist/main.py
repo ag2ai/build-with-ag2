@@ -1,4 +1,6 @@
 from autogen import AssistantAgent, UserProxyAgent, config_list_from_json
+from serpapi import GoogleSearch
+import os
 
 # Load LLM inference endpoints from an env variable or a file
 # See https://docs.ag2.ai/docs/FAQ#set-your-api-endpoints
@@ -56,8 +58,68 @@ class GenerationAgent:
     def __init__(self):
         pass
 
-    def web_search(self, context_variables, hypothesis: Hypothesis):
-        return hypothesis
+    def web_search(self, query: str) -> str:
+        # Get SERP API key from environment variables
+        serp_api_key = os.getenv("SERP_API_KEY")
+        if not serp_api_key:
+            raise ValueError("SERP_API_KEY is not set in the environment variables")
+        
+        params = {
+            "api_key": serp_api_key,
+            "engine": "google",
+            "q": query,
+            "location": "United States",
+            "google_domain": "google.com",
+            "gl": "us",
+            "hl": "en"
+        }
+        search = GoogleSearch(params)
+        results = search.get_dict()
+        
+        if "organic_results" not in results:
+            return f"'organic_results' key not found in results: {results}. Use a less restrictive query."
+        if not results['organic_results']:
+            return f"No search results found for query: {query}. Try a more general query."
+        
+        web_snippets: List[str] = []
+        
+        for idx, page in enumerate(results["organic_results"], start=1):
+            parts = [f"{idx}. [{page.get('title', 'No Title')}]({page.get('link', '')})"]
+            
+            if "source" in page:
+                parts.append(f"Source: {page['source']}")
+            
+            if "date" in page:
+                parts.append(f"Date published: {page['date']}")
+            
+            if "snippet" in page:
+                parts.append(f"Snippet: {page['snippet']}")
+            
+            # Add sitelinks if available
+            if "sitelinks" in page and "inline" in page["sitelinks"]:
+                inline_links = page["sitelinks"]["inline"]
+                sitelinks_str = "Sitelinks: " + ", ".join(
+                    [f"[{link.get('title', '')}]({link.get('link', '')})" for link in inline_links]
+                )
+                parts.append(sitelinks_str)
+            
+            # Add structured about_this_result if available
+            if "about_this_result" in page:
+                about = page["about_this_result"]
+                about_parts = []
+                if "source" in about and "description" in about["source"]:
+                    about_parts.append("Source: " + about["source"]["description"])
+                if "keywords" in about:
+                    about_parts.append("Keywords: " + ", ".join(about["keywords"]))
+                if about_parts:
+                    # Layer the about_this_result information with an indent
+                    about_str = "About this result:\n\t" + "\n\t".join(about_parts)
+                    parts.append(about_str)
+            
+            web_snippets.append("\n".join(parts))
+        
+        result_str = f"Google search results for '{query}' found {len(web_snippets)} results:\n\n" + "\n\n".join(web_snippets)
+        return result_str
 
     def hypothesize(self, context_variables, hypothesis: Hypothesis):
         return hypothesis
