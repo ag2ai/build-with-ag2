@@ -13,38 +13,8 @@ logger = setup_logger("system.log")
 logger.setLevel(logging.DEBUG)
 
 from task_manager import WorkTask, TaskManager, worker, checkpoint_writer
-
-
-@dataclass
-class Review:
-    review_summary: str = ""
-
-    initial_review: str = "" # no web search, quick go through and decide to discard or not
-
-    full_review: str = "" # always do this after initial review
-
-    # optional?
-    deep_verify_review: str = ""
-    observe_review: str = ""
-    simulation_review: str = ""
-
-
-@dataclass
-class Hypothesis:
-    hid: str = "" # unique id
-    rating: float =  1200.0 # ELO rating
-
-    selected_articles: List[Dict] = field(default_factory=list) # {"name": "article_name", "review": "literature_review", "link": "article_link"}
-    original_hypothesis: str = "" # A detailed version of the hypothesis # after literature review
-    review: Review = field(default_factory=Review) # review of the hypothesis
-
-    # after finalized_hypothesis is filled, this hypothesis should be marked as archived
-    debate_logs : List[str] = field(default_factory=list) # logs of the debate
-    finalized_hypothesis: str = "" # after simulated scientific debate
-
-    # lock per hypothesis
-    lock: asyncio.Lock = field(default_factory=asyncio.Lock, init=False, repr=False)
-
+from ranking_agent import RankingAgent
+from hypo_objects import Hypothesis, Review
 
 class GenerationAgent:
     def __init__(self, context_variables: Dict, context_variables_lock: asyncio.Lock):
@@ -87,28 +57,18 @@ class GenerationAgent:
             self.context_variables['hypotheses'].append(new_hypothesis)
         
 
-    async def multi_agent_debate(self, hid1: str):
+    async def multi_agent_debate(self, hypothesis: Hypothesis):
         """
         Perform a multi-agent debate on the hypothesis with the given hid.
         """
         # TODO 5: Fill in the multi-agent debate logic, debate_logs
-
-        hypothesis: Hypothesis = next(h for h in self.context_variables['hypotheses'] if h.hid == hid1)
-        # if not hypothesis, return
-        if not hypothesis:
-            return
-        
-        # try acquiring lock for the hypothesis, if locked, return
-        if hypothesis.lock.locked():
-            return
-        
         async with hypothesis.lock:
-            # perform debate action
+            # perform debate action here
             await asyncio.sleep(1)
 
             # acquire lock for the context variables at the same time to update the hypothesis
             async with self.context_variables_lock:
-                hypothesis.finalized_hypothesis = f"Finalized hypothesis {hid1}" # TODO 5.1: fill in the finalized hypothesis
+                hypothesis.finalized_hypothesis = f"Finalized hypothesis {hypothesis.hid}" # TODO 5.1: fill in the finalized hypothesis
 
 class ReflectionAgent:
     def __init__(self, context_variables, context_variables_lock):
@@ -118,25 +78,15 @@ class ReflectionAgent:
     # Perform initial review on the hypothesis
     # async def initial_review(self, hid: str):
 
-    async def perform_full_review(self, hid: str):
+    async def perform_full_review(self, hypothesis: Hypothesis):
         # TODO 6: Fill in the full review logic
-        hypothesis: Hypothesis = next(h for h in self.context_variables['hypotheses'] if h.hid == hid)
-        # if not hypothesis, return
-        if not hypothesis:
-            logger.info(f"perform_full_review: Hypothesis {hid} not found")
-            return
-        
-        # try acquiring lock for the hypothesis, if locked, return
-        if hypothesis.lock.locked():
-            logger.info(f"perform_full_review: Try to peform full review on hypothesis {hid} but it is locked")
-            return
-
         async with hypothesis.lock:
+            # perform full review here
             await asyncio.sleep(1)
 
             # acquire lock for the context variables at the same time to update the hypothesis
             async with self.context_variables_lock:
-                hypothesis.review.full_review = f"Perform full review on hypothesis {hid}"
+                hypothesis.review.full_review = f"Perform full review on hypothesis {hypothesis.hid}"
 
     async def deep_verify_review(self, hypothesis: Hypothesis):
         pass
@@ -148,31 +98,6 @@ class ReflectionAgent:
         pass
 
     async def get_review_overview(self, hypothesis: Hypothesis):
-        pass
-
-class RankingAgent:
-    def __init__(self, context_variables, context_variables_lock):
-        self.context_variables = context_variables
-        self.context_variables_lock = context_variables_lock
-
-    async def compare_during_touranment(self, context_variables):
-        pass
-
-    async def compare_during_debate(self, context_variables):
-        pass
-
-    async def rank(self, context_variables):
-        # determine whether the match require a debat or a quick comparison
-
-        self.compare_during_touranment(context_variables)
-        self.compare_during_debate(context_variables)
-        return context_variables
-    
-    async def prepare_tournament_match(self, context_variables):
-        # 1. select the first hypothesis that is newer and top-ranking hypotheses
-
-        # 2. select second hypothesis based on proximity ranking
-        # not previously compared ones
         pass
 
 
@@ -231,7 +156,7 @@ class Supervisor:
                 
                     await task_manager.add_task(WorkTask(
                         name="perform_full_review",
-                        coro=lambda hid=hypothesis.hid: reflection_agent.perform_full_review(hid)
+                        coro=lambda hypothesis=hypothesis: reflection_agent.perform_full_review(hypothesis)
                     ))
             
             # If still not enough unchecked hypotheses, generate a new one.
@@ -246,6 +171,7 @@ class Supervisor:
                 ))            
             await asyncio.sleep(1)
 
+
     async def main_stage(self, 
         task_manager:"TaskManager",
         generation_agent: GenerationAgent,
@@ -254,6 +180,9 @@ class Supervisor:
         evolution_agent: EvolutionAgent,
         meta_review_agent: MetaReviewAgent
     ):
+        
+        # 1. looking for unlocked hypothesis
+
         pass
 
 
