@@ -1,1 +1,3 @@
 ag2
+serpapi
+aiofiles
