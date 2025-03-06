@@ -36,7 +36,6 @@ class GenerationAgent:
             ]
         print("Web search completed", self.context_variables_lock.locked())
 
-
     async def generate_hypothesis(self) -> Hypothesis:
         """
         Generate a hypothesis based on the context variables.
@@ -83,10 +82,12 @@ class ReflectionAgent:
         async with hypothesis.lock:
             # perform full review here
             await asyncio.sleep(1)
+            print(f"Full review completed for hypothesis {hypothesis.hid}")
 
             # acquire lock for the context variables at the same time to update the hypothesis
             async with self.context_variables_lock:
                 hypothesis.review.full_review = f"Perform full review on hypothesis {hypothesis.hid}"
+                hypothesis.review_version += 1
 
     async def deep_verify_review(self, hypothesis: Hypothesis):
         pass
@@ -171,8 +172,7 @@ class Supervisor:
                 ))            
             await asyncio.sleep(1)
 
-
-    async def main_stage(self, 
+    async def select_worker(self, 
         task_manager:"TaskManager",
         generation_agent: GenerationAgent,
         ranking_agent: RankingAgent,
@@ -180,10 +180,35 @@ class Supervisor:
         evolution_agent: EvolutionAgent,
         meta_review_agent: MetaReviewAgent
     ):
+        # use LLM to decide the next worker
+        # 1. info from task_manager: pending_tasks, and running tasks.
+        async with self.context_variables_lock:
+            unlocked = [h for h in self.context_variables['hypotheses'] if not h.lock.locked()]
         
-        # 1. looking for unlocked hypothesis
+        if len(unlocked) == 0:
+            # all hypotheses are locked, perform meta review 
+            # TODO: perform summary
+            # TODO feature: user can send an async message to an agent for improvement
 
-        pass
+            return WorkTask(name="meta_review", coro=lambda: meta_review_agent.review(self.context_variables))
+    
+        instruction = """
+## Description of Each Agent
+
+## Unlocked Hypotheses (Can be worked on)
+
+## Options
+For those unlocked hypotheses, you can choose to:
+1. Perform a type of review 
+2. Perform a evolution action on one of the hypothesis
+3. Generate a new hypothesis using the generation agent
+4. Generate a new hypothesis using the evolution agent
+5. Perform Ranking action: possible pairs to compare: ...
+
+Please select the next action, and the hid of the hypothesis.
+"""
+
+        return WorkTask(name="generate_hypothesis", coro=lambda: generation_agent.generate_hypothesis())
 
 
 # Example main function that sets up the worker pool, a producer, and the checkpoint writer.
@@ -250,26 +275,38 @@ async def main():
     # use supervisor to dynamically add tasks
     await supervisor.initial_stage(task_manager, generation_agent, reflection_agent)
 
-    
-    # for task in init_tasks:
-    #     await work_queue.put(task)
-    #     print(f"Main: Enqueued {task.name} for initialization")
-    
+    # -------------------------
+    # 6. Start the main stage
+    # Set a maximum runtime of 60 seconds
+    # start_time = time.time()
+    # max_runtime = 60
 
-    # Example: Let the system run for 15 seconds.
-    try:
-        await asyncio.sleep(15)
-    except asyncio.CancelledError:
-        pass
+    # while time.time() - start_time < max_runtime:
+    #     while task_manager.pending_tasks.qsize() < 5:
+    #         # select the next worker
+    #         next_worker = await supervisor.select_worker(
+    #             task_manager, generation_agent, ranking_agent, reflection_agent, evolution_agent, meta_review_agent
+    #         )
+    #         await task_manager.add_task(next_worker)
+    #     await asyncio.sleep(1)
 
-    # Shutdown: cancel checkpoint and workers.
+    # if time.time() - start_time >= max_runtime:
+    #     logger.info("Maximum runtime reached, stopping adding new tasks.")
+
+    # -------------------------
+    # 7. Shutdown the system
+    logger.debug("Ending stage: 1. Waiting for all tasks in queue to finish...")
+    while task_manager.pending_tasks.qsize() > 0:
+        await asyncio.sleep(1)
     
+    logger.debug("Ending stage: 2. Waiting for a final checkpoint after all tasks are done...")
     # Wait for the checkpoint writer to finish writing the logs for the last time.
-    logger.debug("Shutting down the system...")
     try:
         await asyncio.sleep(check_point_interval + 0.5)
     except asyncio.CancelledError:
         pass
+
+    logger.debug("Ending stage: 3. Shutting down the system.")
     checkpoint_task.cancel()
     for w in workers:
         w.cancel()
