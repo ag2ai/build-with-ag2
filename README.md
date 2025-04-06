@@ -94,6 +94,6 @@ pre-commit run --all-files
 
 Star this repository and [AG2](https://github.com/ag2ai/ag2) to receive notifications about the newest and coolest agentic applications!
 
-Join us in AG2 community discord: 
+Join us in AG2 community discord:
 
 [![](https://dcbadge.limes.pink/api/server/https://discord.gg/AgeyYnHn4q)](https://discord.gg/https://discord.gg/AgeyYnHn4q)
