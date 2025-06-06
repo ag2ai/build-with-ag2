@@ -10,11 +10,17 @@ from email_utils import (
 )
 import autogen
 from autogen.agentchat.contrib.swarm_agent import (
-    SwarmAgent,
     initiate_swarm_chat,
     AFTER_WORK,
     AfterWorkOption,
 )
+
+from autogen.agentchat import initiate_group_chat
+from autogen import ConversableAgent
+from autogen.agentchat.group import (
+    RevertToUserTarget,
+)
+from autogen.agentchat.group.patterns import DefaultPattern
 
 config_list = autogen.config_list_from_json(
     "OAI_CONFIG_LIST",
@@ -112,7 +118,7 @@ user_proxy = autogen.UserProxyAgent(
     is_termination_msg=lambda x: x.get("content", "").rstrip().endswith("TERMINATE"),
 )
 
-filter_agent = SwarmAgent(
+filter_agent = ConversableAgent(
     name="filter_agent",
     llm_config=llm_config,
     system_message="""You are helping the user to read emails and mark them as read.
@@ -146,6 +152,21 @@ initiate_swarm_chat(
     after_work=AFTER_WORK(AfterWorkOption.REVERT_TO_USER),
 )
 
+agent_pattern = DefaultPattern(
+    agents=[
+        filter_agent,
+    ],
+    initial_agent=filter_agent,
+    user_agent=user_proxy,
+    group_after_work=RevertToUserTarget(),
+)
+
+result, final_context, last_agent = initiate_group_chat(
+    pattern=agent_pattern,
+    messages=input_str,
+    max_rounds=10,
+)
+
 # remove read emails from unread_emails
 for email in unread_emails:
     if email["message_id"] in read_email_ids:
@@ -174,7 +195,7 @@ def get_full_thread(email_thread_id: str) -> str:
     return fetch_email_thread(gmail_service, email_thread_id)
 
 
-email_assistant = SwarmAgent(
+email_assistant = ConversableAgent(
     name="email_assistant",
     llm_config=llm_config,
     system_message="""You are an email assistant.
@@ -202,11 +223,17 @@ for email in unread_emails:
     email_str += f"Subject: {email['subject']}\n"
     email_str += "\n"
 
-
-initiate_swarm_chat(
-    email_assistant,
-    agents=[email_assistant],
-    messages=email_str,
+agent_pattern = DefaultPattern(
+    agents=[
+        email_assistant,
+    ],
+    initial_agent=email_assistant,
     user_agent=user_proxy,
-    after_work=AFTER_WORK(AfterWorkOption.REVERT_TO_USER),
+    group_after_work=RevertToUserTarget(),
+)
+
+result, final_context, last_agent = initiate_group_chat(
+    pattern=agent_pattern,
+    messages=email_str,
+    max_rounds=10,
 )
