@@ -1,5 +1,7 @@
 # Email Management Assistant
 
+WIP: This project is currently not working properly.
+
 An intelligent email management tool that leverages AG2’s swarm agents to help you quickly triage, filter, and respond to your emails. This application connects to Gmail, groups unread emails by sender, and offers two steps of automated assistance:
 
 - **Mark as read in Batch:** Identify and mark groups of non-critical emails from the same sender as read.

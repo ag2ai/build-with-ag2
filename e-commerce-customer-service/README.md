@@ -1,6 +1,6 @@
 # E-commerce Customer Service for order management
 
-WIP: This project is currently not working properly.Latest release of AG2 0.9 introduced minor issues which will be fixed as soon as possible.
+WIP: This project is currently not working properly.
 
 <!-- [Overall Description, authorship/references,] -->
 
