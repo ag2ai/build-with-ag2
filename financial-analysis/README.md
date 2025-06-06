@@ -1,5 +1,7 @@
 # Financial Analysis of a Given Stock
 
+WIP: This project is currently not working properly.
+
 - By [yiranwu0](https://github.com/yiranwu0)
 - This project referenced the AG2 notebook [task solving with code generation, execution, and debugging](https://docs.ag2.ai/notebooks/agentchat_auto_feedback_from_code_execution#a-comparative-analysis-of-meta-and-tesla-stocks-in-early-2024)
 
