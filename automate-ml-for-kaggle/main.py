@@ -62,6 +62,10 @@ You don't need to repeat previous code snippets.
 Please reason about the choice of the model and select the one you think is the best for the task. For example, you can use models like but not limited to LinearRegression, RandomForestModel, GradientBoostingModel, CartModel, DistributedGradientBoostingModel, etc.
 Each time, based on previous results, you should try a different model, or a different set of hyperparameters if you think this current model can be improved. And then evaluate the model on the test split.
 Do not perform any hyperparameter tuning like grid search. Please try different models or different hyperparameters directly based on your intuition.
+
+If you are asked to never use particular models, please do not use them even if they are better.
+
+When you run  model training, I would like you to generate the performance metrics, you can use these visualisations but not limited to loss curves, confusion matrix, auc, classification report, etc. Save it as an image.
 """,
 )
 
@@ -85,6 +89,9 @@ code_executor = autogen.UserProxyAgent(
         "executor": JupyterCodeExecutor(server, output_dir=output_dir),
     },
 )
+
+
+
 
 client = OpenAIWrapper(config_list=config_list)
 
@@ -148,6 +155,14 @@ task_prompt = """Please help me to build a model predict the sales price for eac
 - The dataset is downloaded to this location: `./house_prices_train.csv`.
 - All code will be executed in a Jupyter notebook, where previous states are saved.
 """
+
+# Never use ensemble models | Use a neural network this time using pytorch
+
+# task_prompt = """Please help me to build a model to classify Iris setosa, Iris versicolor, and Iris virginica. 
+# - The dataset is downloaded to this location: `./iris.csv`.
+# - All code will be executed in a Jupyter notebook, where previous states are saved.
+# """
+
 
 chat_result = initializer.initiate_chat(manager, message=task_prompt)
 

@@ -1,0 +1,11 @@
+[
+  {
+    "model": "gpt-4o",
+    "api_key": "<your OpenAI API key here>",
+    "tags": [
+      "gpt-4o",
+      "tool",
+      "vision"
+    ]
+  }
+]

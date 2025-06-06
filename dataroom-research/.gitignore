@@ -1,0 +1,14 @@
+# API key configuration files
+OAI_CONFIG_LIST
+
+# Authentication and credential files
+credentials.json
+token.json
+
+# Cache and generated directories
+.cache/
+ag2_drive_downloads/
+research_reports/
+research_results/
+parsed_docs/
+chroma/
