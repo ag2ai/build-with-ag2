@@ -1,7 +1,5 @@
 # E-commerce Customer Service for order management
 
-WIP: This project is currently not working properly.
-
 <!-- [Overall Description, authorship/references,] -->
 
 - By [yiranwu0](https://github.com/yiranwu0)
