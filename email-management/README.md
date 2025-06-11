@@ -1,6 +1,7 @@
 # Email Management Assistant
 
-WIP: This project is currently not working properly.
+- By [yiranwu0](https://github.com/yiranwu0)
+- Last revision: 06/06/2025 by [willhama](https://github.com/willhama)
 
 An intelligent email management tool that leverages AG2’s swarm agents to help you quickly triage, filter, and respond to your emails. This application connects to Gmail, groups unread emails by sender, and offers two steps of automated assistance:
 
@@ -20,14 +21,14 @@ This project streamlines your email workflow by performing the following tasks:
 
 This project demonstrates several key AG2 features:
 
-- **[Swarm Agent](https://docs.ag2.ai/docs/user-guide/advanced-concepts/swarm/deep-dive):** Multiple agents work together to manage different aspects of email processing.
+- **[Groupchat](https://docs.ag2.ai/latest/docs/user-guide/advanced-concepts/orchestration/group-chat/introduction/#purpose-and-benefits)**
 - **[Tool using](https://docs.ag2.ai/docs/user-guide/basic-concepts/tools):** Agents trigger Python functions (e.g., marking emails as read, retrieving email threads) based on real-time context.
 
 For further details on these features, please refer to the [AG2 Documentation](https://docs.ag2.ai/docs/Home).
 
 ## TAGS
 
-TAGS: swarm, function-call, tool-use, email management, automation, gmail integration, email triage, workflow optimization, ai assistant
+TAGS: groupchat, function-call, tool-use, email management, automation, gmail integration, email triage, workflow optimization, ai assistant
 
 ## Installation
 

@@ -74,7 +74,7 @@ cp OAI_CONFIG_LIST_sample OAI_CONFIG_LIST
 
 ### 2. Google Drive Integration
 
-For a detailed tutorial on the Google Drive Toolkit functionality, see the 
+For a detailed tutorial on the Google Drive Toolkit functionality, see the
 [AG2 Google Drive Documentation](https://docs.ag2.ai/latest/docs/use-cases/notebooks/notebooks/tools_google_drive/)
 
 Note: In order to successfully run that notebook, you would need to do the following steps first

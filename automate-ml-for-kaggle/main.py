@@ -91,8 +91,6 @@ code_executor = autogen.UserProxyAgent(
 )
 
 
-
-
 client = OpenAIWrapper(config_list=config_list)
 
 
@@ -158,7 +156,7 @@ task_prompt = """Please help me to build a model predict the sales price for eac
 
 # Never use ensemble models | Use a neural network this time using pytorch
 
-# task_prompt = """Please help me to build a model to classify Iris setosa, Iris versicolor, and Iris virginica. 
+# task_prompt = """Please help me to build a model to classify Iris setosa, Iris versicolor, and Iris virginica.
 # - The dataset is downloaded to this location: `./iris.csv`.
 # - All code will be executed in a Jupyter notebook, where previous states are saved.
 # """
