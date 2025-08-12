@@ -20,8 +20,8 @@ def get_order_history(context_variables: ContextVariables) -> str:
     orders = context_variables["user_info"]["orders"]
     if not orders:
         return "No order history found"
-    for order in orders:
-        order_str += f"Order Number: {order['order_number']}, Product: {order['product']}, Status: {order['status']}, link: {order['link']}\n"
+    for order_number, order in orders.items():
+        order_str += f"Order Number: {order_number}, Product: {order['product']}, Status: {order['status']}, link: {order['link']}\n"
     return order_str
 
 
