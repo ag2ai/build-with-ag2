@@ -1,0 +1,19 @@
+version: '3'
+
+services:
+  # nosemgrep: yaml.docker-compose.security.writable-filesystem-service.writable-filesystem-service, yaml.docker-compose.security.no-new-privileges.no-new-privileges
+  python-3.12-my_app_flyio:
+    image: mcr.microsoft.com/devcontainers/python:3.12
+    container_name: my_app_flyio-${USER}-python-3.12
+    volumes:
+      - ../:/workspaces/my_app_flyio:cached
+    command: sleep infinity
+
+    env_file:
+      - ./devcontainer.env
+    networks:
+      - my_app_flyio-network
+
+networks:
+  my_app_flyio-network:
+    name: my_app_flyio-${USER}-network
