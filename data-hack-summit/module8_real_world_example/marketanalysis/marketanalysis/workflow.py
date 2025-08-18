@@ -29,5 +29,4 @@ def simple_workflow(ui: UI, params: dict[str, Any]) -> str:
         messages=initial_message,
         max_rounds=30,
     )
-
-    return ui.process(chat_result.summary)
+    return chat_result.summary

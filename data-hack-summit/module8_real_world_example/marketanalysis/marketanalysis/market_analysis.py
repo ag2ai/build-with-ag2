@@ -1,8 +1,8 @@
 import os
-from autogen import LLMConfig, ConversableAgent, UserProxyAgent
+from autogen import LLMConfig, ConversableAgent
 from autogen.agentchat import initiate_group_chat
 from autogen.agentchat.group import (
-    AgentTarget, ReplyResult, OnCondition, StringLLMCondition, RevertToUserTarget
+    AgentTarget, ReplyResult, OnCondition, StringLLMCondition, TerminateTarget
 )
 from autogen.agentchat.group.patterns import DefaultPattern
 from autogen.agentchat.group.llm_condition import StringLLMCondition
@@ -15,7 +15,7 @@ load_dotenv()
 TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-llm_config = LLMConfig(api_type="openai", model="gpt-4o-mini", api_key=OPENAI_API_KEY)
+llm_config = LLMConfig(api_type="openai", model="o3-mini", api_key=OPENAI_API_KEY)
 # --- Tool stubs (replace with real Tavily/OpenAI API calls) ---
 def tavily_data(query):
     client = TavilyClient(TAVILY_API_KEY)
@@ -99,31 +99,99 @@ def openai_final_report(trends, competitors, technology_adoption, insights, stre
 
 # --- Agent Functions ---
 def data_gathering_fn(query: str) -> ReplyResult:
+    """
+    Gather initial market data from Tavily.
+    Args:
+        query: The query to search for market data.
+    Returns:
+        ReplyResult containing the initial market data.
+    """
     market_data = tavily_data(query)
     return ReplyResult(message=f"Initial market data gathered.: {market_data}", result=market_data)
 
 def analysis_fn(trends: str, competitors: str, technology_adoption: str, insights: str) -> ReplyResult:
+    """
+    Analyze the gathered market data.
+    Args:
+        trends: List of trends in the market.
+        competitors: List of competitors in the market.
+        technology_adoption: List of technologies adopted by the market.
+        insights: Insights about the market.
+    Returns:
+        ReplyResult containing the analysis of the market data.
+    """
     analysis = openai_analysis(trends, competitors, technology_adoption, insights)
     return ReplyResult(message=f"Market analysis completed. {str(analysis)}", result=analysis)
 
 def additional_data_fn(query: str) -> ReplyResult:
+    """
+    Gather additional market data from Tavily.
+    Args:
+        query: The query to search for additional market data.
+    Returns:
+        ReplyResult containing the additional market data.
+    """
     additional_data = tavily_data(query)
     return ReplyResult(message=f"Additional market data gathered. {str(additional_data)}", result=additional_data)
 
 def review_fn(trends: str, competitors: str, technology_adoption: str, insights: str, swot: str) -> ReplyResult:
+    """
+    Review the analysis and provide feedback.
+    Args:
+        trends: List of trends in the market.
+        competitors: List of competitors in the market.
+        technology_adoption: List of technologies adopted by the market.
+        insights: Insights about the market.
+        swot: SWOT analysis of the market.
+    Returns:
+        ReplyResult containing the review of the market data.
+    """
     analysis = openai_analysis(trends, competitors, technology_adoption, insights)
     feedback = openai_review(analysis, swot)
     return ReplyResult(message=f"Review completed. analysis: {str(analysis)} feedback: {str(feedback)}", result=feedback)
 
 def revision_fn(analysis: str, feedback: str, additional_data: str) -> ReplyResult:
+    """
+    Revise the analysis based on feedback and new data.
+    Args:
+        analysis: The analysis of the market data.
+        feedback: Feedback on the analysis.
+        additional_data: Additional market data.
+    Returns:
+        ReplyResult containing the revised analysis.
+    """
     revised_analysis = openai_revision(analysis, feedback, additional_data)
     return ReplyResult(message=f"Analysis revised. {str(revised_analysis)} feedback: {str(feedback)} additional_data: {str(additional_data)} revised_analysis: {str(revised_analysis)}", result=revised_analysis)
 
 def swot_fn(strengths: list, weaknesses: list, opportunities: list, threats: list) -> ReplyResult:
+    """
+    Perform SWOT analysis based on the gathered market data.
+    Args:
+        strengths: List of strengths in the market.
+        weaknesses: List of weaknesses in the market.
+        opportunities: List of opportunities in the market.
+        threats: List of threats in the market.
+    Returns:
+        ReplyResult containing the SWOT analysis of the market data.
+    """
     swot = openai_swot(strengths, weaknesses, opportunities, threats)
     return ReplyResult(message=f"SWOT analysis completed. {str(swot)}", result=swot)
 
 def finalization_fn(trends: str, competitors: str, technology_adoption: str, insights: str, strengths: str, weaknesses: str, opportunities: str, threats: str) -> ReplyResult:
+    """
+    Compile the final market analysis report.
+    Args:
+        trends: List of trends in the market.
+        competitors: List of competitors in the market.
+        technology_adoption: List of technologies adopted by the market.
+        insights: Insights about the market.
+        strengths: List of strengths in the market.
+        weaknesses: List of weaknesses in the market.
+        opportunities: List of opportunities in the market.
+        threats: List of threats in the market.
+    Returns:
+        ReplyResult containing the final market analysis report.
+    """
     report = openai_final_report(trends, competitors, technology_adoption, insights, strengths, weaknesses, opportunities, threats)
     return ReplyResult(message=f"Final report generated. {str(report)}", result=report)
 
@@ -163,11 +231,6 @@ with llm_config:
         name="finalization_agent",
         system_message="Compile the final market analysis report.",
         functions=[finalization_fn]
-    )
-    user = UserProxyAgent(
-        name="user",
-        system_message="You are a user agent",
-        human_input_mode="ALWAYS",
     )
 
 # --- Handoffs (StringLLMCondition-based, using OnCondition) ---
@@ -225,7 +288,8 @@ swot_agent.handoffs.add_llm_conditions([
         ),
     )
 ])
-finalization_agent.handoffs.set_after_work(RevertToUserTarget())
+
+finalization_agent.handoffs.set_after_work(TerminateTarget())
 
 # --- Run the Feedback Loop Orchestration ---
 def run_market_analysis_feedback_loop(user_query):
@@ -240,7 +304,7 @@ def run_market_analysis_feedback_loop(user_query):
             swot_agent,
             finalization_agent
         ],
-        user_agent=user,
+        user_agent=None,
     )
     chat_result, final_context, last_agent = initiate_group_chat(
         pattern=agent_pattern,
@@ -248,7 +312,6 @@ def run_market_analysis_feedback_loop(user_query):
         max_rounds=30,
     )
     print("\n===== FINAL REPORT =====\n")
-    print()
     return chat_result.summary
 
 agent_pattern = DefaultPattern(
@@ -262,5 +325,5 @@ agent_pattern = DefaultPattern(
             swot_agent,
             finalization_agent
         ],
-        user_agent=user,
+        user_agent=None,
     )

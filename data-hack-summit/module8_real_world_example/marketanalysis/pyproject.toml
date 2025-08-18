@@ -8,7 +8,10 @@ version = "0.1.0"
 name = "marketanalysis"
 
 dependencies = [
-    "fastagency[openai,mesop,server,fastapi]>=0.9.0",
+    "ag2==0.9.7",
+    "fastagency[mesop,server,fastapi]>=0.9.7",
+    "tavily-python>=0.7.10",
+    "openai==1.66.2",
 ]
 
 [project.optional-dependencies]

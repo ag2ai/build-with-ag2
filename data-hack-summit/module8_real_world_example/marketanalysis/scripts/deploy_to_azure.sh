@@ -6,9 +6,11 @@
 export RESOURCE_GROUP="marketanalysis-rg"
 export CONTAINER_APP_NAME="marketanalysis"
 export LOCATION="westeurope"
-export ACR_NAME="marketanalysis-acr"
+export ACR_NAME="marketanalysisacr"
 export VNET_NAME="marketanalysis-vnet"
-
+az acr update -n marketanalysisacr --admin-enabled true
+export REGISTRY_USERNAME=$(az acr credential show -n $ACR_NAME --query username -o tsv)
+export REGISTRY_PASSWORD=$(az acr credential show -n $ACR_NAME --query "passwords[0].value" -o tsv)
 
 echo -e "\033[0;32mChecking if already logged into Azure\033[0m"
 if ! az account show > /dev/null 2>&1; then
@@ -27,8 +29,8 @@ rm ~/.docker/config.json
 az acr login --name $ACR_NAME
 
 echo -e "\033[0;32mBuilding and pushing docker image to azure container registry\033[0m"
-docker build -t $ACR_NAME.azurecr.io/${CONTAINER_APP_NAME}:latest -f docker/Dockerfile .
-docker push $ACR_NAME.azurecr.io/${CONTAINER_APP_NAME}:latest
+docker buildx create --use 2>/dev/null
+docker buildx build --platform linux/amd64 -t $ACR_NAME.azurecr.io/${CONTAINER_APP_NAME}:latest -f docker/Dockerfile . --push
 
 echo -e "\033[0;32mChecking if container app environment exists\033[0m"
 if ! az containerapp env show --name "$CONTAINER_APP_NAME-env" --resource-group $RESOURCE_GROUP > /dev/null 2>&1; then
@@ -60,6 +62,14 @@ fi
 # envsubst < azure.yml > azure.yml.tmp && mv azure.yml.tmp azure.yml
 
 echo -e "\033[0;32mCreating container app\033[0m"
+REGISTRY_USERNAME=$(az acr credential show -n $ACR_NAME --query username -o tsv)
+REGISTRY_PASSWORD=$(az acr credential show -n $ACR_NAME --query "passwords[0].value" -o tsv)
+
+if [ -z "$REGISTRY_USERNAME" ] || [ -z "$REGISTRY_PASSWORD" ]; then
+  echo "Failed to retrieve ACR credentials. Check that the registry exists and the name is correct."
+  exit 1
+fi
+
 az containerapp create \
   --name $CONTAINER_APP_NAME \
   --resource-group $RESOURCE_GROUP \
@@ -69,6 +79,8 @@ az containerapp create \
   --ingress 'external' \
   --query properties.configuration.ingress.fqdn \
   --registry-server $ACR_NAME.azurecr.io \
+  --registry-username $REGISTRY_USERNAME \
+  --registry-password $REGISTRY_PASSWORD \
   --cpu 1 \
   --memory 2Gi \
   --min-replicas 0 \
