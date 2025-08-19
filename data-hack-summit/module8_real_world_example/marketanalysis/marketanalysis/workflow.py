@@ -5,7 +5,7 @@ from autogen import LLMConfig
 from fastagency import UI
 from fastagency.runtimes.ag2 import Workflow
 from autogen.agentchat import initiate_group_chat
-from market_analysis import agent_pattern
+from marketanalysis.market_analysis import agent_pattern
 
 llm_config = LLMConfig(
     model="gpt-4o-mini",
