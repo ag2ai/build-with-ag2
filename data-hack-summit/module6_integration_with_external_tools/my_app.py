@@ -1,14 +1,14 @@
 import streamlit as st
-from customer_support_agent import run_workflow
+from integrate_agent_with_mcp import run_workflow
 from dotenv import load_dotenv
 
 load_dotenv()
 
 # Set page title
-st.set_page_config(page_title="Customer Support Agent", layout="wide")
+st.set_page_config(page_title="MCP Agent Integration", layout="wide")
 
 # Main title
-st.title("Customer Support Agent")
+st.title("MCP Agent Integration with Arxiv and Wikipedia MCP")
 
 # Initialize chat history in session state if it doesn't exist
 if "messages" not in st.session_state:
@@ -20,7 +20,7 @@ for message in st.session_state.messages:
         st.markdown(message["content"])
 
 # Chat input at the bottom
-if prompt := st.chat_input("Ask me about Customer Support..."):
+if prompt := st.chat_input("Ask me about ..."):
     # Add user message to chat history
     st.session_state.messages.append({"role": "user", "content": prompt})
 

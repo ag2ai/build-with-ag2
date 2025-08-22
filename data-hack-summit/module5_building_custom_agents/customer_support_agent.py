@@ -83,6 +83,7 @@ with llm_config:
 
     user = ConversableAgent(name="user", human_input_mode="ALWAYS")
 
+
 @billing_agent.register_for_execution()
 def check_billing_status(
     customer_email: str, context_variables: ContextVariables
@@ -102,6 +103,7 @@ def check_system_status(context_variables: ContextVariables) -> str:
     status = "All systems operational. No known outages."
     context_variables["system_status"] = status
     return status
+
 
 triage_agent.handoffs.add_llm_conditions(
     [
@@ -157,6 +159,6 @@ pattern = DefaultPattern(
 
 def run_workflow(prompt):
     result, context, last_agent = initiate_group_chat(
-                pattern=pattern, messages=prompt, max_rounds=5
-            )
+        pattern=pattern, messages=prompt, max_rounds=5
+    )
     return result.summary

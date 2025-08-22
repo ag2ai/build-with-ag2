@@ -2,9 +2,10 @@ import os
 from typing import Any
 
 from autogen import LLMConfig
+from autogen.agentchat import initiate_group_chat
 from fastagency import UI
 from fastagency.runtimes.ag2 import Workflow
-from autogen.agentchat import initiate_group_chat
+
 from marketanalysis.market_analysis import agent_pattern
 
 llm_config = LLMConfig(
