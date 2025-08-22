@@ -1,4 +1,5 @@
 import os
+import sys
 
 from dotenv import load_dotenv
 
@@ -23,9 +24,12 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 llm_config = LLMConfig(model="gpt-5-nano", api_type="openai", api_key=OPENAI_API_KEY)
 
 # build server config
+script_dir = os.path.dirname(os.path.abspath(__file__))
+arxiv_script_path = os.path.join(script_dir, "mcp_arxiv.py")
+
 ArxivServer = StdioConfig(
-    command="python3",
-    args=["mcp/mcp_arxiv.py", "stdio", "--storage-path", "/tmp/arxiv_papers"],
+    command=sys.executable,
+    args=[arxiv_script_path, "stdio", "--storage-path", "/tmp/arxiv_papers"],
     transport="stdio",
     server_name="ArxivServer",
 )
