@@ -128,6 +128,12 @@ async def run_mcp_agent_to_client(query: str, server_name: str) -> ReplyResult:
                         prompt="The research paper ids are fetched."
                     ),
                 ),
+                OnCondition(
+                    target=AgentTarget(research_assistant),
+                    condition=StringLLMCondition(
+                        prompt="Wikipedia Information was fetched from MCP Server tools."
+                    ),
+                ),
             ]
         )
         # Make a request using the MCP tool
@@ -146,8 +152,12 @@ async def run_mcp_agent_to_client(query: str, server_name: str) -> ReplyResult:
         )
 
 
-research_assistant.run(
-    message="show me the latest the latest research paper ids on arxiv",
-    tools=[run_mcp_agent_to_client],
-    max_turns=2,
-).process()
+def run_workflow(prompt):
+    result = research_assistant.run(
+        message=prompt,
+        tools=[run_mcp_agent_to_client],
+        max_turns=2,
+    )
+    res = result.process()
+    last_message = res.last_message()
+    return last_message["content"][-1]
