@@ -50,14 +50,7 @@ This hands-on workshop series takes you through the complete journey of building
 - External system connectivity
 - Data processing and analysis
 
-### Module 7: FastAgency Deployments
-**Directory:** `module7_fastagency_deployments/`
-- Production deployment strategies
-- Azure deployment example (`myazureapp/`)
-- Local and cloud deployment options
-- Mesop and console interfaces
-
-### Module 8: Real-World Example
+### Module 7: Real-World Example
 **Directory:** `module8_real_world_example/`
 - Complete market analysis application (`marketanalysis/`)
 - Streamlit integration (`marketanalysis_streamlit/`)
@@ -91,7 +84,6 @@ jupyter notebook module1_introduction/module1_introduction.ipynb
 ## 🔧 Key Technologies
 
 - **AG2 (AutoGen)**: Multi-agent conversation framework
-- **FastAgency**: Production deployment framework
 - **Streamlit**: Web application framework
 - **Mesop**: Modern UI framework
 - **Azure**: Cloud deployment platform
@@ -108,7 +100,6 @@ jupyter notebook module1_introduction/module1_introduction.ipynb
 - **Real-World Examples**: Practical applications you can deploy
 - **Multiple Deployment Options**: Local development to cloud production
 - **Comprehensive Patterns**: 8 different agent design patterns
-- **Production Ready**: FastAgency integration for scalable deployments
 
 ## 🤝 Contributing
 
@@ -117,8 +108,7 @@ This workshop series is part of the Data Hack Summit curriculum. For questions o
 ## 📚 Additional Resources
 
 - [AG2 Documentation](https://ag2ai.github.io/ag2/)
-- [AutoGen Repository](https://github.com/ag2ai/ag2)
-- [FastAgency Documentation](https://fastagency.ai/)
+- [AG2/AutoGen Repository](https://github.com/ag2ai/ag2)
 
 ---
 
