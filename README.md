@@ -12,8 +12,8 @@ A curated collection of awesome agentic applications built with [AG2](https://gi
 
 ## 📂 Featured Agentic Apps
 - 🛍️ [E-Commerce Custom Service for Order Management](e-commerce-customer-service) (last updated and ran on 09/20/2025, ag2 version 0.9.9): A smart, agent-driven system that makes order tracking quick and easy while simplifying returns for both logged-in and guest users.
-- 📈 [Financial Analysis](financial-analysis)(last updated and ran on 09/20/2025, ag2 version 0.9.9):: A AI-powered stock analysis generating market insights and recommendations.
-- 🤖 [Automated Machine Learning for Kaggle](automate-ml-for-kaggle): An agent system to automate the machine learning pipeline for Kaggle competitions.
+- 📈 [Financial Analysis](financial-analysis) (last updated and ran on 09/20/2025, ag2 version 0.9.9): A AI-powered stock analysis generating market insights and recommendations.
+- 🤖 [Automated Machine Learning for Kaggle](automate-ml-for-kaggle) (last updated and ran on 09/20/2025, ag2 version 0.9.9): An agent system to automate the machine learning pipeline for Kaggle competitions.
 - 🧑‍🔬 [Deep Research Agent](deep-research-agent): Reference implementation of the deep research agent.
 - ✈️ [Travel Planner](travel-planner): An trip planning swarm system that create an itinerary together with a customer.
 - 🎮 [AI Game Design Agent Team](game-design-agent-team): A collaborative game design system that generates comprehensive game concepts through the coordination of multiple specialized AI agents.

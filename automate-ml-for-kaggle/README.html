@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Automated Machine Learning Workflow</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #24292f;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #ffffff;
+        }
+        h1, h2, h3 {
+            border-bottom: 1px solid #d1d9e0;
+            padding-bottom: 10px;
+        }
+        h1 {
+            color: #0969da;
+            font-size: 2em;
+            margin-bottom: 16px;
+        }
+        h2 {
+            color: #0969da;
+            font-size: 1.5em;
+            margin-top: 32px;
+            margin-bottom: 16px;
+        }
+        h3 {
+            color: #656d76;
+            font-size: 1.25em;
+            margin-top: 24px;
+            margin-bottom: 12px;
+        }
+        p, li {
+            margin-bottom: 10px;
+        }
+        ul, ol {
+            margin-left: 20px;
+            margin-bottom: 16px;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+        code {
+            background-color: #f6f8fa;
+            color: #0969da;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            font-size: 0.9em;
+        }
+        pre {
+            background-color: #f6f8fa;
+            border: 1px solid #d1d9e0;
+            border-radius: 6px;
+            padding: 16px;
+            overflow-x: auto;
+            margin: 16px 0;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+            color: #24292f;
+        }
+        a {
+            color: #0969da;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        strong {
+            font-weight: 600;
+        }
+        .workflow-section {
+            background-color: #f8f9fa;
+            border-left: 4px solid #0969da;
+            padding: 16px;
+            margin: 16px 0;
+            border-radius: 0 6px 6px 0;
+        }
+        .state-item {
+            margin-left: 20px;
+            margin-bottom: 12px;
+        }
+        .tags {
+            background-color: #f1f8ff;
+            border: 1px solid #c0e4ff;
+            border-radius: 6px;
+            padding: 16px;
+            margin: 16px 0;
+        }
+        .contact-links {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 16px;
+        }
+        .contact-links a {
+            display: inline-block;
+            padding: 8px 12px;
+            background-color: #f6f8fa;
+            border: 1px solid #d1d9e0;
+            border-radius: 6px;
+            color: #0969da;
+            text-decoration: none;
+            transition: background-color 0.2s;
+        }
+        .contact-links a:hover {
+            background-color: #e7edf3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Automated Machine Learning Workflow</h1>
+
+    <p>In this project, we build a machine learning workflow using AG2. The workflow involves data analysis, preprocessing, and model training to build a machine learning model.</p>
+
+    <p>Machine learning workflows typically involve several key steps:</p>
+
+    <ol>
+        <li><strong>Data Analysis and Exploration</strong>: Understanding dataset size, columns, and distributions.</li>
+        <li><strong>Data Preprocessing</strong>: Cleaning data, handling missing values, and encoding categorical variables.</li>
+        <li><strong>Model Training</strong>: Training a model, comparing different models, and tuning hyperparameters.</li>
+    </ol>
+
+    <h2>Details</h2>
+
+    <p>The workflow follows the steps of data analysis, preprocessing, and model training. Each step is executed by a specific agent, and the transition between steps is determined by the success or failure of the previous step.</p>
+
+    <p>We follow a state machine design to build the machine learning workflow:</p>
+
+    <div class="workflow-section">
+        <ul>
+            <li><strong><code>Init</code></strong> and <strong><code>End</code></strong>: Represent the start and end of the workflow.</li>
+            <li><strong><code>Explore</code></strong>: Analyze the dataset.
+                <div class="state-item">
+                    <strong>Agents</strong>: Data Explorer → Code Executor<br>
+                    <strong>Transition</strong>: If code execution is successful, move to <code>Preprocess</code>; otherwise, remain in <code>Explore</code>.
+                </div>
+            </li>
+            <li><strong><code>Preprocess</code></strong>: Clean and prepare data.
+                <div class="state-item">
+                    <strong>Agents</strong>: Data Preprocessor → Code Executor<br>
+                    <strong>Transition</strong>: A language model determines whether all necessary preprocessing steps have been completed. If yes, move to <code>Train</code>; otherwise, return to <code>Explore</code> for further analysis.
+                </div>
+            </li>
+            <li><strong><code>Train</code></strong>: Train a machine learning model.
+                <div class="state-item">
+                    <strong>Agents</strong>: Model Trainer → Code Executor<br>
+                    <strong>Transition</strong>: The model is trained in two iterations to compare performance. If the maximum trials are reached, move to <code>Summarize</code>. If code execution fails, remain in <code>Train</code> (failed trials do not count).
+                </div>
+            </li>
+            <li><strong><code>Summarize</code></strong>: Generate a summary of the workflow.
+                <div class="state-item">
+                    <strong>Agents</strong>: Summarizer<br>
+                    <strong>Transition</strong>: Always moves to <code>End</code>.
+                </div>
+            </li>
+        </ul>
+    </div>
+
+    <p>At the <code>Explore</code>, <code>Preprocess</code>, and <code>Train</code> states:</p>
+
+    <ul>
+        <li>A <strong>language model agent</strong> is invoked first.</li>
+        <li>A <strong>code executor</strong> then executes the generated code.</li>
+        <li>If execution fails, the workflow remains in the same state.</li>
+        <li>If execution succeeds, conditions are checked to determine whether to transition to the next state.</li>
+    </ul>
+
+    <p>This structured workflow ensures an efficient and iterative approach to machine learning model building.</p>
+
+    <h2>AG2 Features</h2>
+
+    <p>This project demonstrates the following AG2 features:</p>
+
+    <ul>
+        <li><a href="https://docs.ag2.ai/docs/use-cases/notebooks/notebooks/agentchat_groupchat_customized#group-chat-with-customized-speaker-selection-method">GroupChat with custom speaker transitions</a></li>
+        <li><a href="https://docs.ag2.ai/docs/blog/2024-02-29-StateFlow/index#stateflow-build-state-driven-workflows-with-customized-speaker-selection-in-groupchat">Build with StateFlow design</a></li>
+        <li><a href="https://docs.ag2.ai/docs/user-guide/advanced-concepts/code-execution#code-execution">Code Execution</a></li>
+    </ul>
+
+    <h2>TAGS</h2>
+
+    <div class="tags">
+        <p><strong>Keywords:</strong> data analysis, groupchat, stateflow, code execution, kaggle, automated machine learning, workflow automation, model training, data preprocessing, state machine, hyperparameter tuning</p>
+    </div>
+
+    <h2>Prerequisites</h2>
+
+    <ul>
+        <li>Python 3.12 or higher</li>
+        <li>OpenAI API key</li>
+    </ul>
+
+    <h2>Installation</h2>
+
+    <ol>
+        <li>Clone and navigate to the folder:
+            <pre><code>git clone https://github.com/ag2ai/build-with-ag2.git
+cd build-with-ag2/automate-ml-for-kaggle</code></pre>
+        </li>
+        <li>Install dependencies:
+            <pre><code>uv sync</code></pre>
+        </li>
+        <li>Set up environment variables:
+            <pre><code>cp .env.example .env
+# Edit .env with your OpenAI API key</code></pre>
+        </li>
+    </ol>
+
+    <h2>Usage</h2>
+
+    <p>Run the automated ML workflow:</p>
+
+    <pre><code>uv run python main.py</code></pre>
+
+    <p>The workflow will:</p>
+    <ol>
+        <li>Analyze the dataset (<code>house_prices_train.csv</code>)</li>
+        <li>Preprocess the data automatically</li>
+        <li>Train and compare multiple models</li>
+        <li>Generate performance visualizations</li>
+        <li>Output a comprehensive summary</li>
+    </ol>
+
+    <h2>Contact</h2>
+
+    <p>For more information or any questions, please refer to the documentation or reach out to us!</p>
+
+    <div class="contact-links">
+        <a href="https://docs.ag2.ai/latest/">View Documentation</a>
+        <a href="https://github.com/ag2ai/ag2">Find AG2 on GitHub</a>
+        <a href="https://discord.gg/pAbnFJrkgZ">Join us on Discord</a>
+    </div>
+
+    <h2>License</h2>
+
+    <p>This project is licensed under the Apache License 2.0. See the <a href="../LICENSE">LICENSE</a> for details.</p>
+</body>
+</html>

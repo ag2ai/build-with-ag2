@@ -63,6 +63,7 @@ For more information or any questions, please refer to the documentation or reac
 - View Documentation at: https://docs.ag2.ai/latest/
 - Find AG2 on github: https://github.com/ag2ai/ag2
 - Join us on Discord: https://discord.gg/pAbnFJrkgZ
+- Email us at: support@ag2.ai
 
 ## License
 
