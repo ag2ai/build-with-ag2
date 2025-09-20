@@ -1,5 +1,0 @@
-ag2>=0.7.2
-requests
-yfinance
-matplotlib
-gensim

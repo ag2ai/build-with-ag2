@@ -2,6 +2,7 @@
 
 - By [yiranwu0](https://github.com/yiranwu0)
 - Last revision: 06/06/2025 by [willhama](https://github.com/willhama)
+- Last revision: 20/09/2025 by [qingyun-wu](https://github.com/qingyun-wu): added uv support
 - This project referenced the AG2 notebook [task solving with code generation, execution, and debugging](https://docs.ag2.ai/notebooks/agentchat_auto_feedback_from_code_execution#a-comparative-analysis-of-meta-and-tesla-stocks-in-early-2024)
 
 This project retrieves news and stock price changes for a given stock symbol (e.g., AAPL) and generates a summarized market analysis report.
@@ -25,16 +26,20 @@ financial analysis, tool-use, async chat, stock-market, data-visualization, news
 
 ## Installation
 
-1. Clone the repository:
+1. Install dependencies using uv:
 
 ```bash
-git clone https://github.com/ag2ai/build-with-ag2.git
-cd financial-analysis
+uv sync
 ```
 
+2. Set up environment variables:
+
 ```bash
-pip install -r requirements.txt
+cp .env.example .env
+# Edit .env with your API key
 ```
+
+The primary dependency is the `ag2` library.
 
 ## Run the code
 
@@ -62,7 +67,7 @@ The configuration file supports multiple model configurations. For more details 
 ## Run the Demo
 
 ```bash
-python main.py
+uv run python main.py
 ```
 
 At the `Enter the stock you want to investigate: ` prompt, enter the stock symbol or stock name you want to investigate. For example, you can enter `AAPL` for Apple Inc. stock.
@@ -73,9 +78,9 @@ Checkout the generated `market_analysis_report.md` file for the summarized marke
 
 For more information or any questions, please refer to the documentation or reach out to us!
 
-- AG2 Documentation: https://docs.ag2.ai/docs/Home
-- AG2 GitHub: https://github.com/ag2ai/ag2
-- Discord: https://discord.gg/pAbnFJrkgZ
+- View Documentation at: https://docs.ag2.ai/latest/
+- Find AG2 on github: https://github.com/ag2ai/ag2
+- Join us on Discord: https://discord.gg/pAbnFJrkgZ
 
 ## License
 

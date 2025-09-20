@@ -1,3 +1,0 @@
-google_auth_oauthlib
-beautifulsoup4
-google-api-python-client

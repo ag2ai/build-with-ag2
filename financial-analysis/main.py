@@ -1,4 +1,5 @@
 import autogen
+from autogen import LLMConfig
 import re
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 import requests
@@ -6,13 +7,6 @@ from bs4 import BeautifulSoup
 import textwrap
 
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
-
-config_list = autogen.config_list_from_json(
-    "OAI_CONFIG_LIST",
-    filter_dict={
-        "tags": ["gpt-4o"],
-    },
-)
 
 
 # code retrieved from https://stackoverflow.com/questions/79019497/retrieving-news-articles-from-yahoo-finance-canada-website
@@ -56,7 +50,15 @@ def getUuids(companyName):
     ]["uuids"]
 
 
-llm_config = {"config_list": config_list, "timeout": 60}
+# llm_config = {"config_list": config_list, "timeout": 60}
+
+llm_config = LLMConfig(
+    api_type="openai",
+    model="gpt-4o",
+    cache_seed=42,
+    temperature=0.1,
+    timeout=60,
+)
 
 financial_assistant = autogen.AssistantAgent(
     name="financial_assistant",

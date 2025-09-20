@@ -2,6 +2,7 @@
 
 - By [yiranwu0](https://github.com/yiranwu0)
 - Last revision: 06/06/2025 by [willhama](https://github.com/willhama)
+- Last revision: 20/09/2024 by [qingyun-wu](https://github.com/qingyun-wu): added uv support
 
 An intelligent email management tool that leverages AG2’s swarm agents to help you quickly triage, filter, and respond to your emails. This application connects to Gmail, groups unread emails by sender, and offers two steps of automated assistance:
 
@@ -32,27 +33,20 @@ TAGS: groupchat, function-call, tool-use, email management, automation, gmail in
 
 ## Installation
 
-### 1. Start by cloning the repository:
+1. Install dependencies using uv:
 
 ```bash
-git clone https://github.com/ag2ai/build-with-ag2.git
-cd email-management
+uv sync
 ```
 
-### 2. Then, install the required dependencies:
+2. Set up environment variables:
 
 ```bash
-pip install -r requirements.txt
+cp .env.example .env
+# Edit .env with your API key
 ```
 
-### 3. Set Up Environment Variables
-
-First, You need to obtain API keys from OpenAI. Sign up for OpenAI [here](https://platform.openai.com/).
-Then, create a `OAI_CONFIG_LIST` file based on the provided `OAI_CONFIG_LIST_sample`:
-
-```bash
-cp OAI_CONFIG_LIST_sample OAI_CONFIG_LIST
-```
+The primary dependency is the `ag2` library.
 
 You also need to set up google credentials to access Gmail API. Search for "Gmail API" in the Google Cloud Console and enable the API.
 Follow the instructions [here](https://developers.google.com/workspace/guides/create-credentials) to set up the credentials and download the `credentials.json` file. Place the `credentials.json` file in the root directory of the project.
@@ -67,7 +61,7 @@ You get the credentials.json from the `OAuth 2.0-Client-IDs` auth option, other 
 2. **Execute the Main Script:**
    Run the primary script to start the assistant:
    ```bash
-   python main.py
+   uv run python main.py
    ```
    The script will prompt you to authenticate your Gmail account and authorize the application to access your emails. A `token.json` file will be generated to store the authentication token for future use.
    Then you can interact with the manager to triage your emails.
@@ -76,9 +70,9 @@ You get the credentials.json from the `OAuth 2.0-Client-IDs` auth option, other 
 
 For more information or any questions, please refer to the documentation or reach out to us!
 
-- AG2 Documentation: https://docs.ag2.ai/docs/Home
-- AG2 GitHub: https://github.com/ag2ai/ag2
-- Discord: https://discord.gg/pAbnFJrkgZ
+- View Documentation at: https://docs.ag2.ai/latest/
+- Find AG2 on github: https://github.com/ag2ai/ag2
+- Join us on Discord: https://discord.gg/pAbnFJrkgZ
 
 ## License
 
