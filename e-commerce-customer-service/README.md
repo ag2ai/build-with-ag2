@@ -78,9 +78,9 @@ The system will start running, and you can interact with it through the command 
 
 For more information or any questions, please refer to the documentation or reach out to us!
 
-- View Documentation at: https://docs.ag2.ai/docs/Home
-- Reachout to us: https://github.com/ag2ai/ag2
-- Join Discord: https://discord.gg/pAbnFJrkgZ
+- View Documentation at: https://docs.ag2.ai/latest/
+- Find AG2 on github: https://github.com/ag2ai/ag2
+- Join us on Discord: https://discord.gg/pAbnFJrkgZ
 
 ## License
 
