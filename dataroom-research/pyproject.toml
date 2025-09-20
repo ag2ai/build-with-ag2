@@ -1,0 +1,18 @@
+[project]
+name = "dataroom-research"
+version = "0.1.0"
+description = "DataRoom Research: AG2 DeepResearchAgent + GoogleDriveToolkit"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "ag2[browser-use,openai,google-api,rag]>=0.9.0",
+    "fastapi>=0.115.8",
+    "nest-asyncio>=1.6.0",
+    "streamlit>=1.42.0",
+    "uvicorn>=0.34.0",
+    "websockets>=14.2",
+    "google-api-python-client",
+    "google-auth-httplib2",
+    "google-auth-oauthlib",
+    "python-docx",
+]

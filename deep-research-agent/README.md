@@ -1,88 +1,80 @@
-# Reference implementation of AG2 DeepResearchAgent
+# AG2 DeepResearchAgent - Reference Implementation
 
 - Created by [willhama](https://github.com/willhama)
-- Last revision: 11/05/2025 by [willhama](https://github.com/willhama)
+- Last revision: 09/20/2025 by [qingyun-wu](https://github.com/qingyun-wu)
 
-DeepResearchAgent is an advanced research tool built on the AG2 framework, inspired by OpenAI's deep research agent.
+DeepResearchAgent is an advanced research tool built on the AG2 framework, inspired by OpenAI's deep research capabilities.
 
-## Detailed Description
+## Overview
 
-This is the reference implementation from OpenAI's deep research agent. It efficiently retrieves relevant data, processes information, and provides concise conclusions, helping analysts and investors make informed decisions.
-https://openai.com/index/introducing-deep-research/
+This reference implementation demonstrates OpenAI's deep research agent functionality. It efficiently retrieves relevant data, processes information, and delivers concise conclusions to help analysts and investors make informed decisions.
+
+Learn more: https://openai.com/index/introducing-deep-research/
 
 ## AG2 Features
 
 - [DeepResearchAgent](https://docs.ag2.ai/docs/blog/2025-02-13-DeepResearchAgent/index)
 
-## TAGS
+## Tags
 
-TAGS: deep-research, data-retrieval, automation, research-assistant, streamlit, uvicorn, web-scraping
+deep-research, data-retrieval, automation, research-assistant, streamlit, uvicorn, web-scraping
 
 ## Installation
 
-DeepResearchAgent requires Python 3.11 or higher.
+DeepResearchAgent requires Python 3.12 or higher.
 
-1. Install the required packages:
+### Using uv (recommended)
 
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-2. If you are already using `autogen` or `pyautogen`, simply upgrade:
+1. Install uv if you haven't already:
 
    ```bash
-   pip install -U autogen[browser-use]
+   curl -LsSf https://astral.sh/uv/install.sh | sh
    ```
 
-3. Install Playwright (required for web data retrieval):
+2. Install the project dependencies:
 
    ```bash
-   playwright install
+   uv sync
    ```
 
-   **For Linux users only:**
+3. Set up environment variables:
 
    ```bash
-   playwright install-deps
+   cp .env.example .env
+   # Edit .env with your OpenAI API key
    ```
 
-## Running the code
+4. Run the application:
 
-Before running the demo, you need to set up your OpenAI API configuration. Create an `OAI_CONFIG_LIST` file based on the provided `OAI_CONFIG_LIST_sample` and update the `api_key` to your OpenAI API key for the configuration with the tag "gpt-4o". Change `filter_dict` tags in main.py if you want to use other models. Refer to [AutoGen configuration guide](https://docs.ag2.ai/getting-started#configuration) for more details.
+   ```bash
+   uv run python main.py
+   ```
 
-```bash
-cp OAI_CONFIG_LIST_sample OAI_CONFIG_LIST
-```
+## Web Interface
 
-```bash
-python main.py
-```
+You can also run the application with a Streamlit frontend and FastAPI backend:
 
-There is also a streamlit frontend and fastapi backend application that can be run with the following command:
+1. Start the backend:
 
-1. Start the backend
+   ```bash
+   uvicorn backend:app --reload
+   ```
 
-```bash
-uvicorn backend:app --reload
-```
+2. Start the frontend:
 
-2. Start the frontend
+   ```bash
+   streamlit run frontend.py
+   ```
 
-```bash
-streamlit run frontend.py
-```
-
-3. Visit your app on `http://localhost:8501/`
+3. Open your browser and navigate to `http://localhost:8501/`
 
 ## Contact
 
-<!-- Add any helpful resources here! -->
-
 For more information or any questions, please refer to the documentation or reach out to us!
 
-- View Documentation at: https://docs.ag2.ai/docs/Home
-- Reachout to us: https://github.com/ag2ai/ag2
-- Join Discord: https://discord.gg/pAbnFJrkgZ
+- View Documentation at: https://docs.ag2.ai/latest/
+- Find AG2 on github: https://github.com/ag2ai/ag2
+- Join us on Discord: https://discord.gg/pAbnFJrkgZ
 
 ## License
 

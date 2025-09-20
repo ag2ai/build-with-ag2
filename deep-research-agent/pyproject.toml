@@ -1,0 +1,14 @@
+[project]
+name = "deep-research-agent"
+version = "0.1.0"
+description = "Deep research agent with web browsing capabilities"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "ag2[browser-use,openai]>=0.9.9",
+    "fastapi>=0.115.8",
+    "nest-asyncio>=1.6.0",
+    "streamlit>=1.42.0",
+    "uvicorn>=0.34.0",
+    "websockets>=14.2",
+]
