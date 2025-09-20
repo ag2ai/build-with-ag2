@@ -1,8 +1,8 @@
-# E-Commerce Customer Service for Order Management
+# E-Commerce Customer Service with Order Management
 
 - By [yiranwu0](https://github.com/yiranwu0)
 - Last revision: 26/05/2024 by [willhama](https://github.com/willhama)
-- Last revision: 20/09/2024 by [qingyun-wu](https://github.com/qingyun-wu): added uv support
+- Last revision: 20/09/2024 by [qingyun-wu](https://github.com/qingyun-wu): added uv support and enhance docs
 
 This project demonstrates a robust and flexible order management system using decentralized agent orchestration. The system addresses two primary user needs: order tracking and order returns. The workflow considers the user's login status during the initial interaction. Users can quickly track an order using a tracking number without logging in, while returns require authentication. This system leverages modular agents for triaging, tracking, login management, order management, and returns, ensuring a seamless user experience.
 
@@ -15,6 +15,7 @@ This project demonstrates the following AG2 features:
 ## Tags
 
 `groupchat` `e-commerce` `order-management` `customer-service` `order-tracking` `returns-processing` `authentication` `workflow-automation` `agent-orchestration`
+
 
 ## Description
 
