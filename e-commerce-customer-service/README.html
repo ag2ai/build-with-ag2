@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Commerce Customer Service for Order Management</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #7f8c8d;
+        }
+        .author {
+            background: #ecf0f1;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .tags {
+            background: #e8f4fd;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #3498db;
+        }
+        .tag {
+            display: inline-block;
+            background: #3498db;
+            color: white;
+            padding: 3px 8px;
+            margin: 2px;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+        .agent {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 4px solid #2ecc71;
+        }
+        .agent h4 {
+            margin: 0 0 10px 0;
+            color: #27ae60;
+        }
+        .tools {
+            margin-left: 20px;
+        }
+        .tools li {
+            margin: 5px 0;
+        }
+        code {
+            background: #f4f4f4;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background: #f4f4f4;
+            color: #333;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            border: 1px solid #ddd;
+        }
+        .example {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #ffc107;
+            margin: 15px 0;
+        }
+        .contact {
+            background: #d1ecf1;
+            padding: 20px;
+            border-radius: 5px;
+            margin-top: 30px;
+        }
+        .contact a {
+            color: #0056b3;
+            text-decoration: none;
+        }
+        .contact a:hover {
+            text-decoration: underline;
+        }
+        ul li {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>E-Commerce Customer Service for Order Management</h1>
+
+        <div class="author">
+            <strong>By:</strong> <a href="https://github.com/yiranwu0">yiranwu0</a><br>
+            <strong>Last revision:</strong> 05/26/2024 by <a href="https://github.com/willhama">willhama</a><br>
+            <strong>Last revision:</strong> 09/20/2025 by <a href="https://github.com/qingyun-wu">qingyun-wu</a>: added uv support
+        </div>
+
+        <p>This project demonstrates a robust and flexible order management system using decentralized agent orchestration. The system addresses two primary user needs: order tracking and order returns. The workflow considers the user's login status during the initial interaction. Users can quickly track an order using a tracking number without logging in, while returns require authentication. This system leverages modular agents for triaging, tracking, login management, order management, and returns, ensuring a seamless user experience.</p>
+
+        <h2>🤖 AG2 Features</h2>
+        <p>This project demonstrates the following AG2 features:</p>
+        <ul>
+            <li><a href="https://docs.ag2.ai/latest/docs/user-guide/advanced-concepts/orchestration/group-chat/introduction/#purpose-and-benefits">Group Chat</a></li>
+        </ul>
+
+        <h2>🏷️ Tags</h2>
+        <div class="tags">
+            <span class="tag">groupchat</span>
+            <span class="tag">e-commerce</span>
+            <span class="tag">order-management</span>
+            <span class="tag">customer-service</span>
+            <span class="tag">order-tracking</span>
+            <span class="tag">returns-processing</span>
+            <span class="tag">authentication</span>
+            <span class="tag">workflow-automation</span>
+            <span class="tag">agent-orchestration</span>
+        </div>
+
+        <h2>📋 Description</h2>
+
+        <h3>Agents and Workflow</h3>
+        <p>The system initializes context variables with two fields: <code>user_info</code> to store user information (and order list when a user logs in) and <code>order_info</code> to store the retrieved order information. Since group chat is a decentralized orchestration, the transfer logic is distributed across each agent:</p>
+
+        <div class="agent">
+            <h4>Order Triage Agent</h4>
+            <p>Routes order-related messages to the appropriate agent. Decides whether to transfer to the Tracking Agent or the Login Agent based on user intent.</p>
+        </div>
+
+        <div class="agent">
+            <h4>Tracking Agent</h4>
+            <p>Enables users to track orders without logging in. First requests a tracking number, then asks for additional verification information (email or phone number) to confirm identity. Can transfer to the Login Agent if order management is needed.</p>
+            <div class="tools">
+                <strong>Tools:</strong>
+                <ul>
+                    <li><code>verify_tracking_number</code>: Verifies if the tracking number is valid and updates context variables with order info</li>
+                    <li><code>verify_user_information</code>: Validates user information and returns order details if correct</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="agent">
+            <h4>Login Agent</h4>
+            <p>Handles user authentication with the <code>login_account</code> tool. Upon successful login, updates context variables with user info and transfers to the Order Management Agent. Can guide users through retry or account recovery processes. Currently uses a mock login system for demonstration.</p>
+        </div>
+
+        <div class="agent">
+            <h4>Order Management Agent</h4>
+            <p>General-purpose agent for authenticated users with access to complete order history. Uses <code>get_order_history</code> and <code>check_order_status</code> tools to help users find and check past orders. Can transfer to the Return Agent for order returns.</p>
+        </div>
+
+        <div class="agent">
+            <h4>Return Agent</h4>
+            <p>Manages the order return process. Verifies return eligibility with <code>check_return_eligibility</code> and initiates returns with <code>initiate_return_process</code> upon user confirmation. Can transfer back to the Order Management Agent as needed.</p>
+        </div>
+
+        <h2>⚙️ Installation</h2>
+
+        <p><strong>1. Install dependencies using uv:</strong></p>
+        <pre><code>uv sync</code></pre>
+
+        <p><strong>2. Set up environment variables:</strong></p>
+        <pre><code>cp .env.example .env
+# Edit .env with your API key</code></pre>
+
+        <p>The primary dependency is the <code>ag2</code> library.</p>
+
+        <h2>🚀 Run the code</h2>
+        <pre><code>uv run python main.py</code></pre>
+
+        <p>The system will start running, and you can interact with it through the command line.</p>
+
+        <h3>📝 Example Interactions</h3>
+
+        <div class="example">
+            <h4>Example 1: Cancel orders</h4>
+            <ol>
+                <li><code>I want to cancel my order</code></li>
+                <li><code>TR14234</code></li>
+                <li>Continue to interact with the system...</li>
+            </ol>
+        </div>
+
+        <div class="example">
+            <h4>Example 2: Track orders</h4>
+            <ol>
+                <li><code>I want to track my order</code></li>
+                <li><code>TR13845</code></li>
+                <li><code>8453</code> (last 4 digits of phone number)</li>
+                <li>Continue to interact with the system...</li>
+            </ol>
+        </div>
+
+        <div class="contact">
+            <h2>📞 Contact</h2>
+            <p>For more information or any questions, please refer to the documentation or reach out to us!</p>
+            <ul>
+                <li>📚 View Documentation at: <a href="https://docs.ag2.ai/latest/">https://docs.ag2.ai/latest/</a></li>
+                <li>🐙 Find AG2 on GitHub: <a href="https://github.com/ag2ai/ag2">https://github.com/ag2ai/ag2</a></li>
+                <li>💬 Join us on Discord: <a href="https://discord.gg/pAbnFJrkgZ">https://discord.gg/pAbnFJrkgZ</a></li>
+            </ul>
+        </div>
+
+        <h2>📄 License</h2>
+        <p>This project is licensed under the Apache License 2.0. See the <a href="../LICENSE">LICENSE</a> for details.</p>
+    </div>
+</body>
+</html>

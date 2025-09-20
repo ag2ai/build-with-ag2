@@ -2,7 +2,7 @@
 
 - By [yiranwu0](https://github.com/yiranwu0)
 - Last revision: 06/06/2025 by [willhama](https://github.com/willhama)
-- Last revision: 20/09/2025 by [qingyun-wu](https://github.com/qingyun-wu): added uv support
+- Last revision: 09/20/2025 by [qingyun-wu](https://github.com/qingyun-wu): added uv support
 - This project referenced the AG2 notebook [task solving with code generation, execution, and debugging](https://docs.ag2.ai/notebooks/agentchat_auto_feedback_from_code_execution#a-comparative-analysis-of-meta-and-tesla-stocks-in-early-2024)
 
 This project retrieves news and stock price changes for a given stock symbol (e.g., AAPL) and generates a summarized market analysis report.
@@ -45,24 +45,6 @@ The primary dependency is the `ag2` library.
 
 Before running the demo, you need to set up your OpenAI API configuration:
 
-1. Create a file named `OAI_CONFIG_LIST` in the project root:
-
-```bash
-cp OAI_CONFIG_LIST_sample OAI_CONFIG_LIST
-```
-
-2. Edit the `OAI_CONFIG_LIST` file to include your OpenAI API configuration:
-
-```json
-[
-  {
-    "model": "gpt-4",
-    "api_key": "YOUR_OPENAI_API_KEY"
-  }
-]
-```
-
-The configuration file supports multiple model configurations. For more details on available options and advanced configurations, refer to the [AutoGen configuration guide](https://docs.ag2.ai/getting-started#configuration).
 
 ## Run the Demo
 

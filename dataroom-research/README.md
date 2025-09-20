@@ -48,19 +48,8 @@ DeepResearchAgent requires Python 3.11 or higher.
 
 ## Running the code
 
-Before running the system, you need to complete some configuration steps:
 
-### 1. Configure API Access
-
-#### OpenAI API Configuration
-Create an `OAI_CONFIG_LIST` file based on the provided sample and update the `api_key` field with your OpenAI API key:
-
-```bash
-cp OAI_CONFIG_LIST_sample OAI_CONFIG_LIST
-# Edit the file to add your API key
-```
-
-### 2. Google Drive Integration
+### Google Drive Integration
 
 For a detailed tutorial on the Google Drive Toolkit functionality, see the
 [AG2 Google Drive Documentation](https://docs.ag2.ai/latest/docs/use-cases/notebooks/notebooks/tools_google_drive/)
