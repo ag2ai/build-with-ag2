@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Management Assistant</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #7f8c8d;
+        }
+        .author {
+            background: #ecf0f1;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .tags {
+            background: #e8f4fd;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #3498db;
+        }
+        .tag {
+            display: inline-block;
+            background: #3498db;
+            color: white;
+            padding: 3px 8px;
+            margin: 2px;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+        .feature {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 4px solid #2ecc71;
+        }
+        .feature h4 {
+            margin: 0 0 10px 0;
+            color: #27ae60;
+        }
+        .workflow-step {
+            background: #e8f5e8;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 4px solid #28a745;
+        }
+        code {
+            background: #f4f4f4;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background: #f4f4f4;
+            color: #333;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            border: 1px solid #ddd;
+        }
+        .warning {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #ffc107;
+            margin: 15px 0;
+        }
+        .contact {
+            background: #d1ecf1;
+            padding: 20px;
+            border-radius: 5px;
+            margin-top: 30px;
+        }
+        .contact a {
+            color: #0056b3;
+            text-decoration: none;
+        }
+        .contact a:hover {
+            text-decoration: underline;
+        }
+        ul li {
+            margin: 5px 0;
+        }
+        .setup-note {
+            background: #fff0f5;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #e74c3c;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Email Management Assistant</h1>
+
+        <div class="author">
+            <strong>By:</strong> <a href="https://github.com/yiranwu0">yiranwu0</a><br>
+            <strong>Last revision:</strong> 06/06/2025 by <a href="https://github.com/willhama">willhama</a><br>
+            <strong>Last revision:</strong> 09/20/2025 by <a href="https://github.com/qingyun-wu">qingyun-wu</a>: added uv support
+        </div>
+
+        <p>An intelligent email management tool that leverages AG2's swarm agents to help you quickly triage, filter, and respond to your emails. This application connects to Gmail, groups unread emails by sender, and offers two steps of automated assistance:</p>
+
+        <div class="workflow-step">
+            <h4>📧 Mark as read in Batch:</h4>
+            <p>Identify and mark groups of non-critical emails from the same sender as read.</p>
+        </div>
+
+        <div class="workflow-step">
+            <h4>✉️ Individual actions:</h4>
+            <p>Read, summarize, and assist in drafting replies for emails requiring your attention.</p>
+        </div>
+
+        <h2>📋 Detailed Description</h2>
+
+        <p>This project streamlines your email workflow by performing the following tasks:</p>
+
+        <div class="feature">
+            <h4>🔐 Connecting to Gmail</h4>
+            <p>Securely authenticates and retrieves unread emails.</p>
+        </div>
+
+        <div class="feature">
+            <h4>📊 Grouping Emails</h4>
+            <p>Organizes emails by sender and provides summaries (including subject lines and excerpts from the email body) for rapid review.</p>
+        </div>
+
+        <div class="feature">
+            <h4>🔍 Bulk Filtering</h4>
+            <p>Utilizes a swarm agent (<em>filter_agent</em>) to analyze email groups, suggesting which sender groups can be marked as read, and then confirms with the user before executing the bulk action.</p>
+        </div>
+
+        <div class="feature">
+            <h4>🤖 Individual Email Assistance</h4>
+            <p>Deploys another swarm agent (<em>email_assistant</em>) to classify each email, determining whether an email should be marked as read directly or read in full for further review. The agent also assists in summarizing key points and drafting responses when needed.</p>
+        </div>
+
+        <h2>🤖 AG2 Features</h2>
+        <p>This project demonstrates several key AG2 features:</p>
+        <ul>
+            <li><a href="https://docs.ag2.ai/latest/docs/user-guide/advanced-concepts/orchestration/group-chat/introduction/#purpose-and-benefits">Groupchat</a></li>
+            <li><a href="https://docs.ag2.ai/docs/user-guide/basic-concepts/tools">Tool using</a>: Agents trigger Python functions (e.g., marking emails as read, retrieving email threads) based on real-time context.</li>
+        </ul>
+
+        <p>For further details on these features, please refer to the <a href="https://docs.ag2.ai/docs/Home">AG2 Documentation</a>.</p>
+
+        <h2>🏷️ Tags</h2>
+        <div class="tags">
+            <span class="tag">groupchat</span>
+            <span class="tag">function-call</span>
+            <span class="tag">tool-use</span>
+            <span class="tag">email management</span>
+            <span class="tag">automation</span>
+            <span class="tag">gmail integration</span>
+            <span class="tag">email triage</span>
+            <span class="tag">workflow optimization</span>
+            <span class="tag">ai assistant</span>
+        </div>
+
+        <h2>⚙️ Installation</h2>
+
+        <p><strong>1. Install dependencies using uv:</strong></p>
+        <pre><code>uv sync</code></pre>
+
+        <p><strong>2. Set up environment variables:</strong></p>
+        <pre><code>cp .env.example .env
+# Edit .env with your API key</code></pre>
+
+        <p>The primary dependency is the <code>ag2</code> library.</p>
+
+        <div class="setup-note">
+            <h4>🔑 Gmail API Setup Required</h4>
+            <p>You also need to set up Google credentials to access Gmail API:</p>
+            <ol>
+                <li>Search for "Gmail API" in the Google Cloud Console and enable the API</li>
+                <li>Follow the instructions <a href="https://developers.google.com/workspace/guides/create-credentials">here</a> to set up the credentials and download the <code>credentials.json</code> file</li>
+                <li>Place <code>credentials.json</code> in the root directory of the project</li>
+                <li>You get the credentials.json from the <code>OAuth 2.0-Client-IDs</code> auth option, other options will not work</li>
+            </ol>
+        </div>
+
+        <h2>🚀 Running the Code</h2>
+
+        <h3>⚙️ Settings</h3>
+        <div class="warning">
+            <p>In <code>main.py</code>, set the <code>max_unread_emails_limit</code> to be the maximum number of unread emails to fetch at each run. By default, it is set to 20.</p>
+            <p><strong>Important:</strong> By default, <code>is_mock_read_email</code> is set to <code>True</code> to mock the read email action. If set to <code>False</code>, emails in your Gmail account will be marked as read. Please be careful to modify this setting.</p>
+        </div>
+
+        <h3>▶️ Execute the Main Script</h3>
+        <p>Run the primary script to start the assistant:</p>
+        <pre><code>uv run python main.py</code></pre>
+
+        <p>The script will prompt you to authenticate your Gmail account and authorize the application to access your emails. A <code>token.json</code> file will be generated to store the authentication token for future use.</p>
+        <p>Then you can interact with the manager to triage your emails.</p>
+
+        <div class="contact">
+            <h2>📞 Contact</h2>
+            <p>For more information or any questions, please refer to the documentation or reach out to us!</p>
+            <ul>
+                <li>📚 View Documentation at: <a href="https://docs.ag2.ai/latest/">https://docs.ag2.ai/latest/</a></li>
+                <li>🐙 Find AG2 on GitHub: <a href="https://github.com/ag2ai/ag2">https://github.com/ag2ai/ag2</a></li>
+                <li>💬 Join us on Discord: <a href="https://discord.gg/pAbnFJrkgZ">https://discord.gg/pAbnFJrkgZ</a></li>
+            </ul>
+        </div>
+
+        <h2>📄 License</h2>
+        <p>This project is licensed under the Apache License 2.0. See the <a href="../LICENSE">LICENSE</a> for details.</p>
+    </div>
+</body>
+</html>

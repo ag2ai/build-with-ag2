@@ -2,7 +2,7 @@
 
 - By [yiranwu0](https://github.com/yiranwu0)
 - Last revision: 06/06/2025 by [willhama](https://github.com/willhama)
-- Last revision: 20/09/2024 by [qingyun-wu](https://github.com/qingyun-wu): added uv support
+- Last revision: 09/20/2025 by [qingyun-wu](https://github.com/qingyun-wu): added uv support
 
 An intelligent email management tool that leverages AG2’s swarm agents to help you quickly triage, filter, and respond to your emails. This application connects to Gmail, groups unread emails by sender, and offers two steps of automated assistance:
 

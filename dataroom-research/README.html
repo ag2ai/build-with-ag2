@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataRoom Research: AG2 DeepResearch Agent + GoogleDriveToolkit</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #7f8c8d;
+        }
+        .author {
+            background: #ecf0f1;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .tags {
+            background: #e8f4fd;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #3498db;
+        }
+        .tag {
+            display: inline-block;
+            background: #3498db;
+            color: white;
+            padding: 3px 8px;
+            margin: 2px;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+        .feature {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 4px solid #2ecc71;
+        }
+        .feature h4 {
+            margin: 0 0 10px 0;
+            color: #27ae60;
+        }
+        .system {
+            background: #e8f5e8;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 4px solid #28a745;
+        }
+        .system h4 {
+            margin: 0 0 10px 0;
+            color: #155724;
+        }
+        code {
+            background: #f4f4f4;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background: #f4f4f4;
+            color: #333;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            border: 1px solid #ddd;
+        }
+        .requirement {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #ffc107;
+            margin: 15px 0;
+        }
+        .contact {
+            background: #d1ecf1;
+            padding: 20px;
+            border-radius: 5px;
+            margin-top: 30px;
+        }
+        .contact a {
+            color: #0056b3;
+            text-decoration: none;
+        }
+        .contact a:hover {
+            text-decoration: underline;
+        }
+        ul li {
+            margin: 5px 0;
+        }
+        .setup-step {
+            background: #f0f8ff;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 4px solid #007bff;
+        }
+        .setup-step h4 {
+            margin: 0 0 10px 0;
+            color: #0056b3;
+        }
+        .optional {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #6c757d;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>DataRoom Research: AG2 DeepResearch Agent + GoogleDriveToolkit</h1>
+
+        <div class="author">
+            <strong>Created by:</strong> <a href="https://github.com/internetoftim">internetoftim</a><br>
+            <strong>Updated by:</strong> <a href="https://github.com/qingyun-wu">qingyun-wu</a><br>
+            <strong>Last revision:</strong> 06/06/2025
+        </div>
+
+        <p>DataRoom Research is a multi-agent research system that combines the capabilities of DeepResearchAgent with GoogleDriveToolkit, built on the AG2 framework. It enhances OpenAI's deep research agent concept by adding document handling and Google Drive integration.</p>
+
+        <h2>📋 Detailed Description</h2>
+
+        <p>This project combines two powerful agent systems:</p>
+
+        <div class="system">
+            <h4>🔍 DeepResearchAgent</h4>
+            <p>Inspired by OpenAI's deep research agent, it efficiently retrieves relevant data, processes information, and provides concise research conclusions.</p>
+            <p>Learn more: <a href="https://openai.com/index/introducing-deep-research/">https://openai.com/index/introducing-deep-research/</a></p>
+        </div>
+
+        <div class="system">
+            <h4>☁️ Google Drive Integration</h4>
+            <p>Seamlessly integrates with Google Drive to access, download, and analyze documents stored in the cloud.</p>
+        </div>
+
+        <p>The system also features a professional report writer agent that creates well-structured markdown reports with proper formatting.</p>
+
+        <h2>🤖 AG2 Features</h2>
+        <ul>
+            <li><a href="https://docs.ag2.ai/docs/blog/2025-02-13-DeepResearchAgent/index">DeepResearchAgent</a> - For advanced web research and data gathering</li>
+            <li><a href="https://docs.ag2.ai/latest/docs/user-guide/reference-tools/google-api/google-drive/">GoogleDriveToolkit</a> - For seamless Google Drive integration</li>
+            <li><a href="https://docs.ag2.ai/latest/docs/use-cases/notebooks/notebooks/agentchat_groupchat_tools/">GroupChat</a> - Flexible orchestration of multiple specialized agents</li>
+        </ul>
+
+        <h2>🏷️ Tags</h2>
+        <div class="tags">
+            <span class="tag">deep-research</span>
+            <span class="tag">data-retrieval</span>
+            <span class="tag">google-drive</span>
+            <span class="tag">document-analysis</span>
+            <span class="tag">multi-agent</span>
+            <span class="tag">report-writer</span>
+            <span class="tag">automation</span>
+            <span class="tag">research-assistant</span>
+            <span class="tag">web-scraping</span>
+        </div>
+
+        <h2>⚙️ Installation</h2>
+
+        <div class="requirement">
+            <strong>Requirement:</strong> DeepResearchAgent requires Python 3.11 or higher.
+        </div>
+
+        <h3>📦 Using uv (Recommended)</h3>
+
+        <p><strong>1. Install dependencies using uv:</strong></p>
+        <pre><code>uv sync</code></pre>
+
+        <p><strong>2. Install Playwright (required for web data retrieval):</strong></p>
+        <pre><code>uv run playwright install</code></pre>
+
+        <h2>🚀 Running the code</h2>
+        <div class="setup-step">
+            <h4> Google Drive Integration</h4>
+            <p>For a detailed tutorial on the Google Drive Toolkit functionality, see the <a href="https://docs.ag2.ai/latest/docs/use-cases/notebooks/notebooks/tools_google_drive/">AG2 Google Drive Documentation</a></p>
+
+            <p><strong>Note:</strong> In order to successfully run that notebook, you would need to do the following steps first.</p>
+
+            <p>To enable Google Drive features, you need OAuth credentials following <a href="https://developers.google.com/workspace/drive/api/quickstart/python#set-up-environment">Google's Quickstart</a>:</p>
+
+            <ol>
+                <li>Create a Google Cloud project and enable the Drive API</li>
+                <li>Create OAuth 2.0 credentials and download as <code>credentials.json</code></li>
+                <li>Place <code>credentials.json</code> in the project root directory</li>
+                <li>(Optional) Generate the <code>token.json</code> file by running <a href="https://github.com/googleworkspace/python-samples/blob/main/drive/quickstart/quickstart.py">gdrive_signin.py</a></li>
+            </ol>
+
+            <p>The system will automatically handle OAuth authentication on first run, and you should be able to see the files in your Google Drive account get listed here.</p>
+
+            <pre><code>uv run python gdrive_signin.py</code></pre>
+
+            <p>You can also copy over the <code>credentials.json</code> and <code>token.json</code> to run the <a href="https://docs.ag2.ai/latest/docs/use-cases/notebooks/notebooks/tools_google_drive/">AG2 Google Drive Collab Notebook</a></p>
+        </div>
+
+        <div class="setup-step">
+            <h4> Run the System</h4>
+
+            <h4>💻 Basic Command-line Interface</h4>
+            <p>Run the main application with standard research capabilities:</p>
+            <pre><code>uv run python main.py</code></pre>
+
+            <p>With Google Drive capabilities enabled:</p>
+            <pre><code>uv run python main.py --use-gdrive</code></pre>
+
+            <p>For testing with simulated research responses:</p>
+            <pre><code>uv run python main.py --use-fake</code></pre>
+        </div>
+
+        <h2>🎯 Features and Capabilities</h2>
+
+        <div class="feature">
+            <h4>🔍 DeepResearchAgent</h4>
+            <ul>
+                <li>Conducts comprehensive web research on any given topic</li>
+                <li>Uses the latest browser automation tools to gather accurate and up-to-date information</li>
+                <li>Analyzes multiple sources to provide balanced, objective research</li>
+                <li>Provides citations and references for all findings</li>
+            </ul>
+        </div>
+
+        <div class="feature">
+            <h4>☁️ Google Drive Integration</h4>
+            <ul>
+                <li>Lists files and folders from your Google Drive account</li>
+                <li>Downloads documents for local processing</li>
+                <li>Searches Drive for specific file types or content</li>
+                <li>Integrates downloaded documents seamlessly with the document analysis capabilities</li>
+            </ul>
+        </div>
+
+        <div class="feature">
+            <h4>📝 Report Generation</h4>
+            <ul>
+                <li>The Report Writer agent creates well-structured markdown reports with proper sections and exports it as a Markdown file</li>
+                <li>Executive summaries, key findings, and detailed analysis in consistent formatting</li>
+            </ul>
+        </div>
+
+        <div class="optional">
+            <h2>🖥️ (Optional) Using Local LLMs with Ollama</h2>
+            <p>This system supports using local language models through Ollama as an alternative to OpenAI's API. This can provide privacy benefits, reduce costs, and enable offline usage.</p>
+
+            <h3>🔧 Setting Up Ollama</h3>
+            <p><strong>1. Install Ollama by following the instructions at <a href="https://ollama.ai/download">Ollama's official website</a></strong></p>
+
+            <p><strong>2. Pull a compatible model (we recommend models with at least 7B parameters):</strong></p>
+            <p>Install a model (example):</p>
+            <pre><code>ollama pull deepseek-r1</code></pre>
+
+            <p>or another compatible model:</p>
+            <pre><code>ollama pull llama3:8b</code></pre>
+
+            <p>Start the Ollama server:</p>
+            <pre><code>ollama serve</code></pre>
+
+            <p>Ollama runs a REST API on http://localhost:11434 by default. The Ollama configuration is included in OAI_CONFIG_LIST to use the local LLM with your agent.</p>
+        </div>
+
+        <div class="contact">
+            <h2>📞 Contact</h2>
+            <p>For more information or any questions, please refer to the documentation or reach out to us!</p>
+            <ul>
+                <li>📚 View Documentation at: <a href="https://docs.ag2.ai/docs/Home">https://docs.ag2.ai/docs/Home</a></li>
+                <li>🐙 Reach out to us: <a href="https://github.com/ag2ai/ag2">https://github.com/ag2ai/ag2</a></li>
+                <li>💬 Join Discord: <a href="https://discord.gg/pAbnFJrkgZ">https://discord.gg/pAbnFJrkgZ</a></li>
+            </ul>
+        </div>
+
+        <h2>📄 License</h2>
+        <p>This project is licensed under the Apache License 2.0. See the <a href="../LICENSE">LICENSE</a> for details.</p>
+    </div>
+</body>
+</html>

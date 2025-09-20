@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Analysis of a Given Stock</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #7f8c8d;
+        }
+        .author {
+            background: #ecf0f1;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .tags {
+            background: #e8f4fd;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #3498db;
+        }
+        .tag {
+            display: inline-block;
+            background: #3498db;
+            color: white;
+            padding: 3px 8px;
+            margin: 2px;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+        .feature {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 4px solid #2ecc71;
+        }
+        code {
+            background: #f4f4f4;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background: #f4f4f4;
+            color: #333;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            border: 1px solid #ddd;
+        }
+        .example {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #ffc107;
+            margin: 15px 0;
+        }
+        .contact {
+            background: #d1ecf1;
+            padding: 20px;
+            border-radius: 5px;
+            margin-top: 30px;
+        }
+        .contact a {
+            color: #0056b3;
+            text-decoration: none;
+        }
+        .contact a:hover {
+            text-decoration: underline;
+        }
+        ul li {
+            margin: 5px 0;
+        }
+        .note {
+            background: #fff0f5;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #e74c3c;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Financial Analysis of a Given Stock</h1>
+
+        <div class="author">
+            <strong>By:</strong> <a href="https://github.com/yiranwu0">yiranwu0</a><br>
+            <strong>Last revision:</strong> 06/06/2025 by <a href="https://github.com/willhama">willhama</a><br>
+            <strong>Last revision:</strong> 09/20/2025 by <a href="https://github.com/qingyun-wu">qingyun-wu</a>: added uv support<br>
+            <strong>Project reference:</strong> AG2 notebook <a href="https://docs.ag2.ai/notebooks/agentchat_auto_feedback_from_code_execution#a-comparative-analysis-of-meta-and-tesla-stocks-in-early-2024">task solving with code generation, execution, and debugging</a>
+        </div>
+
+        <p>This project retrieves news and stock price changes for a given stock symbol (e.g., AAPL) and generates a summarized market analysis report.</p>
+
+        <h2>📋 Details</h2>
+        <ul>
+            <li>Getting 5 news from Yahoo Finance</li>
+            <li>Getting stock price changes with Python Code, and plot a 1-year stock price change graph</li>
+            <li>Summarized report and analysis report generation in <code>market_analysis_report.md</code>, including a conclusion to buy, sell, or hold the stock</li>
+        </ul>
+
+        <div class="note">
+            <strong>Note:</strong> This is not financial advice, but a demonstration of how AG2 can help with financial analysis.
+        </div>
+
+        <h2>🤖 AG2 Features</h2>
+        <p>This project uses the following AG2 features:</p>
+        <ul>
+            <li><a href="https://docs.ag2.ai/docs/user-guide/basic-concepts/tools">Using Tools</a></li>
+            <li><a href="https://docs.ag2.ai/docs/api-reference/autogen/ConversableAgent#a-initiate-chat">Async Initiate Chat and Chat Summary</a></li>
+        </ul>
+
+        <h2>🏷️ Tags</h2>
+        <div class="tags">
+            <span class="tag">financial analysis</span>
+            <span class="tag">tool-use</span>
+            <span class="tag">async chat</span>
+            <span class="tag">stock-market</span>
+            <span class="tag">data-visualization</span>
+            <span class="tag">news-retrieval</span>
+            <span class="tag">investment-analysis</span>
+            <span class="tag">decision-support</span>
+            <span class="tag">market-trends</span>
+        </div>
+
+        <h2>⚙️ Installation</h2>
+
+        <p><strong>1. Install dependencies using uv:</strong></p>
+        <pre><code>uv sync</code></pre>
+
+        <p><strong>2. Set up environment variables:</strong></p>
+        <pre><code>cp .env.example .env
+# Edit .env with your API key</code></pre>
+
+        <p>The primary dependency is the <code>ag2</code> library.</p>
+
+        <h2>🚀 Run the code</h2>
+
+        <h2>🎯 Run the Demo</h2>
+        <pre><code>uv run python main.py</code></pre>
+
+        <div class="example">
+            <p>At the <code>Enter the stock you want to investigate: </code> prompt, enter the stock symbol or stock name you want to investigate. For example, you can enter <code>AAPL</code> for Apple Inc. stock.</p>
+            <p>Checkout the generated <code>market_analysis_report.md</code> file for the summarized market analysis report.</p>
+        </div>
+
+        <div class="contact">
+            <h2>📞 Contact</h2>
+            <p>For more information or any questions, please refer to the documentation or reach out to us!</p>
+            <ul>
+                <li>📚 View Documentation at: <a href="https://docs.ag2.ai/latest/">https://docs.ag2.ai/latest/</a></li>
+                <li>🐙 Find AG2 on GitHub: <a href="https://github.com/ag2ai/ag2">https://github.com/ag2ai/ag2</a></li>
+                <li>💬 Join us on Discord: <a href="https://discord.gg/pAbnFJrkgZ">https://discord.gg/pAbnFJrkgZ</a></li>
+            </ul>
+        </div>
+
+        <h2>📄 License</h2>
+        <p>This project is also licensed under the Apache License 2.0 <a href="../LICENSE">LICENSE</a>.</p>
+    </div>
+</body>
+</html>

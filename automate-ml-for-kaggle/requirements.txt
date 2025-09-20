@@ -1,8 +1,0 @@
-ag2[jupyter-executor]
-scikit-learn
-pandas
-matplotlib
-seaborn
-xgboost
-lightgbm
-catboost
