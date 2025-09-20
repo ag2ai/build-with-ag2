@@ -4,185 +4,484 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Financial Analysis of a Given Stock</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             line-height: 1.6;
             color: #333;
-            max-width: 900px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
-            background-color: #f8f9fa;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
         }
+
         .container {
             background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            overflow: hidden;
         }
-        h1 {
+
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+
+        .header p {
+            margin: 15px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        h2 {
             color: #2c3e50;
             border-bottom: 3px solid #3498db;
             padding-bottom: 10px;
+            margin-top: 40px;
         }
-        h2 {
+
+        h3 {
             color: #34495e;
             margin-top: 30px;
         }
-        h3 {
-            color: #7f8c8d;
-        }
-        .author {
-            background: #ecf0f1;
-            padding: 10px;
-            border-radius: 5px;
+
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
             margin: 20px 0;
         }
-        .tags {
-            background: #e8f4fd;
+
+        .tag {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+
+        .flowchart-container {
+            background: #fafafa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 30px 0;
+            border: 2px solid #e0e0e0;
+        }
+
+        .mermaid {
+            text-align: center;
+        }
+
+        .agents-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .agent-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-left: 5px solid #28a745;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease;
+        }
+
+        .agent-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .agent-card h4 {
+            color: #155724;
+            margin: 0 0 10px 0;
+            font-size: 1.2em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .agent-icon {
+            font-size: 1.5em;
+        }
+
+        .agent-card .tools {
+            background: #d1ecf1;
             padding: 15px;
             border-radius: 5px;
-            border-left: 4px solid #3498db;
+            margin-top: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            border-left: 4px solid #0c5460;
         }
-        .tag {
-            display: inline-block;
-            background: #3498db;
-            color: white;
-            padding: 3px 8px;
-            margin: 2px;
-            border-radius: 3px;
-            font-size: 12px;
+
+        .tools-label {
+            font-weight: bold;
+            color: #0c5460;
+            margin-bottom: 8px;
         }
-        .feature {
-            background: #f8f9fa;
+
+        .workflow-steps {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 50%);
+            border-radius: 10px;
+            padding: 25px;
+            margin: 30px 0;
+            border-left: 5px solid #856404;
+        }
+
+        .workflow-steps h3 {
+            color: #856404;
+            margin-top: 0;
+        }
+
+        .workflow-step {
+            background: white;
             padding: 15px;
             margin: 10px 0;
-            border-radius: 5px;
-            border-left: 4px solid #2ecc71;
+            border-radius: 8px;
+            border-left: 3px solid #28a745;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-        code {
-            background: #f4f4f4;
-            padding: 2px 5px;
-            border-radius: 3px;
-            font-family: 'Courier New', monospace;
+
+        .workflow-step strong {
+            color: #155724;
         }
-        pre {
-            background: #f4f4f4;
-            color: #333;
-            padding: 15px;
-            border-radius: 5px;
-            overflow-x: auto;
-            border: 1px solid #ddd;
-        }
-        .example {
-            background: #fff3cd;
-            padding: 15px;
-            border-radius: 5px;
-            border-left: 4px solid #ffc107;
-            margin: 15px 0;
-        }
-        .contact {
-            background: #d1ecf1;
+
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
             padding: 20px;
-            border-radius: 5px;
-            margin-top: 30px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            margin: 20px 0;
+            border-left: 4px solid #4a90e2;
         }
-        .contact a {
-            color: #0056b3;
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .feature-card {
+            background: linear-gradient(135deg, #e8f5e8 0%, #d4edda 100%);
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #28a745;
+        }
+
+        .feature-card h4 {
+            color: #155724;
+            margin: 0 0 10px 0;
+        }
+
+        .links {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin: 30px 0;
+        }
+
+        .links h3 {
+            color: white;
+            margin-top: 0;
+        }
+
+        .links a {
+            color: #a8d8ff;
             text-decoration: none;
         }
-        .contact a:hover {
+
+        .links a:hover {
             text-decoration: underline;
+            color: #ffffff;
         }
-        ul li {
-            margin: 5px 0;
+
+        .links ul {
+            list-style: none;
+            padding: 0;
         }
-        .note {
-            background: #fff0f5;
-            padding: 15px;
+
+        .links li {
+            margin: 10px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .links li::before {
+            content: "🔗";
+            position: absolute;
+            left: 0;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            position: relative;
+        }
+
+        .highlight-box::before {
+            content: "⚠️";
+            position: absolute;
+            top: -10px;
+            left: 20px;
+            background: #ffc107;
+            padding: 5px 10px;
             border-radius: 5px;
-            border-left: 4px solid #e74c3c;
-            margin: 15px 0;
+            font-size: 1.2em;
+        }
+
+        .highlight-box p {
+            margin: 0;
+            color: #856404;
+            font-weight: 500;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .header {
+                padding: 30px 20px;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .content {
+                padding: 30px 20px;
+            }
+
+            .agents-grid, .features-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Financial Analysis of a Given Stock</h1>
+        <div class="header">
+            <h1>📊 Financial Analysis of a Given Stock</h1>
+            <p>Automated market analysis and investment decision support using AI agents</p>
+        </div>
 
-        <div class="author">
-            <strong>By:</strong> <a href="https://github.com/yiranwu0">yiranwu0</a><br>
+        <div class="content">
+            <p><strong>By:</strong> <a href="https://github.com/yiranwu0">yiranwu0</a><br>
             <strong>Last revision:</strong> 06/06/2025 by <a href="https://github.com/willhama">willhama</a><br>
-            <strong>Last revision:</strong> 09/20/2025 by <a href="https://github.com/qingyun-wu">qingyun-wu</a>: added uv support<br>
-            <strong>Project reference:</strong> AG2 notebook <a href="https://docs.ag2.ai/notebooks/agentchat_auto_feedback_from_code_execution#a-comparative-analysis-of-meta-and-tesla-stocks-in-early-2024">task solving with code generation, execution, and debugging</a>
-        </div>
+            <strong>Last revision:</strong> 09/20/2025 by <a href="https://github.com/qingyun-wu">qingyun-wu</a>: added uv support</p>
 
-        <p>This project retrieves news and stock price changes for a given stock symbol (e.g., AAPL) and generates a summarized market analysis report.</p>
+            <p>This project retrieves news and stock price changes for a given stock symbol (e.g., AAPL) and generates a summarized market analysis report. Referenced from the AG2 notebook on <a href="https://docs.ag2.ai/notebooks/agentchat_auto_feedback_from_code_execution#a-comparative-analysis-of-meta-and-tesla-stocks-in-early-2024">task solving with code generation, execution, and debugging</a>.</p>
 
-        <h2>📋 Details</h2>
-        <ul>
-            <li>Getting 5 news from Yahoo Finance</li>
-            <li>Getting stock price changes with Python Code, and plot a 1-year stock price change graph</li>
-            <li>Summarized report and analysis report generation in <code>market_analysis_report.md</code>, including a conclusion to buy, sell, or hold the stock</li>
-        </ul>
+            <h2>🏗️ System Architecture</h2>
 
-        <div class="note">
-            <strong>Note:</strong> This is not financial advice, but a demonstration of how AG2 can help with financial analysis.
-        </div>
+            <h3>Agent Flow Visualization</h3>
+            <p>The system uses specialized agents working in parallel and sequential phases for comprehensive financial analysis:</p>
 
-        <h2>🤖 AG2 Features</h2>
-        <p>This project uses the following AG2 features:</p>
-        <ul>
-            <li><a href="https://docs.ag2.ai/docs/user-guide/basic-concepts/tools">Using Tools</a></li>
-            <li><a href="https://docs.ag2.ai/docs/api-reference/autogen/ConversableAgent#a-initiate-chat">Async Initiate Chat and Chat Summary</a></li>
-        </ul>
+            <div class="flowchart-container">
+                <div class="mermaid">
+                    flowchart TD
+                        A["👤 User Input<br/>(Stock Symbol)"] --> B["🔄 Async Task Orchestration"]
 
-        <h2>🏷️ Tags</h2>
-        <div class="tags">
-            <span class="tag">financial analysis</span>
-            <span class="tag">tool-use</span>
-            <span class="tag">async chat</span>
-            <span class="tag">stock-market</span>
-            <span class="tag">data-visualization</span>
-            <span class="tag">news-retrieval</span>
-            <span class="tag">investment-analysis</span>
-            <span class="tag">decision-support</span>
-            <span class="tag">market-trends</span>
-        </div>
+                        %% Parallel Phase
+                        B --> C["📰 Financial Assistant"]
+                        B --> D["🔬 Research Assistant"]
 
-        <h2>⚙️ Installation</h2>
+                        %% Agent Tasks
+                        C --> E["📊 News Retrieval<br/>& Analysis"]
+                        D --> F["📈 Stock Price<br/>Analysis & Plotting"]
 
-        <p><strong>1. Install dependencies using uv:</strong></p>
-        <pre><code>uv sync</code></pre>
+                        %% Tools
+                        E --- TC["get_news_links<br/>summarize_news"]
+                        F --- TD["Python Code Execution<br/>Data Visualization"]
 
-        <p><strong>2. Set up environment variables:</strong></p>
-        <pre><code>cp .env.example .env
-# Edit .env with your API key</code></pre>
+                        %% Convergence Phase
+                        E --> G["📝 Report Writer"]
+                        F --> G
+                        G --> H["📋 Market Analysis<br/>Report Generation"]
 
-        <p>The primary dependency is the <code>ag2</code> library.</p>
+                        H --> I["💼 Investment<br/>Recommendation<br/>(Buy/Sell/Hold)"]
 
-        <h2>🚀 Run the code</h2>
+                        %% Styling
+                        classDef agent fill:#e8f5e8,stroke:#28a745,stroke-width:3px
+                        classDef process fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+                        classDef tools fill:#fff3cd,stroke:#ffc107,stroke-width:2px
+                        classDef output fill:#f8d7da,stroke:#721c24,stroke-width:2px
 
-        <h2>🎯 Run the Demo</h2>
-        <pre><code>uv run python main.py</code></pre>
+                        class C,D,G agent
+                        class A,B,E,F,H process
+                        class TC,TD tools
+                        class I output
+                </div>
+            </div>
 
-        <div class="example">
+            <h2>📋 Details</h2>
+
+            <div class="workflow-steps">
+                <h3>🔄 Analysis Workflow</h3>
+                <div class="workflow-step">
+                    <strong>Step 1 - News Collection:</strong> Retrieves 5 recent news articles from Yahoo Finance for the specified stock
+                </div>
+                <div class="workflow-step">
+                    <strong>Step 2 - Price Analysis:</strong> Gathers Monthly, 3-month, YTD, and 1-year stock price changes using Python code
+                </div>
+                <div class="workflow-step">
+                    <strong>Step 3 - Visualization:</strong> Creates and saves a 1-year stock price change graph as PNG
+                </div>
+                <div class="workflow-step">
+                    <strong>Step 4 - Report Generation:</strong> Produces comprehensive market analysis report in Markdown format
+                </div>
+                <div class="workflow-step">
+                    <strong>Step 5 - Decision Support:</strong> Provides investment recommendation (Buy/Sell/Hold) with supporting analysis
+                </div>
+            </div>
+
+            <div class="agents-grid">
+                <div class="agent-card">
+                    <h4><span class="agent-icon">📰</span>Financial Assistant</h4>
+                    <p>Specializes in news retrieval and financial data collection. Gathers recent market news and performs initial analysis of market sentiment.</p>
+                    <div class="tools">
+                        <div class="tools-label">Tools:</div>
+                        • get_news_links - Retrieves Yahoo Finance news<br>
+                        • summarize_news - Extracts key information from articles
+                    </div>
+                </div>
+
+                <div class="agent-card">
+                    <h4><span class="agent-icon">🔬</span>Research Assistant</h4>
+                    <p>Handles quantitative analysis including stock price trends, technical indicators, and data visualization through Python code execution.</p>
+                    <div class="tools">
+                        <div class="tools-label">Tools:</div>
+                        • Python Code Execution<br>
+                        • Data Visualization (matplotlib/pandas)<br>
+                        • Price Change Calculations
+                    </div>
+                </div>
+
+                <div class="agent-card">
+                    <h4><span class="agent-icon">📝</span>Report Writer</h4>
+                    <p>Synthesizes findings from news analysis and price research to generate comprehensive market analysis reports with investment recommendations.</p>
+                    <div class="tools">
+                        <div class="tools-label">Capabilities:</div>
+                        • Report Synthesis<br>
+                        • Investment Decision Logic<br>
+                        • Markdown Report Generation
+                    </div>
+                </div>
+
+                <div class="agent-card">
+                    <h4><span class="agent-icon">🤖</span>User Proxy</h4>
+                    <p>Orchestrates the entire workflow, manages code execution environment, and coordinates async communication between agents.</p>
+                    <div class="tools">
+                        <div class="tools-label">Functions:</div>
+                        • Async Task Coordination<br>
+                        • Code Execution Management<br>
+                        • Workflow Orchestration
+                    </div>
+                </div>
+            </div>
+
+            <h2>🤖 AG2 Features</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <h4>🛠️ Using Tools</h4>
+                    <p>Custom tool integration for news retrieval and web scraping with Yahoo Finance API</p>
+                </div>
+                <div class="feature-card">
+                    <h4>🔄 Async Initiate Chat</h4>
+                    <p>Parallel execution of news gathering and price analysis tasks for improved performance</p>
+                </div>
+                <div class="feature-card">
+                    <h4>📊 Chat Summary</h4>
+                    <p>LLM-powered summarization of agent conversations for report synthesis</p>
+                </div>
+            </div>
+
+            <h2>🏷️ Tags</h2>
+            <div class="tags">
+                <span class="tag">financial-analysis</span>
+                <span class="tag">tool-use</span>
+                <span class="tag">async-chat</span>
+                <span class="tag">stock-market</span>
+                <span class="tag">data-visualization</span>
+                <span class="tag">news-retrieval</span>
+                <span class="tag">investment-analysis</span>
+                <span class="tag">decision-support</span>
+                <span class="tag">market-trends</span>
+            </div>
+
+            <h2>⚙️ Installation</h2>
+            <ol>
+                <li>Install dependencies using uv:</li>
+            </ol>
+            <div class="code-block">uv sync</div>
+
+            <ol start="2">
+                <li>Set up environment variables:</li>
+            </ol>
+            <div class="code-block">cp .env.example .env
+# Edit .env with your API key</div>
+
+            <p>The primary dependency is the <code>ag2</code> library.</p>
+
+            <h2>🚀 Run the Demo</h2>
+            <div class="code-block">uv run python main.py</div>
+
             <p>At the <code>Enter the stock you want to investigate: </code> prompt, enter the stock symbol or stock name you want to investigate. For example, you can enter <code>AAPL</code> for Apple Inc. stock.</p>
-            <p>Checkout the generated <code>market_analysis_report.md</code> file for the summarized market analysis report.</p>
-        </div>
 
-        <div class="contact">
-            <h2>📞 Contact</h2>
-            <p>For more information or any questions, please refer to the documentation or reach out to us!</p>
-            <ul>
-                <li>📚 View Documentation at: <a href="https://docs.ag2.ai/latest/">https://docs.ag2.ai/latest/</a></li>
-                <li>🐙 Find AG2 on GitHub: <a href="https://github.com/ag2ai/ag2">https://github.com/ag2ai/ag2</a></li>
-                <li>💬 Join us on Discord: <a href="https://discord.gg/pAbnFJrkgZ">https://discord.gg/pAbnFJrkgZ</a></li>
-            </ul>
-        </div>
+            <p>Check out the generated <code>market_analysis_report.md</code> file for the summarized market analysis report.</p>
 
-        <h2>📄 License</h2>
-        <p>This project is also licensed under the Apache License 2.0 <a href="../LICENSE">LICENSE</a>.</p>
+            <div class="highlight-box">
+                <p><strong>Disclaimer:</strong> This analysis is for demonstration purposes only and should not be considered as financial advice. Always consult with financial professionals before making investment decisions.</p>
+            </div>
+
+            <div class="links">
+                <h3>📞 Contact</h3>
+                <p>For more information or any questions, please refer to the documentation or reach out to us!</p>
+                <ul>
+                    <li><a href="https://docs.ag2.ai/latest/">View Documentation at: https://docs.ag2.ai/latest/</a></li>
+                    <li><a href="https://github.com/ag2ai/ag2">Find AG2 on github: https://github.com/ag2ai/ag2</a></li>
+                    <li><a href="https://discord.gg/pAbnFJrkgZ">Join us on Discord: https://discord.gg/pAbnFJrkgZ</a></li>
+                </ul>
+            </div>
+
+            <h2>📄 License</h2>
+            <p>This project is also licensed under the Apache License 2.0 <a href="../LICENSE">LICENSE</a>.</p>
+        </div>
     </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis'
+            }
+        });
+    </script>
 </body>
 </html>
