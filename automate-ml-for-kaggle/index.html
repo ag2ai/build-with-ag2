@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Automated Machine Learning Workflow</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #74b9ff 0%, #0984e3 50%, #6c5ce7 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+
+        .header p {
+            margin: 15px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        h2 {
+            color: #2d3436;
+            border-bottom: 3px solid #74b9ff;
+            padding-bottom: 10px;
+            margin-top: 40px;
+        }
+
+        h3 {
+            color: #636e72;
+            margin-top: 30px;
+        }
+
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 20px 0;
+        }
+
+        .tag {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+
+        .flowchart-container {
+            background: #fafafa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 30px 0;
+            border: 2px solid #e0e0e0;
+        }
+
+        .mermaid {
+            text-align: center;
+        }
+
+        .state-machine-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .state-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-left: 5px solid #6c5ce7;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease;
+        }
+
+        .state-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .state-card h4 {
+            color: #5f3dc4;
+            margin: 0 0 10px 0;
+            font-size: 1.2em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .state-icon {
+            font-size: 1.5em;
+        }
+
+        .state-card .agents {
+            background: #d1ecf1;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            border-left: 4px solid #0c5460;
+        }
+
+        .agents-label {
+            font-weight: bold;
+            color: #0c5460;
+            margin-bottom: 8px;
+        }
+
+        .transition-info {
+            background: #fff3cd;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-size: 0.9em;
+            border-left: 3px solid #ffc107;
+        }
+
+        .workflow-steps {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 50%);
+            border-radius: 10px;
+            padding: 25px;
+            margin: 30px 0;
+            border-left: 5px solid #28a745;
+        }
+
+        .workflow-steps h3 {
+            color: #155724;
+            margin-top: 0;
+        }
+
+        .workflow-step {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 3px solid #6c5ce7;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .workflow-step strong {
+            color: #5f3dc4;
+        }
+
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            margin: 20px 0;
+            border-left: 4px solid #74b9ff;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .feature-card {
+            background: linear-gradient(135deg, #e8f4f8 0%, #d4e9f7 100%);
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #74b9ff;
+        }
+
+        .feature-card h4 {
+            color: #0984e3;
+            margin: 0 0 10px 0;
+        }
+
+        .links {
+            background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin: 30px 0;
+        }
+
+        .links h3 {
+            color: white;
+            margin-top: 0;
+        }
+
+        .links a {
+            color: #e4d9ff;
+            text-decoration: none;
+        }
+
+        .links a:hover {
+            text-decoration: underline;
+            color: #ffffff;
+        }
+
+        .links ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .links li {
+            margin: 10px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .links li::before {
+            content: "🔗";
+            position: absolute;
+            left: 0;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, #e8f4f8 0%, #d4e9f7 100%);
+            border: 2px solid #74b9ff;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            position: relative;
+        }
+
+        .highlight-box::before {
+            content: "🎯";
+            position: absolute;
+            top: -10px;
+            left: 20px;
+            background: #74b9ff;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 1.2em;
+        }
+
+        .highlight-box p {
+            margin: 0;
+            color: #0984e3;
+            font-weight: 500;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .header {
+                padding: 30px 20px;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .content {
+                padding: 30px 20px;
+            }
+
+            .state-machine-grid, .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 Automated Machine Learning Workflow</h1>
+            <p>State-driven ML pipeline with intelligent agent orchestration</p>
+        </div>
+
+        <div class="content">
+            <p>In this project, we build a machine learning workflow using AG2. The workflow involves data analysis, preprocessing, and model training to build a machine learning model.</p>
+
+            <p>Machine learning workflows typically involve several key steps:</p>
+            <ol>
+                <li><strong>Data Analysis and Exploration</strong>: Understanding dataset size, columns, and distributions.</li>
+                <li><strong>Data Preprocessing</strong>: Cleaning data, handling missing values, and encoding categorical variables.</li>
+                <li><strong>Model Training</strong>: Training a model, comparing different models, and tuning hyperparameters.</li>
+            </ol>
+
+            <h2>🏗️ System Architecture</h2>
+
+            <h3>State Machine Workflow</h3>
+            <p>The system follows a state machine design with intelligent transitions between ML workflow stages:</p>
+
+            <div class="flowchart-container">
+                <div class="mermaid">
+                    flowchart TD
+                        A["🚀 Init State"] --> B["🔍 Explore State"]
+
+                        B --> B1["👤 Data Explorer"]
+                        B1 --> B2["⚙️ Code Executor"]
+                        B2 -->|Success| C["🛠️ Preprocess State"]
+                        B2 -->|Error| B1
+
+                        C --> C1["🔧 Data Preprocessor"]
+                        C1 --> C2["⚙️ Code Executor"]
+                        C2 -->|LLM Decision:<br/>Ready for Training| D["🎯 Train State"]
+                        C2 -->|Need More Analysis| B
+                        C2 -->|Error| C1
+
+                        D --> D1["🧠 Model Trainer"]
+                        D1 --> D2["⚙️ Code Executor"]
+                        D2 -->|< 2 Trials| D1
+                        D2 -->|≥ 2 Trials| E["📊 Summarize State"]
+                        D2 -->|Error| D1
+
+                        E --> E1["📝 Summarizer"]
+                        E1 --> F["🏁 End State"]
+
+                        %% State grouping
+                        subgraph STATES ["State Machine Workflow"]
+                            direction LR
+                            G["Custom Speaker<br/>Selection Method"]
+                            H["StateFlow Pattern<br/>Transition Logic"]
+                        end
+
+                        %% Styling
+                        classDef initEnd fill:#ffeaa7,stroke:#fdcb6e,stroke-width:3px
+                        classDef state fill:#e17055,stroke:#d63031,stroke-width:3px
+                        classDef agent fill:#74b9ff,stroke:#0984e3,stroke-width:2px
+                        classDef executor fill:#00b894,stroke:#00a085,stroke-width:2px
+                        classDef pattern fill:#fd79a8,stroke:#e84393,stroke-width:2px
+
+                        class A,F initEnd
+                        class B,C,D,E state
+                        class B1,C1,D1,E1 agent
+                        class B2,C2,D2 executor
+                        class G,H pattern
+                </div>
+            </div>
+
+            <h2>📋 State Machine Details</h2>
+
+            <div class="state-machine-grid">
+                <div class="state-card">
+                    <h4><span class="state-icon">🔍</span>Explore State</h4>
+                    <p>Analyze the dataset structure, distributions, and characteristics to understand the data landscape.</p>
+                    <div class="agents">
+                        <div class="agents-label">Agents:</div>
+                        • Data Explorer → Code Executor
+                    </div>
+                    <div class="transition-info">
+                        <strong>Transition:</strong> Success → Preprocess | Error → Stay in Explore
+                    </div>
+                </div>
+
+                <div class="state-card">
+                    <h4><span class="state-icon">🛠️</span>Preprocess State</h4>
+                    <p>Clean and prepare data including handling missing values, encoding categoricals, and feature scaling.</p>
+                    <div class="agents">
+                        <div class="agents-label">Agents:</div>
+                        • Data Preprocessor → Code Executor
+                    </div>
+                    <div class="transition-info">
+                        <strong>Transition:</strong> LLM decides if ready for training → Train | Need more analysis → Explore
+                    </div>
+                </div>
+
+                <div class="state-card">
+                    <h4><span class="state-icon">🎯</span>Train State</h4>
+                    <p>Train and compare multiple ML models with different algorithms and hyperparameters.</p>
+                    <div class="agents">
+                        <div class="agents-label">Agents:</div>
+                        • Model Trainer → Code Executor
+                    </div>
+                    <div class="transition-info">
+                        <strong>Transition:</strong> < 2 trials → Continue training | ≥ 2 trials → Summarize | Error → Retry
+                    </div>
+                </div>
+
+                <div class="state-card">
+                    <h4><span class="state-icon">📊</span>Summarize State</h4>
+                    <p>Generate comprehensive workflow summary and integrate all successful code snippets.</p>
+                    <div class="agents">
+                        <div class="agents-label">Agents:</div>
+                        • Summarizer (LLM-only)
+                    </div>
+                    <div class="transition-info">
+                        <strong>Transition:</strong> Always → End
+                    </div>
+                </div>
+            </div>
+
+            <div class="workflow-steps">
+                <h3>🔄 Workflow Process</h3>
+                <div class="workflow-step">
+                    <strong>Step 1 - Dataset Analysis:</strong> Explore data shape, types, distributions, and missing values
+                </div>
+                <div class="workflow-step">
+                    <strong>Step 2 - Data Preprocessing:</strong> Handle missing data, encode categoricals, and scale features
+                </div>
+                <div class="workflow-step">
+                    <strong>Step 3 - Model Training:</strong> Train multiple models (2 iterations) with performance comparison
+                </div>
+                <div class="workflow-step">
+                    <strong>Step 4 - Visualization:</strong> Generate performance plots, confusion matrices, and evaluation metrics
+                </div>
+                <div class="workflow-step">
+                    <strong>Step 5 - Code Integration:</strong> Combine all successful code into reproducible script
+                </div>
+            </div>
+
+            <h2>🤖 AG2 Features</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <h4>🎭 Custom Speaker Transitions</h4>
+                    <p>State-driven agent selection using custom speaker_selection_method for workflow control</p>
+                </div>
+                <div class="feature-card">
+                    <h4>🌊 StateFlow Design</h4>
+                    <p>Build state-driven workflows with intelligent transitions based on execution results</p>
+                </div>
+                <div class="feature-card">
+                    <h4>⚡ Code Execution</h4>
+                    <p>Jupyter-based code execution environment for interactive ML development</p>
+                </div>
+                <div class="feature-card">
+                    <h4>🧠 LLM Decision Making</h4>
+                    <p>AI-powered decisions on workflow readiness and state transitions</p>
+                </div>
+            </div>
+
+            <h2>🏷️ Tags</h2>
+            <div class="tags">
+                <span class="tag">data-analysis</span>
+                <span class="tag">groupchat</span>
+                <span class="tag">stateflow</span>
+                <span class="tag">code-execution</span>
+                <span class="tag">kaggle</span>
+                <span class="tag">automated-ml</span>
+                <span class="tag">workflow-automation</span>
+                <span class="tag">model-training</span>
+                <span class="tag">data-preprocessing</span>
+                <span class="tag">state-machine</span>
+                <span class="tag">hyperparameter-tuning</span>
+            </div>
+
+            <h2>📋 Prerequisites</h2>
+            <ul>
+                <li>Python 3.12 or higher</li>
+                <li>OpenAI API key</li>
+            </ul>
+
+            <h2>⚙️ Installation</h2>
+            <ol>
+                <li>Clone and navigate to the folder:</li>
+            </ol>
+            <div class="code-block">git clone https://github.com/ag2ai/build-with-ag2.git
+cd build-with-ag2/automate-ml-for-kaggle</div>
+
+            <ol start="2">
+                <li>Install dependencies:</li>
+            </ol>
+            <div class="code-block">uv sync</div>
+
+            <ol start="3">
+                <li>Set up environment variables:</li>
+            </ol>
+            <div class="code-block">cp .env.example .env
+# Edit .env with your OpenAI API key</div>
+
+            <h2>🚀 Usage</h2>
+            <div class="code-block">uv run python main.py</div>
+
+            <div class="highlight-box">
+                <p><strong>Automated Workflow:</strong> The system will automatically analyze the dataset (house_prices_train.csv), preprocess the data, train and compare multiple models, generate performance visualizations, and output a comprehensive summary.</p>
+            </div>
+
+            <p>The workflow will:</p>
+            <ol>
+                <li>Analyze the dataset (<code>house_prices_train.csv</code>)</li>
+                <li>Preprocess the data automatically</li>
+                <li>Train and compare multiple models</li>
+                <li>Generate performance visualizations</li>
+                <li>Output a comprehensive summary</li>
+            </ol>
+
+            <div class="links">
+                <h3>📞 Contact</h3>
+                <p>For more information or any questions, please refer to the documentation or reach out to us!</p>
+                <ul>
+                    <li><a href="https://docs.ag2.ai/latest/">View Documentation at: https://docs.ag2.ai/latest/</a></li>
+                    <li><a href="https://github.com/ag2ai/ag2">Find AG2 on github: https://github.com/ag2ai/ag2</a></li>
+                    <li><a href="https://discord.gg/pAbnFJrkgZ">Join us on Discord: https://discord.gg/pAbnFJrkgZ</a></li>
+                    <li><a href="mailto:support@ag2.ai">Email us at: support@ag2.ai</a></li>
+                </ul>
+            </div>
+
+            <h2>📄 License</h2>
+            <p>This project is licensed under the Apache License 2.0. See the <a href="../LICENSE">LICENSE</a> for details.</p>
+        </div>
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis'
+            }
+        });
+    </script>
+</body>
+</html>
