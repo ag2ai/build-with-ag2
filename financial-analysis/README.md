@@ -1,4 +1,4 @@
-# Financial Analysis of a Given Stock
+# 📊 Financial Analysis of a Given Stock
 
 - By [yiranwu0](https://github.com/yiranwu0)
 - Last revision: 06/06/2025 by [willhama](https://github.com/willhama)
@@ -7,11 +7,67 @@
 
 This project retrieves news and stock price changes for a given stock symbol (e.g., AAPL) and generates a summarized market analysis report.
 
-## Details
+## 🏗️ System Architecture
 
-- Getting 5 news from Yahoo Finance
-- Getting stock price changes with Python Code, and plot a 1-year stock price change graph.
-- Summarized report and analysis report generation in `market_analysis_report.md`, including a conclusion to buy, sell, or hold the stock. Note this is not a financial advice, but a demonstration of how AG2 can help with financial analysis.
+### Agent Flow Visualization
+
+The system uses specialized agents working in parallel and sequential phases for comprehensive financial analysis:
+
+```mermaid
+flowchart TD
+    A["👤 User Input<br/>(Stock Symbol)"] --> B["🔄 Async Task Orchestration"]
+
+    %% Parallel Phase
+    B --> C["📰 Financial Assistant"]
+    B --> D["🔬 Research Assistant"]
+
+    %% Agent Tasks
+    C --> E["📊 News Retrieval<br/>& Analysis"]
+    D --> F["📈 Stock Price<br/>Analysis & Plotting"]
+
+    %% Tools
+    E --- TC["get_news_links<br/>summarize_news"]
+    F --- TD["Python Code Execution<br/>Data Visualization"]
+
+    %% Convergence Phase
+    E --> G["📝 Report Writer"]
+    F --> G
+    G --> H["📋 Market Analysis<br/>Report Generation"]
+
+    H --> I["💼 Investment<br/>Recommendation<br/>(Buy/Sell/Hold)"]
+
+    %% Styling
+    classDef agent fill:#e8f5e8,stroke:#28a745,stroke-width:3px
+    classDef process fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    classDef tools fill:#fff3cd,stroke:#ffc107,stroke-width:2px
+    classDef output fill:#f8d7da,stroke:#721c24,stroke-width:2px
+
+    class C,D,G agent
+    class A,B,E,F,H process
+    class TC,TD tools
+    class I output
+```
+
+### Agent Roles & Responsibilities
+
+| Agent | Role | Tools & Capabilities |
+|-------|------|---------------------|
+| 📰 **Financial Assistant** | News retrieval and financial data collection. Gathers recent market news and performs initial analysis of market sentiment. | • get_news_links - Retrieves Yahoo Finance news<br>• summarize_news - Extracts key information from articles |
+| 🔬 **Research Assistant** | Quantitative analysis including stock price trends, technical indicators, and data visualization through Python code execution. | • Python Code Execution<br>• Data Visualization (matplotlib/pandas)<br>• Price Change Calculations |
+| 📝 **Report Writer** | Synthesizes findings from news analysis and price research to generate comprehensive market analysis reports with investment recommendations. | • Report Synthesis<br>• Investment Decision Logic<br>• Markdown Report Generation |
+| 🤖 **User Proxy** | Orchestrates the entire workflow, manages code execution environment, and coordinates async communication between agents. | • Async Task Coordination<br>• Code Execution Management<br>• Workflow Orchestration |
+
+## 📋 Details
+
+### 🔄 Analysis Workflow
+
+1. **Step 1 - News Collection:** Retrieves 5 recent news articles from Yahoo Finance for the specified stock
+2. **Step 2 - Price Analysis:** Gathers Monthly, 3-month, YTD, and 1-year stock price changes using Python code
+3. **Step 3 - Visualization:** Creates and saves a 1-year stock price change graph as PNG
+4. **Step 4 - Report Generation:** Produces comprehensive market analysis report in Markdown format
+5. **Step 5 - Decision Support:** Provides investment recommendation (Buy/Sell/Hold) with supporting analysis
+
+> **⚠️ Disclaimer:** This analysis is for demonstration purposes only and should not be considered as financial advice. Always consult with financial professionals before making investment decisions.
 
 ## AG2 Features
 
