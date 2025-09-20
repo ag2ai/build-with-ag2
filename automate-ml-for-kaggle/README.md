@@ -49,42 +49,56 @@ This project demonstrates the following AG2 features:
 
 TAGS: data analysis, groupchat, stateflow, code execution, kaggle, automated machine learning, workflow automation, model training, data preprocessing, state machine, hyperparameter tuning
 
+## Prerequisites
+
+- Python 3.12 or higher
+- OpenAI API key
+
 ## Installation
 
-First, Clone and navigate to the folder:
+1. Clone and navigate to the folder:
 
 ```bash
 git clone https://github.com/ag2ai/build-with-ag2.git
 cd build-with-ag2/automate-ml-for-kaggle
 ```
 
-Then install the required dependencies:
+2. Install dependencies:
 
 ```bash
-pip install -r requirements.txt
+uv sync
 ```
 
-The dependency is ag2 with graphrag option.
-
-## Run the code
-
-Before running the demo, you need to set up your OpenAI API configuration. Create a `OAI_CONFIG_LIST` file based on the provided `OAI_CONFIG_LIST_sample` and update the `api_key` to your OpenAI API key for the configuration with the tag "gpt-4o". Change `filter_dict` tags in main.py if you want to use other models. Refer to [AutoGen configuration guide](https://docs.ag2.ai/getting-started#configuration) for more details.
+3. Set up environment variables:
 
 ```bash
-cp OAI_CONFIG_LIST_sample OAI_CONFIG_LIST
+cp .env.example .env
+# Edit .env with your OpenAI API key
 ```
 
+
+## Usage
+
+Run the automated ML workflow:
+
 ```bash
-python main.py
+uv run python main.py
 ```
+
+The workflow will:
+1. Analyze the dataset (`house_prices_train.csv`)
+2. Preprocess the data automatically
+3. Train and compare multiple models
+4. Generate performance visualizations
+5. Output a comprehensive summary
 
 ## Contact
 
 For more information or any questions, please refer to the documentation or reach out to us!
 
-- AG2 Documentation: https://docs.ag2.ai/docs/Home
-- AG2 GitHub: https://github.com/ag2ai/ag2
-- Discord: https://discord.gg/pAbnFJrkgZ
+- View Documentation at: https://docs.ag2.ai/latest/
+- Find AG2 on github: https://github.com/ag2ai/ag2
+- Join us on Discord: https://discord.gg/pAbnFJrkgZ
 
 ## License
 

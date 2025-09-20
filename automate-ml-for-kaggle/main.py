@@ -3,18 +3,29 @@ from autogen import OpenAIWrapper
 from utils import is_ready_for_train, count_train_trials
 from pathlib import Path
 from autogen.coding.jupyter import LocalJupyterServer, JupyterCodeExecutor
+from autogen import LLMConfig
 
-config_list = autogen.config_list_from_json(
-    "OAI_CONFIG_LIST",
+# config_list = autogen.config_list_from_json(
+#     "OAI_CONFIG_LIST",
+# )
+
+# llm_config = {
+#     "cache_seed": 42,  # change the cache_seed for different trials
+#     "temperature": 0,
+#     "config_list": config_list,
+#     "timeout": 120,
+# }
+
+llm_config = LLMConfig(
+    api_type="openai",
+    model="gpt-5-nano",
+    cache_seed=42,
+    temperature=1,
+    tools=[],
+    timeout=120,
 )
 
-llm_config = {
-    "cache_seed": 42,  # change the cache_seed for different trials
-    "temperature": 0,
-    "config_list": config_list,
-    "timeout": 120,
-}
-
+config_list = [llm_config]
 
 initializer = autogen.UserProxyAgent(
     name="Init",

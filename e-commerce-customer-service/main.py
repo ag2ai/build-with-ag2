@@ -1,4 +1,3 @@
-from autogen import config_list_from_json
 from autogen.agentchat import initiate_group_chat
 from autogen.agentchat.group import (
     AgentTarget,
@@ -11,7 +10,7 @@ from autogen.agentchat.group.patterns import DefaultPattern
 
 
 from autogen import ConversableAgent, UserProxyAgent
-
+from autogen import LLMConfig
 
 from prompts import (
     order_triage_prompt,
@@ -30,8 +29,8 @@ from functions import (
     initiate_return_process,
 )
 
-# 1. Load the configuration file
-config_list = config_list_from_json(env_or_file="OAI_CONFIG_LIST")
+# # 1. Load the configuration file
+# config_list = config_list_from_json(env_or_file="OAI_CONFIG_LIST")
 
 # # 2. Load the keys directly
 # config_list = [
@@ -42,13 +41,23 @@ config_list = config_list_from_json(env_or_file="OAI_CONFIG_LIST")
 # ]
 
 
-llm_config = {
-    "cache_seed": 42,  # change the cache_seed for different trials
-    "temperature": 1,
-    "config_list": config_list,
-    "timeout": 120,
-    "tools": [],
-}
+# llm_config = {
+#     "cache_seed": 42,  # change the cache_seed for different trials
+#     "temperature": 1,
+#     "config_list": config_list,
+#     "timeout": 120,
+#     "tools": [],
+# }
+
+llm_config = LLMConfig(
+    api_type="openai",
+    model="gpt-5-nano",
+    cache_seed=42,
+    temperature=1,
+    tools=[],
+    timeout=120,
+)
+
 
 context_variables = {
     # retrieve for verfication

@@ -1,0 +1,13 @@
+[project]
+name = "financial-analysis"
+version = "0.1.0"
+description = "Financial analysis agent with AG2"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "ag2[openai]>=0.9.9",
+    "requests",
+    "yfinance",
+    "matplotlib",
+    "gensim",
+]

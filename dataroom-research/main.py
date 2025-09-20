@@ -1,5 +1,5 @@
-from autogen import config_list_from_json, AssistantAgent, UserProxyAgent
-from autogen import GroupChat, GroupChatManager
+from autogen import AssistantAgent, UserProxyAgent
+from autogen import GroupChat, GroupChatManager, LLMConfig
 from autogen.agents.experimental import DeepResearchAgent
 from autogen.tools.experimental.google import (
     GoogleCredentialsLocalProvider,
@@ -97,14 +97,25 @@ def main():
     args = parser.parse_args()
 
     # Get the configuration for LLM models
-    config_list = config_list_from_json(env_or_file="OAI_CONFIG_LIST")
-    # You can also set config_list directly as a list, for example, config_list = [{'model': 'gpt-4o', 'api_key': '<your OpenAI API key here>'},]
+    # Option 1: Use config_list_from_json (traditional approach)
+    # config_list = config_list_from_json(env_or_file="OAI_CONFIG_LIST")
+    # llm_config = {
+    #     "cache_seed": 42,  # change the cache_seed for different trials
+    #     "temperature": 1,
+    #     "config_list": config_list,
+    # }
 
-    llm_config = {
-        "cache_seed": 42,  # change the cache_seed for different trials
-        "temperature": 1,
-        "config_list": config_list,
-    }
+    # Option 2: Use LLMConfig (modern approach)
+    llm_config = LLMConfig(
+        api_type="openai",
+        model="gpt-4o",
+        cache_seed=42,
+        temperature=1,
+        tools=[],
+        timeout=120,
+    )
+
+    config_list = [llm_config]
 
     # Agent 1: DeepResearch Agent
 

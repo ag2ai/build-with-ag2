@@ -16,17 +16,20 @@ from autogen.agentchat.contrib.swarm_agent import (
 )
 
 from autogen.agentchat import initiate_group_chat
-from autogen import ConversableAgent
+from autogen import ConversableAgent, LLMConfig
 from autogen.agentchat.group import (
     RevertToUserTarget,
 )
 from autogen.agentchat.group.patterns import DefaultPattern
 
-config_list = autogen.config_list_from_json(
-    "OAI_CONFIG_LIST",
-    filter_dict={"model": ["gpt-4o"]},
+llm_config = LLMConfig(
+    api_type="openai",
+    model="gpt-5-nano",
+    cache_seed=42,
+    temperature=1,
+    tools=[],
+    timeout=120,
 )
-llm_config = {"config_list": config_list, "timeout": 60}
 
 max_unread_emails_limit = 20
 is_mock_read_email = False

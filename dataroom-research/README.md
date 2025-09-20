@@ -1,7 +1,9 @@
-# DataRoom Research: AG2 DeepResearchAgent + GoogleDriveToolkit
+# DataRoom Research: AG2 DeepResearch Agent + GoogleDriveToolkit
 
 - Created by [internetoftim](https://github.com/internetoftim)
+- Updated by [qingyun-wu](https://github.com/qingyun-wu)
 - Last revision: 06/06/2025
+
 
 DataRoom Research is an multi-agent research system that combines the capabilities of DeepResearchAgent with GoogleDriveToolkit, built on the AG2 framework. It enhances OpenAI's deep research agent concept by adding document handling and Google Drive integration.
 
@@ -30,32 +32,18 @@ TAGS: deep-research, data-retrieval, google-drive, document-analysis, multi-agen
 
 DeepResearchAgent requires Python 3.11 or higher.
 
-### Manual Installation
+### Using uv (Recommended)
 
-1. Create a virtual environment (recommended):
+1. Install dependencies using uv:
 
    ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   uv sync
    ```
 
-2. Install the required packages:
+2. Install Playwright (required for web data retrieval):
 
    ```bash
-   pip install -r requirements.txt
-   ```
-
-3. If you are already using `autogen` or `pyautogen`, simply upgrade:
-
-   ```bash
-   pip install -U autogen[browser-use]
-   ```
-
-4. Install Playwright (required for web data retrieval):
-
-
-   ```bash
-   playwright install
+   uv run playwright install
    ```
 
 ## Running the code
@@ -89,7 +77,7 @@ To enable Google Drive features, you need OAuth credentials following [Google's 
 The system will automatically handle OAuth authentication on first run, and you should be able to see the files in your Google Drive account get listed here.
 
 ```bash
-python gdrive_signin.py
+uv run python gdrive_signin.py
 ```
 
 You can also copy over the `credentials.json` and `token.json` to run the [AG2 Google Drive Collab Notebook](https://docs.ag2.ai/latest/docs/use-cases/notebooks/notebooks/tools_google_drive/)
@@ -101,19 +89,19 @@ You can also copy over the `credentials.json` and `token.json` to run the [AG2 G
 Run the main application with standard research capabilities:
 
 ```bash
-python main.py
+uv run python main.py
 ```
 
 With Google Drive capabilities enabled:
 
 ```bash
-python main.py --use-gdrive
+uv run python main.py --use-gdrive
 ```
 
 For testing with simulated research responses:
 
 ```bash
-python main.py --use-fake
+uv run python main.py --use-fake
 ```
 
 ## Features and Capabilities

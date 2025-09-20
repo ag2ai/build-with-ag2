@@ -1,7 +1,0 @@
-ag2[browser-use]
-autogen>=0.9.0
-fastapi>=0.115.8
-nest-asyncio>=1.6.0
-streamlit>=1.42.0
-uvicorn>=0.34.0
-websockets>=14.2
