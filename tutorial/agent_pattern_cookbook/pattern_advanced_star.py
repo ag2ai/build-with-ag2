@@ -2,57 +2,75 @@ import json
 from typing import Annotated
 from autogen import (
     ConversableAgent,
-    ContextExpression,
     UserProxyAgent,
     LLMConfig,
 )
 from autogen.agentchat import initiate_group_chat
 from autogen.agentchat.group.patterns import DefaultPattern
-from autogen.agentchat.group import ReplyResult, ContextVariables, AgentTarget, OnContextCondition, OnCondition, RevertToUserTarget, ContextExpression, ExpressionContextCondition, StringAvailableCondition, StringLLMCondition, ExpressionAvailableCondition
+from autogen.agentchat.group import (
+    ReplyResult,
+    ContextVariables,
+    AgentTarget,
+    OnContextCondition,
+    OnCondition,
+    RevertToUserTarget,
+    ContextExpression,
+    ExpressionContextCondition,
+    StringAvailableCondition,
+    StringLLMCondition,
+    ExpressionAvailableCondition,
+)
 
 # Example task: Create a virtual city guide that can answer questions about weather, events,
 # transportation, and dining in various cities
 
 # Setup LLM configuration
-llm_config = LLMConfig(config_list={"api_type": "openai", "model": "gpt-4.1-mini", "parallel_tool_calls": False, "cache_seed": None})
+llm_config = LLMConfig(
+    config_list={
+        "api_type": "openai",
+        "model": "gpt-4.1-mini",
+        "parallel_tool_calls": False,
+        "cache_seed": None,
+    }
+)
 
 # Shared context for all agents in the group chat
-shared_context = ContextVariables({
-    # Query state
-    "query_analyzed": False,
-    "query_completed": False,
-
-    # Specialist task tracking
-    "weather_info_needed": False,
-    "weather_info_completed": False,
-    "events_info_needed": False,
-    "events_info_completed": False,
-    "traffic_info_needed": False,
-    "traffic_info_completed": False,
-    "food_info_needed": False,
-    "food_info_completed": False,
-
-    # Content storage
-    "city": "",
-    "date_range": "",
-    "weather_info": "",
-    "events_info": "",
-    "traffic_info": "",
-    "food_info": "",
-    "final_response": ""
-})
+shared_context = ContextVariables(
+    {
+        # Query state
+        "query_analyzed": False,
+        "query_completed": False,
+        # Specialist task tracking
+        "weather_info_needed": False,
+        "weather_info_completed": False,
+        "events_info_needed": False,
+        "events_info_completed": False,
+        "traffic_info_needed": False,
+        "traffic_info_completed": False,
+        "food_info_needed": False,
+        "food_info_completed": False,
+        # Content storage
+        "city": "",
+        "date_range": "",
+        "weather_info": "",
+        "events_info": "",
+        "traffic_info": "",
+        "food_info": "",
+        "final_response": "",
+    }
+)
 
 # User agent for interaction
-user = UserProxyAgent(
-    name="user",
-    code_execution_config=False
-)
+user = UserProxyAgent(name="user", code_execution_config=False)
 
 # ========================
 # SPECIALIST FUNCTIONS
 # ========================
 
-def provide_weather_info(weather_content: str, context_variables: ContextVariables) -> ReplyResult:
+
+def provide_weather_info(
+    weather_content: str, context_variables: ContextVariables
+) -> ReplyResult:
     """Submit weather information for the specified city and date range"""
     context_variables["weather_info"] = weather_content
     context_variables["weather_info_completed"] = True
@@ -60,10 +78,13 @@ def provide_weather_info(weather_content: str, context_variables: ContextVariabl
     return ReplyResult(
         message="Weather information provided and stored.",
         context_variables=context_variables,
-        target=AgentTarget(coordinator_agent)  # Always return to the coordinator
+        target=AgentTarget(coordinator_agent),  # Always return to the coordinator
     )
 
-def provide_events_info(events_content: str, context_variables: ContextVariables) -> ReplyResult:
+
+def provide_events_info(
+    events_content: str, context_variables: ContextVariables
+) -> ReplyResult:
     """Submit events information for the specified city and date range"""
     context_variables["events_info"] = events_content
     context_variables["events_info_completed"] = True
@@ -71,10 +92,13 @@ def provide_events_info(events_content: str, context_variables: ContextVariables
     return ReplyResult(
         message="Events information provided and stored.",
         context_variables=context_variables,
-        target=AgentTarget(coordinator_agent)  # Always return to the coordinator
+        target=AgentTarget(coordinator_agent),  # Always return to the coordinator
     )
 
-def provide_traffic_info(traffic_content: str, context_variables: ContextVariables) -> ReplyResult:
+
+def provide_traffic_info(
+    traffic_content: str, context_variables: ContextVariables
+) -> ReplyResult:
     """Submit traffic/transportation information for the specified city"""
     context_variables["traffic_info"] = traffic_content
     context_variables["traffic_info_completed"] = True
@@ -82,10 +106,13 @@ def provide_traffic_info(traffic_content: str, context_variables: ContextVariabl
     return ReplyResult(
         message="Traffic/transportation information provided and stored.",
         context_variables=context_variables,
-        target=AgentTarget(coordinator_agent)  # Always return to the coordinator
+        target=AgentTarget(coordinator_agent),  # Always return to the coordinator
     )
 
-def provide_food_info(food_content: str, context_variables: ContextVariables) -> ReplyResult:
+
+def provide_food_info(
+    food_content: str, context_variables: ContextVariables
+) -> ReplyResult:
     """Submit dining recommendations for the specified city"""
     context_variables["food_info"] = food_content
     context_variables["food_info_completed"] = True
@@ -93,8 +120,9 @@ def provide_food_info(food_content: str, context_variables: ContextVariables) ->
     return ReplyResult(
         message="Dining recommendations provided and stored.",
         context_variables=context_variables,
-        target=AgentTarget(coordinator_agent)  # Always return to the coordinator
+        target=AgentTarget(coordinator_agent),  # Always return to the coordinator
     )
+
 
 # ========================
 # SPECIALIST AGENTS
@@ -113,7 +141,7 @@ weather_specialist = ConversableAgent(
     Use your tool to provide the weather information.
     """,
     functions=[provide_weather_info],
-    llm_config=llm_config
+    llm_config=llm_config,
 )
 
 events_specialist = ConversableAgent(
@@ -130,7 +158,7 @@ events_specialist = ConversableAgent(
     Use your tool to provide the events information.
     """,
     functions=[provide_events_info],
-    llm_config=llm_config
+    llm_config=llm_config,
 )
 
 traffic_specialist = ConversableAgent(
@@ -147,7 +175,7 @@ traffic_specialist = ConversableAgent(
     Use your tool to provide the traffic information.
     """,
     functions=[provide_traffic_info],
-    llm_config=llm_config
+    llm_config=llm_config,
 )
 
 food_specialist = ConversableAgent(
@@ -164,14 +192,17 @@ food_specialist = ConversableAgent(
     Use your tool to provide the food recommendations.
     """,
     functions=[provide_food_info],
-    llm_config=llm_config
+    llm_config=llm_config,
 )
 
 # ========================
 # COORDINATOR FUNCTIONS
 # ========================
 
-def compile_final_response(response_content: str, context_variables: ContextVariables) -> ReplyResult:
+
+def compile_final_response(
+    response_content: str, context_variables: ContextVariables
+) -> ReplyResult:
     """Compile the final comprehensive response from all specialist inputs"""
     context_variables["final_response"] = response_content
     context_variables["query_completed"] = True
@@ -179,8 +210,9 @@ def compile_final_response(response_content: str, context_variables: ContextVari
     return ReplyResult(
         message="Final response compiled successfully.",
         context_variables=context_variables,
-        target=AgentTarget(user)  # Return to user with final response
+        target=AgentTarget(user),  # Return to user with final response
     )
+
 
 # ========================
 # COORDINATOR AGENT
@@ -208,19 +240,20 @@ coordinator_agent = ConversableAgent(
     When responding to the user, organize the information clearly with appropriate sections and highlights.
     """,
     functions=[compile_final_response],
-    llm_config=llm_config
+    llm_config=llm_config,
 )
+
 
 @coordinator_agent.register_for_llm(description="Currency exchange calculator.")
 def analyze_query(
-        city: Annotated[str, "Location/City"],
-        date_range: Annotated[str, "Date range for the activities"],
-        needs_weather_info: Annotated[bool, "Provide weather information?"],
-        needs_events_info: Annotated[bool, "Provide events information?"],
-        needs_traffic_info: Annotated[bool, "Provide traffic information?"],
-        needs_food_info: Annotated[bool, "Provide food/eating information?"],
-        context_variables: ContextVariables
-    ) -> ReplyResult:
+    city: Annotated[str, "Location/City"],
+    date_range: Annotated[str, "Date range for the activities"],
+    needs_weather_info: Annotated[bool, "Provide weather information?"],
+    needs_events_info: Annotated[bool, "Provide events information?"],
+    needs_traffic_info: Annotated[bool, "Provide traffic information?"],
+    needs_food_info: Annotated[bool, "Provide food/eating information?"],
+    context_variables: ContextVariables,
+) -> ReplyResult:
     """Analyze the user query and determine which specialists are needed"""
     context_variables["city"] = city
     context_variables["date_range"] = date_range
@@ -234,8 +267,9 @@ def analyze_query(
 
     return ReplyResult(
         message=f"Query analyzed. Will gather information about {city} for {date_range}.",
-        context_variables=context_variables
+        context_variables=context_variables,
     )
+
 
 # ========================
 # HANDOFFS REGISTRATION
@@ -245,25 +279,47 @@ def analyze_query(
 coordinator_agent.handoffs.add_many(
     [
         # Conditional handoffs to specialists based on what information is needed
-        OnContextCondition( # Example of Context Variable-based transfer, this happens automatically without LLM
+        OnContextCondition(  # Example of Context Variable-based transfer, this happens automatically without LLM
             target=AgentTarget(weather_specialist),
-            condition=ExpressionContextCondition(ContextExpression("${weather_info_needed} == True and ${weather_info_completed} == False")),
-            available=StringAvailableCondition("query_analyzed")
+            condition=ExpressionContextCondition(
+                ContextExpression(
+                    "${weather_info_needed} == True and ${weather_info_completed} == False"
+                )
+            ),
+            available=StringAvailableCondition("query_analyzed"),
         ),
-        OnCondition( # Uses an LLM to determine if this transfer should happen
+        OnCondition(  # Uses an LLM to determine if this transfer should happen
             target=AgentTarget(events_specialist),
-            condition=StringLLMCondition("Delegate to the events specialist for local events and activities information."),
-            available=ExpressionAvailableCondition(ContextExpression("${query_analyzed} == True and ${events_info_needed} == True and ${events_info_completed} == False")),
+            condition=StringLLMCondition(
+                "Delegate to the events specialist for local events and activities information."
+            ),
+            available=ExpressionAvailableCondition(
+                ContextExpression(
+                    "${query_analyzed} == True and ${events_info_needed} == True and ${events_info_completed} == False"
+                )
+            ),
         ),
         OnCondition(
             target=AgentTarget(traffic_specialist),
-            condition=StringLLMCondition("Delegate to the traffic specialist for transportation and traffic information."),
-            available=ExpressionAvailableCondition(ContextExpression("${query_analyzed} == True and ${traffic_info_needed} == True and ${traffic_info_completed} == False")),
+            condition=StringLLMCondition(
+                "Delegate to the traffic specialist for transportation and traffic information."
+            ),
+            available=ExpressionAvailableCondition(
+                ContextExpression(
+                    "${query_analyzed} == True and ${traffic_info_needed} == True and ${traffic_info_completed} == False"
+                )
+            ),
         ),
         OnCondition(
             target=AgentTarget(food_specialist),
-            condition=StringLLMCondition("Delegate to the food specialist for dining recommendations."),
-            available=ExpressionAvailableCondition(ContextExpression("${query_analyzed} == True and ${food_info_needed} == True and ${food_info_completed} == False")),
+            condition=StringLLMCondition(
+                "Delegate to the food specialist for dining recommendations."
+            ),
+            available=ExpressionAvailableCondition(
+                ContextExpression(
+                    "${query_analyzed} == True and ${food_info_needed} == True and ${food_info_completed} == False"
+                )
+            ),
         ),
     ]
 )
@@ -280,6 +336,7 @@ food_specialist.handoffs.set_after_work(AgentTarget(coordinator_agent))
 # INITIATE THE GROUP CHAT
 # ========================
 
+
 def run_star_pattern():
     """Run the star pattern to provide city information"""
     print("Initiating Star Pattern for City Guide...")
@@ -290,7 +347,10 @@ def run_star_pattern():
             # Coordinator (hub)
             coordinator_agent,
             # Specialists (spokes)
-            weather_specialist, events_specialist, traffic_specialist, food_specialist
+            weather_specialist,
+            events_specialist,
+            traffic_specialist,
+            food_specialist,
         ],
         context_variables=shared_context,
         user_agent=user,
@@ -315,6 +375,7 @@ def run_star_pattern():
                 print(f"{message['name']}")
     else:
         print("City guide response did not complete successfully.")
+
 
 if __name__ == "__main__":
     run_star_pattern()

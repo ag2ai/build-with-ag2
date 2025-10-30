@@ -2,27 +2,35 @@ from copy import deepcopy
 from enum import Enum
 from typing import Annotated, Any, List, Tuple
 from pydantic import BaseModel, Field
-from autogen import (
-    ConversableAgent,
-    UpdateSystemMessage,
-    ChatResult,
-    LLMConfig
-)
+from autogen import ConversableAgent, UpdateSystemMessage, ChatResult, LLMConfig
 from autogen.agentchat import initiate_group_chat
 from autogen.agentchat.group.patterns import DefaultPattern
-from autogen.agentchat.group import ContextVariables, ReplyResult, AgentNameTarget, AgentTarget, OnContextCondition, ExpressionContextCondition, StayTarget, TerminateTarget, ContextExpression
+from autogen.agentchat.group import (
+    ContextVariables,
+    ReplyResult,
+    AgentNameTarget,
+    AgentTarget,
+    OnContextCondition,
+    ExpressionContextCondition,
+    StayTarget,
+    TerminateTarget,
+    ContextExpression,
+)
 
 # === STRUCTURED DATA MODELS ===
+
 
 class TaskPriority(str, Enum):
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
 
+
 class ResearchTask(BaseModel):
     topic: str = Field(description="Topic to research")
     details: str = Field(description="Specific details or questions to research")
     priority: TaskPriority = Field(description="Priority level of the task")
+
 
 class WritingTask(BaseModel):
     topic: str = Field(description="Topic to write about")
@@ -30,10 +38,17 @@ class WritingTask(BaseModel):
     details: str = Field(description="Details or requirements for the writing task")
     priority: TaskPriority = Field(description="Priority level of the task")
 
+
 class TaskAssignment(BaseModel):
     """Structured output for task triage decisions."""
-    research_tasks: List[ResearchTask] = Field(description="List of research tasks to complete first")
-    writing_tasks: List[WritingTask] = Field(description="List of writing tasks to complete after research")
+
+    research_tasks: List[ResearchTask] = Field(
+        description="List of research tasks to complete first"
+    )
+    writing_tasks: List[WritingTask] = Field(
+        description="List of writing tasks to complete after research"
+    )
+
 
 # === AGENTS ===
 
@@ -101,6 +116,7 @@ The following error(s) occurred while processing your request:
 
 # === TOOL FUNCTIONS ===
 
+
 def initiate_tasks(
     research_tasks: list[ResearchTask],
     writing_tasks: list[WritingTask],
@@ -109,33 +125,36 @@ def initiate_tasks(
     """Initialize the task processing based on triage assessment."""
     if "TaskInitiated" in context_variables:
         return ReplyResult(
-            message="Task already initiated",
-            context_variables=context_variables
+            message="Task already initiated", context_variables=context_variables
         )
 
     # Process tasks
     formatted_research_tasks = []
     for i, task in enumerate(research_tasks):
-        formatted_research_tasks.append({
-            "index": i,
-            "topic": task.topic,
-            "details": task.details,
-            "priority": task.priority,
-            "status": "pending",
-            "output": None
-        })
+        formatted_research_tasks.append(
+            {
+                "index": i,
+                "topic": task.topic,
+                "details": task.details,
+                "priority": task.priority,
+                "status": "pending",
+                "output": None,
+            }
+        )
 
     formatted_writing_tasks = []
     for i, task in enumerate(writing_tasks):
-        formatted_writing_tasks.append({
-            "index": i,
-            "topic": task.topic,
-            "type": task.type,
-            "details": task.details,
-            "priority": task.priority,
-            "status": "pending",
-            "output": None
-        })
+        formatted_writing_tasks.append(
+            {
+                "index": i,
+                "topic": task.topic,
+                "type": task.type,
+                "details": task.details,
+                "priority": task.priority,
+                "status": "pending",
+                "output": None,
+            }
+        )
 
     # Sort tasks by priority
     for task_list in [formatted_research_tasks, formatted_writing_tasks]:
@@ -144,8 +163,12 @@ def initiate_tasks(
     # Update context variables
     context_variables["ResearchTasks"] = formatted_research_tasks
     context_variables["WritingTasks"] = formatted_writing_tasks
-    context_variables["CurrentResearchTaskIndex"] = -1 if not formatted_research_tasks else 0
-    context_variables["CurrentWritingTaskIndex"] = -1 if not formatted_writing_tasks else 0
+    context_variables["CurrentResearchTaskIndex"] = (
+        -1 if not formatted_research_tasks else 0
+    )
+    context_variables["CurrentWritingTaskIndex"] = (
+        -1 if not formatted_writing_tasks else 0
+    )
     context_variables["ResearchTasksCompleted"] = []
     context_variables["WritingTasksCompleted"] = []
     context_variables["TaskInitiated"] = True
@@ -155,6 +178,7 @@ def initiate_tasks(
         context_variables=context_variables,
         target=AgentNameTarget(TASK_MANAGER_NAME),
     )
+
 
 def complete_research_task(
     index: Annotated[int, "Research task index"],
@@ -210,6 +234,7 @@ def complete_research_task(
             target=AgentNameTarget(ERROR_AGENT_NAME),
         )
 
+
 def complete_writing_task(
     index: Annotated[int, "Writing task index"],
     topic: Annotated[str, "Writing topic"],
@@ -264,6 +289,7 @@ def complete_writing_task(
             target=AgentNameTarget(ERROR_AGENT_NAME),
         )
 
+
 # Create the agents for the group chat
 def create_research_writing_group_chat(llm_config_base: dict[str, Any]):
     """Create and configure all agents for the research-writing group chat."""
@@ -285,7 +311,13 @@ def create_research_writing_group_chat(llm_config_base: dict[str, Any]):
         ),
     )
 
-    llm_config_with_tools = LLMConfig(config_list={"model": "gpt-4.1-mini", "api_type": "openai", "parallel_tool_calls": False})
+    llm_config_with_tools = LLMConfig(
+        config_list={
+            "model": "gpt-4.1-mini",
+            "api_type": "openai",
+            "parallel_tool_calls": False,
+        }
+    )
 
     # Task Manager agent
     task_manager_agent = ConversableAgent(
@@ -296,15 +328,20 @@ def create_research_writing_group_chat(llm_config_base: dict[str, Any]):
     )
 
     # Define the system message generation for the research agent, getting the next research task
-    def create_research_agent_prompt(agent: ConversableAgent, messages: list[dict[str, Any]]) -> str:
+    def create_research_agent_prompt(
+        agent: ConversableAgent, messages: list[dict[str, Any]]
+    ) -> str:
         """Create the research agent prompt with the current research task."""
-        current_research_index = agent.context_variables.get("CurrentResearchTaskIndex", -1)
+        current_research_index = agent.context_variables.get(
+            "CurrentResearchTaskIndex", -1
+        )
         research_tasks = agent.context_variables.get("ResearchTasks")
 
         if current_research_index >= 0:
 
             current_task = research_tasks[current_research_index]
-            return (f"{RESEARCH_AGENT_SYSTEM_MESSAGE}"
+            return (
+                f"{RESEARCH_AGENT_SYSTEM_MESSAGE}"
                 "\n\n"
                 f"Research Task:\n"
                 f"Index: {current_research_index}:\n"
@@ -320,19 +357,26 @@ def create_research_writing_group_chat(llm_config_base: dict[str, Any]):
         system_message=RESEARCH_AGENT_SYSTEM_MESSAGE,
         llm_config=llm_config_with_tools,
         functions=[complete_research_task],
-        update_agent_state_before_reply=[UpdateSystemMessage(create_research_agent_prompt)],
+        update_agent_state_before_reply=[
+            UpdateSystemMessage(create_research_agent_prompt)
+        ],
     )
 
     # Define the system message generation for the writing agent, getting the next writing task
-    def create_writing_agent_prompt(agent: ConversableAgent, messages: list[dict[str, Any]]) -> str:
+    def create_writing_agent_prompt(
+        agent: ConversableAgent, messages: list[dict[str, Any]]
+    ) -> str:
         """Create the writing agent prompt with the current writing task."""
-        current_writing_index = agent.context_variables.get("CurrentWritingTaskIndex", -1)
+        current_writing_index = agent.context_variables.get(
+            "CurrentWritingTaskIndex", -1
+        )
         writing_tasks = agent.context_variables.get("WritingTasks")
 
         if current_writing_index >= 0:
 
             current_task = writing_tasks[current_writing_index]
-            return (f"{WRITING_AGENT_SYSTEM_MESSAGE}"
+            return (
+                f"{WRITING_AGENT_SYSTEM_MESSAGE}"
                 "\n\n"
                 f"Writing Task:\n"
                 f"Index: {current_writing_index}:\n"
@@ -349,11 +393,15 @@ def create_research_writing_group_chat(llm_config_base: dict[str, Any]):
         system_message=WRITING_AGENT_SYSTEM_MESSAGE,
         llm_config=llm_config_with_tools,
         functions=[complete_writing_task],
-        update_agent_state_before_reply=[UpdateSystemMessage(create_writing_agent_prompt)],
+        update_agent_state_before_reply=[
+            UpdateSystemMessage(create_writing_agent_prompt)
+        ],
     )
 
     # Summary agent
-    def create_summary_agent_prompt(agent: ConversableAgent, messages: list[dict[str, Any]]) -> str:
+    def create_summary_agent_prompt(
+        agent: ConversableAgent, messages: list[dict[str, Any]]
+    ) -> str:
         """Create the summary agent prompt with task completion results."""
         research_tasks = agent.context_variables.get("ResearchTasksCompleted")
         writing_tasks = agent.context_variables.get("WritingTasksCompleted")
@@ -392,7 +440,9 @@ def create_research_writing_group_chat(llm_config_base: dict[str, Any]):
         name="SummaryAgent",
         llm_config=llm_config_base,
         system_message=SUMMARY_AGENT_SYSTEM_MESSAGE,
-        update_agent_state_before_reply=[UpdateSystemMessage(create_summary_agent_prompt)],
+        update_agent_state_before_reply=[
+            UpdateSystemMessage(create_summary_agent_prompt)
+        ],
     )
 
     # Create the error agent
@@ -413,15 +463,21 @@ def create_research_writing_group_chat(llm_config_base: dict[str, Any]):
         [
             OnContextCondition(
                 target=AgentTarget(research_agent),
-                condition=ExpressionContextCondition(ContextExpression("${CurrentResearchTaskIndex} >= 0")),
+                condition=ExpressionContextCondition(
+                    ContextExpression("${CurrentResearchTaskIndex} >= 0")
+                ),
             ),
             OnContextCondition(
                 target=AgentTarget(writing_agent),
-                condition=ExpressionContextCondition(ContextExpression("${CurrentWritingTaskIndex} >= 0")),
+                condition=ExpressionContextCondition(
+                    ContextExpression("${CurrentWritingTaskIndex} >= 0")
+                ),
             ),
             OnContextCondition(
                 target=AgentTarget(summary_agent),
-                condition=ExpressionContextCondition(ContextExpression("${ResearchTasksDone} and ${WritingTasksDone}")),
+                condition=ExpressionContextCondition(
+                    ContextExpression("${ResearchTasksDone} and ${WritingTasksDone}")
+                ),
             ),
         ]
     )
@@ -432,7 +488,9 @@ def create_research_writing_group_chat(llm_config_base: dict[str, Any]):
     research_agent.handoffs.add_context_condition(
         OnContextCondition(
             target=AgentTarget(task_manager_agent),
-            condition=ExpressionContextCondition(ContextExpression("${CurrentResearchTaskIndex} == -1")),
+            condition=ExpressionContextCondition(
+                ContextExpression("${CurrentResearchTaskIndex} == -1")
+            ),
         ),
     )
     research_agent.handoffs.set_after_work(AgentTarget(task_manager_agent))
@@ -441,7 +499,9 @@ def create_research_writing_group_chat(llm_config_base: dict[str, Any]):
     writing_agent.handoffs.add_context_condition(
         OnContextCondition(
             target=AgentTarget(task_manager_agent),
-            condition=ExpressionContextCondition(ContextExpression("${CurrentWritingTaskIndex} == -1")),
+            condition=ExpressionContextCondition(
+                ContextExpression("${CurrentWritingTaskIndex} == -1")
+            ),
         ),
     )
     writing_agent.handoffs.set_after_work(AgentTarget(task_manager_agent))
@@ -459,8 +519,9 @@ def create_research_writing_group_chat(llm_config_base: dict[str, Any]):
         "research_agent": research_agent,
         "writing_agent": writing_agent,
         "summary_agent": summary_agent,
-        "error_agent": error_agent
+        "error_agent": error_agent,
     }
+
 
 # Function to run the group chat
 def run_research_writing(user_request: str) -> Tuple[ChatResult, ContextVariables]:
@@ -474,12 +535,14 @@ def run_research_writing(user_request: str) -> Tuple[ChatResult, ContextVariable
     agents = create_research_writing_group_chat(llm_config_base)
 
     # Set up initial context variables
-    context_variables = ContextVariables({
-        "CurrentResearchTaskIndex": -1,
-        "CurrentWritingTaskIndex": -1,
-        "ResearchTasksDone": False,
-        "WritingTasksDone": False,
-    })
+    context_variables = ContextVariables(
+        {
+            "CurrentResearchTaskIndex": -1,
+            "CurrentWritingTaskIndex": -1,
+            "ResearchTasksDone": False,
+            "WritingTasksDone": False,
+        }
+    )
 
     # Get all agents as a list
     all_agents = list(agents.values())
@@ -488,7 +551,7 @@ def run_research_writing(user_request: str) -> Tuple[ChatResult, ContextVariable
         initial_agent=agents["triage_agent"],
         agents=all_agents,
         context_variables=context_variables,
-        group_after_work=TerminateTarget()
+        group_after_work=TerminateTarget(),
     )
 
     # Run the group chat
@@ -500,6 +563,7 @@ def run_research_writing(user_request: str) -> Tuple[ChatResult, ContextVariable
 
     # Return the results
     return chat_result, final_context
+
 
 # Example usage
 if __name__ == "__main__":

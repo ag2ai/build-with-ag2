@@ -1,9 +1,16 @@
 from autogen import ConversableAgent, LLMConfig
 from dotenv import load_dotenv
 import os
+
 load_dotenv()
 
-llm_config = llm_config = LLMConfig(config_list={"api_type": "openai", "model": "gpt-5-nano","api_key":os.getenv("OPENAI_API_KEY")})
+llm_config = llm_config = LLMConfig(
+    config_list={
+        "api_type": "openai",
+        "model": "gpt-5-nano",
+        "api_key": os.getenv("OPENAI_API_KEY"),
+    }
+)
 
 # Three chats:
 # 1. Teacher and Curriculum designer > summary is a topic for next chat
@@ -69,7 +76,7 @@ chat_results = teacher.initiate_chats(
         {
             "recipient": lesson_planner,
             "message": "Create a lesson plan.",
-            "max_turns": 2, # One revision
+            "max_turns": 2,  # One revision
             "summary_method": "last_msg",
         },
         {

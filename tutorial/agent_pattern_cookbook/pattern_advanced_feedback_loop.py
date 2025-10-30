@@ -1,7 +1,7 @@
 # Feedback Loop pattern for iterative document refinement
 # Each agent refines the document, which is then sent back for further iterations based on feedback
 
-from typing import Annotated, Optional, Any
+from typing import Annotated, Optional
 from enum import Enum
 from pydantic import BaseModel, Field
 from autogen import (
@@ -11,14 +11,29 @@ from autogen import (
     LLMConfig,
 )
 from autogen.agentchat import initiate_group_chat
-from autogen.agentchat.group import AgentTarget, ContextVariables, ReplyResult, OnContextCondition, ExpressionContextCondition, RevertToUserTarget
+from autogen.agentchat.group import (
+    AgentTarget,
+    ContextVariables,
+    ReplyResult,
+    OnContextCondition,
+    ExpressionContextCondition,
+    RevertToUserTarget,
+)
 from autogen.agentchat.group.patterns import DefaultPattern
 
 # Setup LLM configuration
-llm_config = LLMConfig(config_list={"api_type": "openai", "model": "gpt-5-nano", "cache_seed": 41, "parallel_tool_calls": False})
+llm_config = LLMConfig(
+    config_list={
+        "api_type": "openai",
+        "model": "gpt-5-nano",
+        "cache_seed": 41,
+        "parallel_tool_calls": False,
+    }
+)
 
 # Document types for the document editing feedback loop: essay, article, email, report, other
 # Feedback severity: minor, moderate, major, critical
+
 
 # Document stage tracking for the feedback loop
 class DocumentStage(str, Enum):
@@ -28,41 +43,45 @@ class DocumentStage(str, Enum):
     REVISION = "revision"
     FINAL = "final"
 
+
 # Shared context for tracking document state
-shared_context = ContextVariables(data={
-    # Feedback loop state
-    "loop_started": False,
-    "current_iteration": 0,
-    "max_iterations": 3,
-    "iteration_needed": True,
-    "current_stage": DocumentStage.PLANNING,
-
-    # Document data at various stages
-    "document_prompt": "",
-    "document_plan": {},
-    "document_draft": {},
-    "feedback_collection": {},
-    "revised_document": {},
-    "final_document": {},
-
-    # Error state
-    "has_error": False,
-    "error_message": "",
-    "error_stage": ""
-})
+shared_context = ContextVariables(
+    data={
+        # Feedback loop state
+        "loop_started": False,
+        "current_iteration": 0,
+        "max_iterations": 3,
+        "iteration_needed": True,
+        "current_stage": DocumentStage.PLANNING,
+        # Document data at various stages
+        "document_prompt": "",
+        "document_plan": {},
+        "document_draft": {},
+        "feedback_collection": {},
+        "revised_document": {},
+        "final_document": {},
+        # Error state
+        "has_error": False,
+        "error_message": "",
+        "error_stage": "",
+    }
+)
 
 # Functions for the feedback loop pattern
 
+
 def start_document_creation(
-    document_prompt: str,
-    document_type: str,
-    context_variables: ContextVariables
+    document_prompt: str, document_type: str, context_variables: ContextVariables
 ) -> ReplyResult:
     """
     Start the document creation feedback loop with a prompt and document type
     """
-    context_variables["loop_started"] = True # Drives OnContextCondition to the next agent
-    context_variables["current_stage"] = DocumentStage.PLANNING.value # Drives OnContextCondition to the next agent
+    context_variables["loop_started"] = (
+        True  # Drives OnContextCondition to the next agent
+    )
+    context_variables["current_stage"] = (
+        DocumentStage.PLANNING.value
+    )  # Drives OnContextCondition to the next agent
     context_variables["document_prompt"] = document_prompt
     context_variables["current_iteration"] = 1
 
@@ -71,22 +90,31 @@ def start_document_creation(
         context_variables=context_variables,
     )
 
+
 # Document Planning stage
+
 
 class DocumentPlan(BaseModel):
     outline: list[str] = Field(..., description="Outline points for the document")
-    main_arguments: list[str] = Field(..., description="Key arguments or points to cover")
+    main_arguments: list[str] = Field(
+        ..., description="Key arguments or points to cover"
+    )
     target_audience: str = Field(..., description="Target audience for the document")
     tone: str = Field(..., description="Desired tone (formal, casual, etc.)")
-    document_type: str = Field(..., description="Type of document: essay, article, email, report, other")
+    document_type: str = Field(
+        ..., description="Type of document: essay, article, email, report, other"
+    )
+
 
 def submit_document_plan(
     outline: Annotated[list[str], "Outline points for the document"],
     main_arguments: Annotated[list[str], "Key arguments or points to cover"],
     target_audience: Annotated[str, "Target audience for the document"],
     tone: Annotated[str, "Desired tone (formal, casual, etc.)"],
-    document_type: Annotated[str, "Type of document: essay, article, email, report, other"],
-    context_variables: ContextVariables
+    document_type: Annotated[
+        str, "Type of document: essay, article, email, report, other"
+    ],
+    context_variables: ContextVariables,
 ) -> ReplyResult:
     """
     Submit the initial document plan
@@ -96,7 +124,7 @@ def submit_document_plan(
         main_arguments=main_arguments,
         target_audience=target_audience,
         tone=tone,
-        document_type=document_type
+        document_type=document_type,
     )
     context_variables["document_plan"] = document_plan.model_dump()
     context_variables["current_stage"] = DocumentStage.DRAFTING.value
@@ -106,55 +134,79 @@ def submit_document_plan(
         context_variables=context_variables,
     )
 
+
 # Document Drafting Stage
+
 
 class DocumentDraft(BaseModel):
     title: str = Field(..., description="Document title")
     content: str = Field(..., description="Full text content of the draft")
-    document_type: str = Field(..., description="Type of document: essay, article, email, report, other")
+    document_type: str = Field(
+        ..., description="Type of document: essay, article, email, report, other"
+    )
+
 
 def submit_document_draft(
     title: Annotated[str, "Document title"],
     content: Annotated[str, "Full text content of the draft"],
-    document_type: Annotated[str, "Type of document: essay, article, email, report, other"],
-    context_variables: ContextVariables
+    document_type: Annotated[
+        str, "Type of document: essay, article, email, report, other"
+    ],
+    context_variables: ContextVariables,
 ) -> ReplyResult:
     """
     Submit the document draft for review
     """
     document_draft = DocumentDraft(
-        title=title,
-        content=content,
-        document_type=document_type
+        title=title, content=content, document_type=document_type
     )
     context_variables["document_draft"] = document_draft.model_dump()
-    context_variables["current_stage"] = DocumentStage.REVIEW.value # Drives OnContextCondition to the next agent
+    context_variables["current_stage"] = (
+        DocumentStage.REVIEW.value
+    )  # Drives OnContextCondition to the next agent
 
     return ReplyResult(
         message="Document draft submitted. Moving to review stage.",
         context_variables=context_variables,
     )
 
+
 # Document Feedback Stage
 
+
 class FeedbackItem(BaseModel):
-    section: str = Field(..., description="Section of the document the feedback applies to")
+    section: str = Field(
+        ..., description="Section of the document the feedback applies to"
+    )
     feedback: str = Field(..., description="Detailed feedback")
-    severity: str = Field(..., description="Severity level of the feedback: minor, moderate, major, critical")
-    recommendation: Optional[str] = Field(..., description="Recommended action to address the feedback")
+    severity: str = Field(
+        ...,
+        description="Severity level of the feedback: minor, moderate, major, critical",
+    )
+    recommendation: Optional[str] = Field(
+        ..., description="Recommended action to address the feedback"
+    )
+
 
 class FeedbackCollection(BaseModel):
     items: list[FeedbackItem] = Field(..., description="Collection of feedback items")
-    overall_assessment: str = Field(..., description="Overall assessment of the document")
-    priority_issues: list[str] = Field(..., description="List of priority issues to address")
-    iteration_needed: bool = Field(..., description="Whether another iteration is needed")
+    overall_assessment: str = Field(
+        ..., description="Overall assessment of the document"
+    )
+    priority_issues: list[str] = Field(
+        ..., description="List of priority issues to address"
+    )
+    iteration_needed: bool = Field(
+        ..., description="Whether another iteration is needed"
+    )
+
 
 def submit_feedback(
     items: Annotated[list[FeedbackItem], "Collection of feedback items"],
     overall_assessment: Annotated[str, "Overall assessment of the document"],
     priority_issues: Annotated[list[str], "List of priority issues to address"],
     iteration_needed: Annotated[bool, "Whether another iteration is needed"],
-    context_variables: ContextVariables
+    context_variables: ContextVariables,
 ) -> ReplyResult:
     """
     Submit feedback on the document
@@ -163,31 +215,44 @@ def submit_feedback(
         items=items,
         overall_assessment=overall_assessment,
         priority_issues=priority_issues,
-        iteration_needed=iteration_needed
+        iteration_needed=iteration_needed,
     )
     context_variables["feedback_collection"] = feedback.model_dump()
     context_variables["iteration_needed"] = feedback.iteration_needed
-    context_variables["current_stage"] = DocumentStage.REVISION.value # Drives OnContextCondition to the next agent
+    context_variables["current_stage"] = (
+        DocumentStage.REVISION.value
+    )  # Drives OnContextCondition to the next agent
 
     return ReplyResult(
         message="Feedback submitted. Moving to revision stage.",
         context_variables=context_variables,
     )
 
+
 # Document Revision Stage
+
 
 class RevisedDocument(BaseModel):
     title: str = Field(..., description="Document title")
     content: str = Field(..., description="Full text content after revision")
-    changes_made: Optional[list[str]] = Field(..., description="List of changes made based on feedback")
-    document_type: str = Field(..., description="Type of document: essay, article, email, report, other")
+    changes_made: Optional[list[str]] = Field(
+        ..., description="List of changes made based on feedback"
+    )
+    document_type: str = Field(
+        ..., description="Type of document: essay, article, email, report, other"
+    )
+
 
 def submit_revised_document(
     title: Annotated[str, "Document title"],
     content: Annotated[str, "Full text content after revision"],
-    changes_made: Annotated[Optional[list[str]], "List of changes made based on feedback"],
-    document_type: Annotated[str, "Type of document: essay, article, email, report, other"],
-    context_variables: ContextVariables
+    changes_made: Annotated[
+        Optional[list[str]], "List of changes made based on feedback"
+    ],
+    document_type: Annotated[
+        str, "Type of document: essay, article, email, report, other"
+    ],
+    context_variables: ContextVariables,
 ) -> ReplyResult:
     """
     Submit the revised document, which may lead to another feedback loop or finalization
@@ -196,12 +261,15 @@ def submit_revised_document(
         title=title,
         content=content,
         changes_made=changes_made,
-        document_type=document_type
+        document_type=document_type,
     )
     context_variables["revised_document"] = revised.model_dump()
 
     # Check if we need another iteration or if we're done
-    if context_variables["iteration_needed"] and context_variables["current_iteration"] < context_variables["max_iterations"]:
+    if (
+        context_variables["iteration_needed"]
+        and context_variables["current_iteration"] < context_variables["max_iterations"]
+    ):
         context_variables["current_iteration"] += 1
         context_variables["current_stage"] = DocumentStage.REVIEW.value
 
@@ -209,7 +277,7 @@ def submit_revised_document(
         context_variables["document_draft"] = {
             "title": revised.title,
             "content": revised.content,
-            "document_type": revised.document_type
+            "document_type": revised.document_type,
         }
 
         return ReplyResult(
@@ -218,34 +286,39 @@ def submit_revised_document(
         )
     else:
         # We're done with revisions, move to final stage
-        context_variables["current_stage"] = DocumentStage.FINAL.value # Drives OnContextCondition to the next agent
+        context_variables["current_stage"] = (
+            DocumentStage.FINAL.value
+        )  # Drives OnContextCondition to the next agent
 
         return ReplyResult(
             message="Revisions complete. Moving to document finalization.",
             context_variables=context_variables,
         )
 
+
 # Document Finalization Stage
+
 
 class FinalDocument(BaseModel):
     title: str = Field(..., description="Final document title")
     content: str = Field(..., description="Full text content of the final document")
-    document_type: str = Field(..., description="Type of document: essay, article, email, report, other")
+    document_type: str = Field(
+        ..., description="Type of document: essay, article, email, report, other"
+    )
+
 
 def finalize_document(
     title: Annotated[str, "Final document title"],
     content: Annotated[str, "Full text content of the final document"],
-    document_type: Annotated[str, "Type of document: essay, article, email, report, other"],
-    context_variables: ContextVariables
+    document_type: Annotated[
+        str, "Type of document: essay, article, email, report, other"
+    ],
+    context_variables: ContextVariables,
 ) -> ReplyResult:
     """
     Submit the final document and complete the feedback loop
     """
-    final = FinalDocument(
-        title=title,
-        content=content,
-        document_type=document_type
-    )
+    final = FinalDocument(title=title, content=content, document_type=document_type)
     context_variables["final_document"] = final.model_dump()
     context_variables["iteration_needed"] = False
 
@@ -253,6 +326,7 @@ def finalize_document(
         message="Document finalized. Feedback loop complete.",
         context_variables=context_variables,
     )
+
 
 # Agents for the feedback loop
 entry_agent = ConversableAgent(
@@ -266,7 +340,7 @@ entry_agent = ConversableAgent(
 
     Use the start_document_creation tool to begin the process.""",
     functions=[start_document_creation],
-    llm_config=llm_config
+    llm_config=llm_config,
 )
 
 planning_agent = ConversableAgent(
@@ -283,7 +357,7 @@ planning_agent = ConversableAgent(
 
     When your plan is ready, use the submit_document_plan tool to move the document to the drafting stage.""",
     functions=[submit_document_plan],
-    llm_config=llm_config
+    llm_config=llm_config,
 )
 
 drafting_agent = ConversableAgent(
@@ -302,7 +376,7 @@ drafting_agent = ConversableAgent(
 
     You must call the submit_document_draft tool with your draft and that will move on to the review stage.""",
     functions=[submit_document_draft],
-    llm_config=llm_config
+    llm_config=llm_config,
 )
 
 review_agent = ConversableAgent(
@@ -335,7 +409,7 @@ review_agent = ConversableAgent(
 
     Use the submit_feedback tool when your review is complete, indicating whether another iteration is needed.""",
     functions=[submit_feedback],
-    llm_config=llm_config
+    llm_config=llm_config,
 )
 
 revision_agent = ConversableAgent(
@@ -353,7 +427,7 @@ revision_agent = ConversableAgent(
     Use the submit_revised_document tool when your revisions are complete. The document may go through
     multiple revision cycles depending on the feedback.""",
     functions=[submit_revised_document],
-    llm_config=llm_config
+    llm_config=llm_config,
 )
 
 finalization_agent = ConversableAgent(
@@ -370,21 +444,22 @@ finalization_agent = ConversableAgent(
 
     Use the finalize_document tool when the document is complete and ready for delivery.""",
     functions=[finalize_document],
-    llm_config=llm_config
+    llm_config=llm_config,
 )
 
 # User agent for interaction
-user = UserProxyAgent(
-    name="user",
-    code_execution_config=False
-)
+user = UserProxyAgent(name="user", code_execution_config=False)
 
 # Register handoffs for the feedback loop
 # Entry agent starts the loop
 entry_agent.handoffs.add_context_condition(
     OnContextCondition(
         target=AgentTarget(planning_agent),
-        condition=ExpressionContextCondition(ContextExpression("${loop_started} == True and ${current_stage} == 'planning'"))
+        condition=ExpressionContextCondition(
+            ContextExpression(
+                "${loop_started} == True and ${current_stage} == 'planning'"
+            )
+        ),
     )
 )
 entry_agent.handoffs.set_after_work(RevertToUserTarget())
@@ -393,7 +468,9 @@ entry_agent.handoffs.set_after_work(RevertToUserTarget())
 planning_agent.handoffs.add_context_condition(
     OnContextCondition(
         target=AgentTarget(drafting_agent),
-        condition=ExpressionContextCondition(ContextExpression("${current_stage} == 'drafting'"))
+        condition=ExpressionContextCondition(
+            ContextExpression("${current_stage} == 'drafting'")
+        ),
     )
 )
 planning_agent.handoffs.set_after_work(RevertToUserTarget())
@@ -402,7 +479,9 @@ planning_agent.handoffs.set_after_work(RevertToUserTarget())
 drafting_agent.handoffs.add_context_condition(
     OnContextCondition(
         target=AgentTarget(review_agent),
-        condition=ExpressionContextCondition(ContextExpression("${current_stage} == 'review'"))
+        condition=ExpressionContextCondition(
+            ContextExpression("${current_stage} == 'review'")
+        ),
     )
 )
 drafting_agent.handoffs.set_after_work(RevertToUserTarget())
@@ -411,7 +490,9 @@ drafting_agent.handoffs.set_after_work(RevertToUserTarget())
 review_agent.handoffs.add_context_condition(
     OnContextCondition(
         target=AgentTarget(revision_agent),
-        condition=ExpressionContextCondition(ContextExpression("${current_stage} == 'revision'"))
+        condition=ExpressionContextCondition(
+            ContextExpression("${current_stage} == 'revision'")
+        ),
     )
 )
 review_agent.handoffs.set_after_work(RevertToUserTarget())
@@ -421,18 +502,23 @@ revision_agent.handoffs.add_context_conditions(
     [
         OnContextCondition(
             target=AgentTarget(finalization_agent),
-            condition=ExpressionContextCondition(ContextExpression("${current_stage} == 'final'"))
+            condition=ExpressionContextCondition(
+                ContextExpression("${current_stage} == 'final'")
+            ),
         ),
         OnContextCondition(
             target=AgentTarget(review_agent),
-            condition=ExpressionContextCondition(ContextExpression("${current_stage} == 'review'"))
-        )
+            condition=ExpressionContextCondition(
+                ContextExpression("${current_stage} == 'review'")
+            ),
+        ),
     ]
 )
 revision_agent.handoffs.set_after_work(RevertToUserTarget())
 
 # Finalization agent completes the loop and returns to user
 finalization_agent.handoffs.set_after_work(RevertToUserTarget())
+
 
 # Run the feedback loop
 def run_feedback_loop_pattern():
@@ -454,7 +540,7 @@ def run_feedback_loop_pattern():
             drafting_agent,
             review_agent,
             revision_agent,
-            finalization_agent
+            finalization_agent,
         ],
         context_variables=shared_context,
         user_agent=user,
@@ -476,26 +562,40 @@ def run_feedback_loop_pattern():
 
         print("\n===== FEEDBACK LOOP PROGRESSION =====\n")
         # Show the progression through iterations
-        for i in range(1, final_context.get('current_iteration') + 1):
+        for i in range(1, final_context.get("current_iteration") + 1):
             if i == 1:
                 print(f"Iteration {i}:")
-                print(f"  Planning: {'✅ Completed' if 'document_plan' in final_context else '❌ Not reached'}")
-                print(f"  Drafting: {'✅ Completed' if 'document_draft' in final_context else '❌ Not reached'}")
-                print(f"  Review: {'✅ Completed' if 'feedback_collection' in final_context else '❌ Not reached'}")
-                print(f"  Revision: {'✅ Completed' if 'revised_document' in final_context else '❌ Not reached'}")
+                print(
+                    f"  Planning: {'✅ Completed' if 'document_plan' in final_context else '❌ Not reached'}"
+                )
+                print(
+                    f"  Drafting: {'✅ Completed' if 'document_draft' in final_context else '❌ Not reached'}"
+                )
+                print(
+                    f"  Review: {'✅ Completed' if 'feedback_collection' in final_context else '❌ Not reached'}"
+                )
+                print(
+                    f"  Revision: {'✅ Completed' if 'revised_document' in final_context else '❌ Not reached'}"
+                )
             else:
                 print(f"Iteration {i}:")
-                print(f"  Review: {'✅ Completed' if 'feedback_collection' in final_context else '❌ Not reached'}")
-                print(f"  Revision: {'✅ Completed' if 'revised_document' in final_context else '❌ Not reached'}")
+                print(
+                    f"  Review: {'✅ Completed' if 'feedback_collection' in final_context else '❌ Not reached'}"
+                )
+                print(
+                    f"  Revision: {'✅ Completed' if 'revised_document' in final_context else '❌ Not reached'}"
+                )
 
-        print(f"Finalization: {'✅ Completed' if 'final_document' in final_context else '❌ Not reached'}")
+        print(
+            f"Finalization: {'✅ Completed' if 'final_document' in final_context else '❌ Not reached'}"
+        )
 
         print("\n===== REVISION HISTORY =====\n")
-        for history_item in final_context['final_document'].get('revision_history', []):
+        for history_item in final_context["final_document"].get("revision_history", []):
             print(f"- {history_item}")
 
         print("\n===== FINAL DOCUMENT =====\n")
-        print(final_context['final_document'].get('content', ''))
+        print(final_context["final_document"].get("content", ""))
 
         print("\n\n===== SPEAKER ORDER =====\n")
         for message in chat_result.chat_history:
@@ -504,7 +604,10 @@ def run_feedback_loop_pattern():
     else:
         print("Document creation did not complete successfully.")
         if final_context.get("has_error"):
-            print(f"Error during {final_context.get('error_stage')} stage: {final_context.get('error_message')}")
+            print(
+                f"Error during {final_context.get('error_stage')} stage: {final_context.get('error_message')}"
+            )
+
 
 if __name__ == "__main__":
     run_feedback_loop_pattern()
