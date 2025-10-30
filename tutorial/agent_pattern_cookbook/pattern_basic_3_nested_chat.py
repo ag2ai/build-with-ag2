@@ -1,9 +1,16 @@
 from autogen import ConversableAgent, GroupChatManager, GroupChat, LLMConfig
 from dotenv import load_dotenv
 import os
+
 load_dotenv()
 
-llm_config = llm_config = LLMConfig(config_list={"api_type": "openai", "model": "gpt-5-nano","api_key":os.getenv("OPENAI_API_KEY")})
+llm_config = llm_config = LLMConfig(
+    config_list={
+        "api_type": "openai",
+        "model": "gpt-5-nano",
+        "api_key": os.getenv("OPENAI_API_KEY"),
+    }
+)
 
 # Curriculum Standards Agent
 curriculum_agent = ConversableAgent(
@@ -115,27 +122,25 @@ nested_chats = [
         "message": "Format the lesson plan.",
         "max_turns": 1,
         "summary_method": "last_msg",
-    }
+    },
 ]
 
 # Register nested chats with the lead teacher
 lead_teacher_agent.register_nested_chats(
     chat_queue=nested_chats,
-    trigger=lambda sender: sender not in [curriculum_agent, planning_manager, lesson_reviewer_agent],
+    trigger=lambda sender: sender
+    not in [curriculum_agent, planning_manager, lesson_reviewer_agent],
 )
 
 # A human-in-the-loop agent
-human = ConversableAgent(
-    name="human_agent",
-    human_input_mode="ALWAYS"
-)
+human = ConversableAgent(name="human_agent", human_input_mode="ALWAYS")
 
 # A two-agent chat between our human and the lead_teacher_agent
 # to demonstrate the full workflow is within the one agent
 result = lead_teacher_agent.initiate_chat(
     recipient=human,
     message="What topic would you like to get a lesson plan for?",
-    max_turns=2
+    max_turns=2,
 )
 
 print("Final Lesson Plan:\n", result.summary)

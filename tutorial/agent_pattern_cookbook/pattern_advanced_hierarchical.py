@@ -7,60 +7,79 @@ from autogen import (
     UserProxyAgent,
     LLMConfig,
 )
-from autogen.agentchat.group import AgentNameTarget, AgentTarget, ContextVariables, ReplyResult, OnContextCondition, ExpressionContextCondition, TerminateTarget, ExpressionAvailableCondition, RevertToUserTarget, OnCondition, StringLLMCondition
+from autogen.agentchat.group import (
+    AgentTarget,
+    ContextVariables,
+    ReplyResult,
+    OnContextCondition,
+    ExpressionContextCondition,
+    TerminateTarget,
+    ExpressionAvailableCondition,
+    RevertToUserTarget,
+    OnCondition,
+    StringLLMCondition,
+)
 from autogen.agentchat.group.patterns import DefaultPattern
 from autogen.agentchat import initiate_group_chat
 
 # Setup LLM configuration
 # Note that we turn parallel tool calling off for OpenAI so we only get one tool call at a time.
-llm_config = LLMConfig(config_list={"api_type": "openai", "model": "gpt-5-nano", "parallel_tool_calls": False})
+llm_config = LLMConfig(
+    config_list={
+        "api_type": "openai",
+        "model": "gpt-5-nano",
+        "parallel_tool_calls": False,
+    }
+)
 
 # Shared context for all agents in the group chat
-shared_context = ContextVariables(data={
-    # Project state
-    "task_started": False,
-    "task_completed": False,
-
-    # Hierarchical state tracking
-    "executive_review_ready": False,
-    "manager_a_completed": False,
-    "manager_b_completed": False,
-    "manager_c_completed": False,
-
-    # Specialist task tracking
-    "specialist_a1_completed": False,
-    "specialist_a2_completed": False,
-    "specialist_b1_completed": False,
-    "specialist_b2_completed": False,
-    "specialist_c1_completed": False,
-
-    # Content storage
-    "solar_research": "",
-    "wind_research": "",
-    "hydro_research": "",
-    "geothermal_research": "",
-    "biofuel_research": "",
-    "report_sections": {},
-    "final_report": ""
-})
+shared_context = ContextVariables(
+    data={
+        # Project state
+        "task_started": False,
+        "task_completed": False,
+        # Hierarchical state tracking
+        "executive_review_ready": False,
+        "manager_a_completed": False,
+        "manager_b_completed": False,
+        "manager_c_completed": False,
+        # Specialist task tracking
+        "specialist_a1_completed": False,
+        "specialist_a2_completed": False,
+        "specialist_b1_completed": False,
+        "specialist_b2_completed": False,
+        "specialist_c1_completed": False,
+        # Content storage
+        "solar_research": "",
+        "wind_research": "",
+        "hydro_research": "",
+        "geothermal_research": "",
+        "biofuel_research": "",
+        "report_sections": {},
+        "final_report": "",
+    }
+)
 
 # User agent for interaction
-user = UserProxyAgent(
-    name="user",
-    code_execution_config=False
-)
+user = UserProxyAgent(name="user", code_execution_config=False)
 
 # ========================
 # SPECIALIST FUNCTIONS
 # ========================
 
-def complete_solar_research(research_content: str, context_variables: ContextVariables) -> ReplyResult:
+
+def complete_solar_research(
+    research_content: str, context_variables: ContextVariables
+) -> ReplyResult:
     """Submit solar energy research findings"""
     context_variables["solar_research"] = research_content
     context_variables["specialist_a1_completed"] = True
 
     # Check if both specialists under Manager A have completed their tasks
-    if context_variables["specialist_a1_completed"] and context_variables["specialist_a2_completed"]:
+    if (
+        context_variables["specialist_a1_completed"]
+        and context_variables["specialist_a2_completed"]
+    ):
         context_variables["manager_a_completed"] = True
 
     return ReplyResult(
@@ -69,13 +88,19 @@ def complete_solar_research(research_content: str, context_variables: ContextVar
         target=AgentTarget(renewable_manager),
     )
 
-def complete_wind_research(research_content: str, context_variables: ContextVariables) -> ReplyResult:
+
+def complete_wind_research(
+    research_content: str, context_variables: ContextVariables
+) -> ReplyResult:
     """Submit wind energy research findings"""
     context_variables["wind_research"] = research_content
     context_variables["specialist_a2_completed"] = True
 
     # Check if both specialists under Manager A have completed their tasks
-    if context_variables["specialist_a1_completed"] and context_variables["specialist_a2_completed"]:
+    if (
+        context_variables["specialist_a1_completed"]
+        and context_variables["specialist_a2_completed"]
+    ):
         context_variables["manager_a_completed"] = True
 
     return ReplyResult(
@@ -84,13 +109,19 @@ def complete_wind_research(research_content: str, context_variables: ContextVari
         target=AgentTarget(renewable_manager),
     )
 
-def complete_hydro_research(research_content: str, context_variables: ContextVariables) -> ReplyResult:
+
+def complete_hydro_research(
+    research_content: str, context_variables: ContextVariables
+) -> ReplyResult:
     """Submit hydroelectric energy research findings"""
     context_variables["hydro_research"] = research_content
     context_variables["specialist_b1_completed"] = True
 
     # Check if both specialists under Manager B have completed their tasks
-    if context_variables["specialist_b1_completed"] and context_variables["specialist_b2_completed"]:
+    if (
+        context_variables["specialist_b1_completed"]
+        and context_variables["specialist_b2_completed"]
+    ):
         context_variables["manager_b_completed"] = True
 
     return ReplyResult(
@@ -99,13 +130,19 @@ def complete_hydro_research(research_content: str, context_variables: ContextVar
         target=AgentTarget(storage_manager),
     )
 
-def complete_geothermal_research(research_content: str, context_variables: ContextVariables) -> ReplyResult:
+
+def complete_geothermal_research(
+    research_content: str, context_variables: ContextVariables
+) -> ReplyResult:
     """Submit geothermal energy research findings"""
     context_variables["geothermal_research"] = research_content
     context_variables["specialist_b2_completed"] = True
 
     # Check if both specialists under Manager B have completed their tasks
-    if context_variables["specialist_b1_completed"] and context_variables["specialist_b2_completed"]:
+    if (
+        context_variables["specialist_b1_completed"]
+        and context_variables["specialist_b2_completed"]
+    ):
         context_variables["manager_b_completed"] = True
 
     return ReplyResult(
@@ -114,7 +151,10 @@ def complete_geothermal_research(research_content: str, context_variables: Conte
         target=AgentTarget(storage_manager),
     )
 
-def complete_biofuel_research(research_content: str, context_variables: ContextVariables) -> ReplyResult:
+
+def complete_biofuel_research(
+    research_content: str, context_variables: ContextVariables
+) -> ReplyResult:
     """Submit biofuel research findings"""
     context_variables["biofuel_research"] = research_content
     context_variables["specialist_c1_completed"] = True
@@ -125,6 +165,7 @@ def complete_biofuel_research(research_content: str, context_variables: ContextV
         context_variables=context_variables,
         target=AgentTarget(alternative_manager),
     )
+
 
 # ========================
 # SPECIALIST AGENTS
@@ -141,8 +182,8 @@ specialist_a1 = ConversableAgent(
     Be thorough but concise. Your research will be used as part of a larger report.
 
     Use your tools only one at a time.""",
-    functions = [complete_solar_research],
-    llm_config=llm_config
+    functions=[complete_solar_research],
+    llm_config=llm_config,
 )
 
 specialist_a2 = ConversableAgent(
@@ -157,8 +198,8 @@ specialist_a2 = ConversableAgent(
     Be thorough but concise. Your research will be used as part of a larger report.
 
     Use your tools only one at a time.""",
-    functions = [complete_wind_research],
-    llm_config=llm_config
+    functions=[complete_wind_research],
+    llm_config=llm_config,
 )
 
 specialist_b1 = ConversableAgent(
@@ -173,8 +214,8 @@ specialist_b1 = ConversableAgent(
     Be thorough but concise. Your research will be used as part of a larger report.
 
     Use your tools only one at a time.""",
-    functions = [complete_hydro_research],
-    llm_config=llm_config
+    functions=[complete_hydro_research],
+    llm_config=llm_config,
 )
 
 specialist_b2 = ConversableAgent(
@@ -189,8 +230,8 @@ specialist_b2 = ConversableAgent(
     Be thorough but concise. Your research will be used as part of a larger report.
 
     Use your tools only one at a time.""",
-    functions = [complete_geothermal_research],
-    llm_config=llm_config
+    functions=[complete_geothermal_research],
+    llm_config=llm_config,
 )
 
 specialist_c1 = ConversableAgent(
@@ -205,20 +246,26 @@ specialist_c1 = ConversableAgent(
     Be thorough but concise. Your research will be used as part of a larger report.
 
     Use your tools only one at a time.""",
-    functions = [complete_biofuel_research],
-    llm_config=llm_config
+    functions=[complete_biofuel_research],
+    llm_config=llm_config,
 )
 
 # ========================
 # MANAGER FUNCTIONS
 # ========================
 
-def compile_renewable_section(section_content: str, context_variables: ContextVariables) -> ReplyResult:
+
+def compile_renewable_section(
+    section_content: str, context_variables: ContextVariables
+) -> ReplyResult:
     """Compile the renewable energy section (solar and wind) for the final report"""
     context_variables["report_sections"]["renewable"] = section_content
 
     # Check if all managers have submitted their sections
-    if all(key in context_variables["report_sections"] for key in ["renewable", "storage", "alternative"]):
+    if all(
+        key in context_variables["report_sections"]
+        for key in ["renewable", "storage", "alternative"]
+    ):
         context_variables["executive_review_ready"] = True
         return ReplyResult(
             message="Renewable energy section compiled. All sections are now ready for executive review.",
@@ -232,12 +279,18 @@ def compile_renewable_section(section_content: str, context_variables: ContextVa
             target=AgentTarget(executive_agent),
         )
 
-def compile_storage_section(section_content: str, context_variables: ContextVariables) -> ReplyResult:
+
+def compile_storage_section(
+    section_content: str, context_variables: ContextVariables
+) -> ReplyResult:
     """Compile the energy storage section (hydro and geothermal) for the final report"""
     context_variables["report_sections"]["storage"] = section_content
 
     # Check if all managers have submitted their sections
-    if all(key in context_variables["report_sections"] for key in ["renewable", "storage", "alternative"]):
+    if all(
+        key in context_variables["report_sections"]
+        for key in ["renewable", "storage", "alternative"]
+    ):
         context_variables["executive_review_ready"] = True
         return ReplyResult(
             message="Energy storage section compiled. All sections are now ready for executive review.",
@@ -251,12 +304,18 @@ def compile_storage_section(section_content: str, context_variables: ContextVari
             target=AgentTarget(executive_agent),
         )
 
-def compile_alternative_section(section_content: str, context_variables: ContextVariables) -> ReplyResult:
+
+def compile_alternative_section(
+    section_content: str, context_variables: ContextVariables
+) -> ReplyResult:
     """Compile the alternative energy section (biofuels) for the final report"""
     context_variables["report_sections"]["alternative"] = section_content
 
     # Check if all managers have submitted their sections
-    if all(key in context_variables["report_sections"] for key in ["renewable", "storage", "alternative"]):
+    if all(
+        key in context_variables["report_sections"]
+        for key in ["renewable", "storage", "alternative"]
+    ):
         context_variables["executive_review_ready"] = True
         return ReplyResult(
             message="Alternative energy section compiled. All sections are now ready for executive review.",
@@ -269,6 +328,7 @@ def compile_alternative_section(section_content: str, context_variables: Context
             context_variables=context_variables,
             target=AgentTarget(executive_agent),
         )
+
 
 # ========================
 # MANAGER AGENTS
@@ -285,8 +345,8 @@ renewable_manager = ConversableAgent(
     You should wait until both specialists have completed their research before compiling your section.
 
     Use your tools only one at a time.""",
-    functions = [compile_renewable_section],
-    llm_config=llm_config
+    functions=[compile_renewable_section],
+    llm_config=llm_config,
 )
 
 storage_manager = ConversableAgent(
@@ -301,8 +361,8 @@ storage_manager = ConversableAgent(
     You should wait until both specialists have completed their research before compiling your section.
 
     Use your tools only one at a time.""",
-    functions = [compile_storage_section],
-    llm_config=llm_config
+    functions=[compile_storage_section],
+    llm_config=llm_config,
 )
 
 alternative_manager = ConversableAgent(
@@ -315,13 +375,14 @@ alternative_manager = ConversableAgent(
     4. Submitting the compiled research to the executive for final report creation
 
     Use your tools only one at a time.""",
-    functions = [compile_alternative_section],
-    llm_config=llm_config
+    functions=[compile_alternative_section],
+    llm_config=llm_config,
 )
 
 # ========================
 # EXECUTIVE FUNCTIONS
 # ========================
+
 
 def initiate_research(context_variables: ContextVariables) -> ReplyResult:
     """Initiate the research process by delegating to managers"""
@@ -329,10 +390,13 @@ def initiate_research(context_variables: ContextVariables) -> ReplyResult:
 
     return ReplyResult(
         message="Research initiated. Tasks have been delegated to the renewable energy manager, storage manager, and alternative energy manager.",
-        context_variables=context_variables
+        context_variables=context_variables,
     )
 
-def compile_final_report(report_content: str, context_variables: ContextVariables) -> ReplyResult:
+
+def compile_final_report(
+    report_content: str, context_variables: ContextVariables
+) -> ReplyResult:
     """Compile the final comprehensive report from all sections"""
     context_variables["final_report"] = report_content
     context_variables["task_completed"] = True
@@ -340,8 +404,9 @@ def compile_final_report(report_content: str, context_variables: ContextVariable
     return ReplyResult(
         message="Final report compiled successfully. The comprehensive renewable energy report is now complete.",
         context_variables=context_variables,
-        target=AgentTarget(user)  # Return to user with final report
+        target=AgentTarget(user),  # Return to user with final report
     )
+
 
 # ========================
 # EXECUTIVE AGENT
@@ -373,8 +438,8 @@ executive_agent = ConversableAgent(
     * Biofuel Technologies (from Alternative Manager)
     - Comparison of technologies
     - Future outlook and recommendations""",
-    functions = [initiate_research, compile_final_report],
-    llm_config=llm_config
+    functions=[initiate_research, compile_final_report],
+    llm_config=llm_config,
 )
 
 # ========================
@@ -388,19 +453,31 @@ executive_agent.handoffs.add_context_conditions(
     [
         OnContextCondition(
             target=AgentTarget(renewable_manager),
-            condition=ExpressionContextCondition(ContextExpression("not(${manager_a_completed})")),
-            available=ExpressionAvailableCondition(ContextExpression("${task_started} == True")),
+            condition=ExpressionContextCondition(
+                ContextExpression("not(${manager_a_completed})")
+            ),
+            available=ExpressionAvailableCondition(
+                ContextExpression("${task_started} == True")
+            ),
         ),
         OnContextCondition(
             target=AgentTarget(storage_manager),
-            condition=ExpressionContextCondition(ContextExpression("not(${manager_b_completed})")),
-            available=ExpressionAvailableCondition(ContextExpression("${task_started} == True")),
+            condition=ExpressionContextCondition(
+                ContextExpression("not(${manager_b_completed})")
+            ),
+            available=ExpressionAvailableCondition(
+                ContextExpression("${task_started} == True")
+            ),
         ),
         OnContextCondition(
             target=AgentTarget(alternative_manager),
-            condition=ExpressionContextCondition(ContextExpression("not(${manager_c_completed})")),
-            available=ExpressionAvailableCondition(ContextExpression("${task_started} == True")),
-        )
+            condition=ExpressionContextCondition(
+                ContextExpression("not(${manager_c_completed})")
+            ),
+            available=ExpressionAvailableCondition(
+                ContextExpression("${task_started} == True")
+            ),
+        ),
     ]
 )
 executive_agent.handoffs.set_after_work(RevertToUserTarget())
@@ -411,22 +488,36 @@ renewable_manager.handoffs.add_many(
         # Context-based handoffs for specialist delegation
         OnContextCondition(
             target=AgentTarget(specialist_a1),
-            condition=ExpressionContextCondition(ContextExpression("not(${specialist_a1_completed})")),
-            available=ExpressionAvailableCondition(ContextExpression("${task_started} == True")),
+            condition=ExpressionContextCondition(
+                ContextExpression("not(${specialist_a1_completed})")
+            ),
+            available=ExpressionAvailableCondition(
+                ContextExpression("${task_started} == True")
+            ),
         ),
         OnContextCondition(
             target=AgentTarget(specialist_a2),
-            condition=ExpressionContextCondition(ContextExpression("not(${specialist_a2_completed})")),
-            available=ExpressionAvailableCondition(ContextExpression("${task_started} == True")),
+            condition=ExpressionContextCondition(
+                ContextExpression("not(${specialist_a2_completed})")
+            ),
+            available=ExpressionAvailableCondition(
+                ContextExpression("${task_started} == True")
+            ),
         ),
         OnCondition(
             target=AgentTarget(executive_agent),
-            condition=StringLLMCondition("Return to the executive after your report has been compiled."),
-            available=ExpressionAvailableCondition(ContextExpression("${manager_a_completed} == True")),
+            condition=StringLLMCondition(
+                "Return to the executive after your report has been compiled."
+            ),
+            available=ExpressionAvailableCondition(
+                ContextExpression("${manager_a_completed} == True")
+            ),
         ),
     ]
 )
-renewable_manager.handoffs.set_after_work(AgentTarget(executive_agent))  # After work, return to executive)
+renewable_manager.handoffs.set_after_work(
+    AgentTarget(executive_agent)
+)  # After work, return to executive)
 
 # Storage Manager handoffs - similar pattern of context-based and LLM-based handoffs
 storage_manager.handoffs.add_many(
@@ -434,18 +525,30 @@ storage_manager.handoffs.add_many(
         # Context-based handoffs for specialist delegation
         OnContextCondition(
             target=AgentTarget(specialist_b1),
-            condition=ExpressionContextCondition(ContextExpression("not(${specialist_b1_completed})")),
-            available=ExpressionAvailableCondition(ContextExpression("${task_started} == True")),
+            condition=ExpressionContextCondition(
+                ContextExpression("not(${specialist_b1_completed})")
+            ),
+            available=ExpressionAvailableCondition(
+                ContextExpression("${task_started} == True")
+            ),
         ),
         OnContextCondition(
             target=AgentTarget(specialist_b2),
-            condition=ExpressionContextCondition(ContextExpression("not(${specialist_b2_completed})")),
-            available=ExpressionAvailableCondition(ContextExpression("${task_started} == True")),
+            condition=ExpressionContextCondition(
+                ContextExpression("not(${specialist_b2_completed})")
+            ),
+            available=ExpressionAvailableCondition(
+                ContextExpression("${task_started} == True")
+            ),
         ),
         OnCondition(
             target=AgentTarget(executive_agent),
-            condition=StringLLMCondition("Return to the executive after your report has been compiled."),
-            available=ExpressionAvailableCondition(ContextExpression("${manager_b_completed} == True")),
+            condition=StringLLMCondition(
+                "Return to the executive after your report has been compiled."
+            ),
+            available=ExpressionAvailableCondition(
+                ContextExpression("${manager_b_completed} == True")
+            ),
         ),
     ]
 )
@@ -458,17 +561,27 @@ alternative_manager.handoffs.add_many(
         # Context-based handoffs for specialist delegation
         OnContextCondition(
             target=AgentTarget(specialist_c1),
-            condition=ExpressionContextCondition(ContextExpression("not(${specialist_c1_completed})")),
-            available=ExpressionAvailableCondition(ContextExpression("${task_started} == True")),
+            condition=ExpressionContextCondition(
+                ContextExpression("not(${specialist_c1_completed})")
+            ),
+            available=ExpressionAvailableCondition(
+                ContextExpression("${task_started} == True")
+            ),
         ),
         OnCondition(
             target=AgentTarget(executive_agent),
-            condition=StringLLMCondition("Return to the executive with the compiled alternative energy section"),
-            available=ExpressionAvailableCondition(ContextExpression("${manager_c_completed} == True")),
+            condition=StringLLMCondition(
+                "Return to the executive with the compiled alternative energy section"
+            ),
+            available=ExpressionAvailableCondition(
+                ContextExpression("${manager_c_completed} == True")
+            ),
         ),
     ]
 )
-alternative_manager.handoffs.set_after_work(AgentTarget(executive_agent))  # After work, return to executive
+alternative_manager.handoffs.set_after_work(
+    AgentTarget(executive_agent)
+)  # After work, return to executive
 
 # Specialists handoffs back to their managers based on task completion
 specialist_a1.handoffs.set_after_work(AgentTarget(renewable_manager))
@@ -481,6 +594,7 @@ specialist_c1.handoffs.set_after_work(AgentTarget(alternative_manager))
 # INITIATE THE GROUP CHAT
 # ========================
 
+
 def run_hierarchical_chat():
     """Run the hierarchical group chat to generate a renewable energy report"""
     print("Initiating Hierarchical Group Chat for Renewable Energy Report...")
@@ -491,9 +605,15 @@ def run_hierarchical_chat():
             # Executive level
             executive_agent,
             # Manager level
-            renewable_manager, storage_manager, alternative_manager,
+            renewable_manager,
+            storage_manager,
+            alternative_manager,
             # Specialist level
-            specialist_a1, specialist_a2, specialist_b1, specialist_b2, specialist_c1
+            specialist_a1,
+            specialist_a2,
+            specialist_b1,
+            specialist_b2,
+            specialist_c1,
         ],
         context_variables=shared_context,
         group_after_work=TerminateTarget(),  # Default fallback if agent doesn't specify
@@ -520,6 +640,7 @@ def run_hierarchical_chat():
                 print(f"{message['name']}")
     else:
         print("Report generation did not complete successfully.")
+
 
 if __name__ == "__main__":
     run_hierarchical_chat()

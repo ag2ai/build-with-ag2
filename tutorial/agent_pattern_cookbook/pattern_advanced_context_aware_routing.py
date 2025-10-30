@@ -10,45 +10,62 @@ from autogen import (
 
 from autogen.agentchat import initiate_group_chat
 from autogen.agentchat.group.patterns import DefaultPattern
-from autogen.agentchat.group.targets.transition_target import AgentTarget, AgentNameTarget, RevertToUserTarget
-from autogen.agentchat.group import ReplyResult, ContextVariables, ExpressionContextCondition, ExpressionAvailableCondition, ContextExpression, OnContextCondition
+from autogen.agentchat.group.targets.transition_target import (
+    AgentTarget,
+    AgentNameTarget,
+    RevertToUserTarget,
+)
+from autogen.agentchat.group import (
+    ReplyResult,
+    ContextVariables,
+    ExpressionContextCondition,
+    ExpressionAvailableCondition,
+    ContextExpression,
+    OnContextCondition,
+)
 
 # Setup LLM configuration
-llm_config = LLMConfig(config_list={"model": "gpt-4.1-mini", "api_type": "openai", "cache_seed": 1, "parallel_tool_calls": False})
+llm_config = LLMConfig(
+    config_list={
+        "model": "gpt-4.1-mini",
+        "api_type": "openai",
+        "cache_seed": 1,
+        "parallel_tool_calls": False,
+    }
+)
 
 # Shared context for tracking the conversation and routing decisions
-shared_context = ContextVariables(data={
-    # Routing state
-    "routing_started": False,
-    "current_domain": None,
-    "previous_domains": [],
-    "domain_confidence": {},
-
-    # Request tracking
-    "request_count": 0,
-    "current_request": "",
-    "domain_history": {},
-
-    # Response tracking
-    "question_responses": [], # List of question-response pairs
-    "question_answered": True, # Indicates if the last question was answered
-
-    # Specialist invocation tracking
-    "tech_invocations": 0,
-    "finance_invocations": 0,
-    "healthcare_invocations": 0,
-    "general_invocations": 0,
-
-    # Error state (not handled but could be used to route to an error agent)
-    "has_error": False,
-    "error_message": "",
-})
+shared_context = ContextVariables(
+    data={
+        # Routing state
+        "routing_started": False,
+        "current_domain": None,
+        "previous_domains": [],
+        "domain_confidence": {},
+        # Request tracking
+        "request_count": 0,
+        "current_request": "",
+        "domain_history": {},
+        # Response tracking
+        "question_responses": [],  # List of question-response pairs
+        "question_answered": True,  # Indicates if the last question was answered
+        # Specialist invocation tracking
+        "tech_invocations": 0,
+        "finance_invocations": 0,
+        "healthcare_invocations": 0,
+        "general_invocations": 0,
+        # Error state (not handled but could be used to route to an error agent)
+        "has_error": False,
+        "error_message": "",
+    }
+)
 
 # Functions for the context-aware routing pattern
 
+
 def analyze_request(
     request: Annotated[str, "The user request text to analyze"],
-    context_variables: ContextVariables
+    context_variables: ContextVariables,
 ) -> ReplyResult:
     """
     Analyze a user request to determine routing based on content
@@ -75,13 +92,14 @@ def analyze_request(
 
     return ReplyResult(
         message=f"Request analyzed. Will determine the best specialist to handle: '{request}'",
-        context_variables=context_variables
+        context_variables=context_variables,
     )
+
 
 def route_to_tech_specialist(
     confidence: Annotated[int, "Confidence level for tech domain (1-10)"],
     reasoning: Annotated[str, "Reasoning for routing to tech specialist"],
-    context_variables: ContextVariables
+    context_variables: ContextVariables,
 ) -> ReplyResult:
     """
     Route the current request to the technology specialist
@@ -93,13 +111,14 @@ def route_to_tech_specialist(
     return ReplyResult(
         target=AgentTarget(agent=tech_specialist),
         message=f"Routing to tech specialist with confidence {confidence}/10. Reasoning: {reasoning}",
-        context_variables=context_variables
+        context_variables=context_variables,
     )
+
 
 def route_to_finance_specialist(
     confidence: Annotated[int, "Confidence level for finance domain (1-10)"],
     reasoning: Annotated[str, "Reasoning for routing to finance specialist"],
-    context_variables: ContextVariables
+    context_variables: ContextVariables,
 ) -> ReplyResult:
     """
     Route the current request to the finance specialist
@@ -109,16 +128,17 @@ def route_to_finance_specialist(
     context_variables["finance_invocations"] += 1
 
     return ReplyResult(
-        #target=AgentTarget(finance_specialist),
+        # target=AgentTarget(finance_specialist),
         target=AgentNameTarget(agent_name="finance_specialist"),
         message=f"Routing to finance specialist with confidence {confidence}/10. Reasoning: {reasoning}",
-        context_variables=context_variables
+        context_variables=context_variables,
     )
+
 
 def route_to_healthcare_specialist(
     confidence: Annotated[int, "Confidence level for healthcare domain (1-10)"],
     reasoning: Annotated[str, "Reasoning for routing to healthcare specialist"],
-    context_variables: ContextVariables
+    context_variables: ContextVariables,
 ) -> ReplyResult:
     """
     Route the current request to the healthcare specialist
@@ -130,13 +150,14 @@ def route_to_healthcare_specialist(
     return ReplyResult(
         target=AgentTarget(agent=healthcare_specialist),
         message=f"Routing to healthcare specialist with confidence {confidence}/10. Reasoning: {reasoning}",
-        context_variables=context_variables
+        context_variables=context_variables,
     )
+
 
 def route_to_general_specialist(
     confidence: Annotated[int, "Confidence level for general domain (1-10)"],
     reasoning: Annotated[str, "Reasoning for routing to general knowledge specialist"],
-    context_variables: ContextVariables
+    context_variables: ContextVariables,
 ) -> ReplyResult:
     """
     Route the current request to the general knowledge specialist
@@ -148,95 +169,109 @@ def route_to_general_specialist(
     return ReplyResult(
         target=AgentTarget(agent=general_specialist),
         message=f"Routing to general knowledge specialist with confidence {confidence}/10. Reasoning: {reasoning}",
-        context_variables=context_variables
+        context_variables=context_variables,
     )
+
 
 # Functions for specialists to provide responses
 
+
 def provide_tech_response(
     response: Annotated[str, "The specialist's response to the request"],
-    context_variables: ContextVariables
+    context_variables: ContextVariables,
 ) -> ReplyResult:
     """
     Submit a response from the technology specialist
     """
     # Record the question and response
-    context_variables["question_responses"].append({
-        "domain": "technology",
-        "question": context_variables["current_request"],
-        "response": response
-    })
+    context_variables["question_responses"].append(
+        {
+            "domain": "technology",
+            "question": context_variables["current_request"],
+            "response": response,
+        }
+    )
     context_variables["question_answered"] = True
 
     return ReplyResult(
         message="Technology specialist response provided.",
-        context_variables=context_variables
+        context_variables=context_variables,
     )
+
 
 def provide_finance_response(
     response: Annotated[str, "The specialist's response to the request"],
-    context_variables: ContextVariables
+    context_variables: ContextVariables,
 ) -> ReplyResult:
     """
     Submit a response from the finance specialist
     """
     # Record the question and response
-    context_variables["question_responses"].append({
-        "domain": "finance",
-        "question": context_variables["current_request"],
-        "response": response
-    })
+    context_variables["question_responses"].append(
+        {
+            "domain": "finance",
+            "question": context_variables["current_request"],
+            "response": response,
+        }
+    )
     context_variables["question_answered"] = True
 
     return ReplyResult(
         message="Finance specialist response provided.",
-        context_variables=context_variables
+        context_variables=context_variables,
     )
+
 
 def provide_healthcare_response(
     response: Annotated[str, "The specialist's response to the request"],
-    context_variables: ContextVariables
+    context_variables: ContextVariables,
 ) -> ReplyResult:
     """
     Submit a response from the healthcare specialist
     """
     # Record the question and response
-    context_variables["question_responses"].append({
-        "domain": "healthcare",
-        "question": context_variables["current_request"],
-        "response": response
-    })
+    context_variables["question_responses"].append(
+        {
+            "domain": "healthcare",
+            "question": context_variables["current_request"],
+            "response": response,
+        }
+    )
     context_variables["question_answered"] = True
 
     return ReplyResult(
         message="Healthcare specialist response provided.",
-        context_variables=context_variables
+        context_variables=context_variables,
     )
+
 
 def provide_general_response(
     response: Annotated[str, "The specialist's response to the request"],
-    context_variables: ContextVariables
+    context_variables: ContextVariables,
 ) -> ReplyResult:
     """
     Submit a response from the general knowledge specialist
     """
     # Record the question and response
-    context_variables["question_responses"].append({
-        "domain": "general",
-        "question": context_variables["current_request"],
-        "response": response
-    })
+    context_variables["question_responses"].append(
+        {
+            "domain": "general",
+            "question": context_variables["current_request"],
+            "response": response,
+        }
+    )
     context_variables["question_answered"] = True
 
     return ReplyResult(
         message="General knowledge specialist response provided.",
-        context_variables=context_variables
+        context_variables=context_variables,
     )
+
 
 # Function for follow-up clarification if needed
 def request_clarification(
     clarification_question: Annotated[str, "Question to ask user for clarification"],
-    context_variables: ContextVariables
+    context_variables: ContextVariables,
 ) -> ReplyResult:
     """
     Request clarification from the user when the query is ambiguous
@@ -244,8 +279,9 @@ def request_clarification(
     return ReplyResult(
         message=f"Further clarification is required to determine the correct domain: {clarification_question}",
         context_variables=context_variables,
-        target=RevertToUserTarget()
+        target=RevertToUserTarget(),
     )
+
 
 # Create the agents for the routing system
 router_agent = ConversableAgent(
@@ -288,9 +324,9 @@ For ambiguous queries that could belong to multiple domains:
         route_to_finance_specialist,
         route_to_healthcare_specialist,
         route_to_general_specialist,
-        request_clarification
+        request_clarification,
     ],
-    llm_config=llm_config
+    llm_config=llm_config,
 )
 
 tech_specialist = ConversableAgent(
@@ -308,7 +344,7 @@ Focus on being informative, precise, and helpful. If a query contains elements o
 
 Use the provide_tech_response tool to submit your final response.""",
     functions=[provide_tech_response],
-    llm_config=llm_config
+    llm_config=llm_config,
 )
 
 finance_specialist = ConversableAgent(
@@ -326,7 +362,7 @@ Focus on being informative, balanced, and helpful. If a query contains elements 
 
 Use the provide_finance_response tool to submit your final response.""",
     functions=[provide_finance_response],
-    llm_config=llm_config
+    llm_config=llm_config,
 )
 
 healthcare_specialist = ConversableAgent(
@@ -344,7 +380,7 @@ Focus on being informative, accurate, and helpful. If a query contains elements 
 
 Use the provide_healthcare_response tool to submit your final response.""",
     functions=[provide_healthcare_response],
-    llm_config=llm_config
+    llm_config=llm_config,
 )
 
 general_specialist = ConversableAgent(
@@ -362,43 +398,66 @@ Focus on being informative, balanced, and helpful. For questions that might bene
 
 Use the provide_general_response tool to submit your final response.""",
     functions=[provide_general_response],
-    llm_config=llm_config
+    llm_config=llm_config,
 )
 
 # User agent for interaction
-user = UserProxyAgent(
-    name="user",
-    code_execution_config=False
-)
+user = UserProxyAgent(name="user", code_execution_config=False)
 
 # Register handoffs for the context-aware routing pattern
 # Router agent to specialists based on domain
-router_agent.register_handoffs(conditions=[
-    # Route to tech specialist when domain is technology
-    OnContextCondition(
-        target=AgentTarget(agent=tech_specialist),
-        condition=ExpressionContextCondition(expression=ContextExpression(expression="${current_domain} == 'technology'")),
-        available=ExpressionAvailableCondition(expression=ContextExpression(expression="!${question_answered}"))
-    ),
-    # Route to finance specialist when domain is finance
-    OnContextCondition(
-        target=AgentTarget(agent=finance_specialist),
-        condition=ExpressionContextCondition(expression=ContextExpression(expression="${current_domain} == 'finance'")),
-        available=ExpressionAvailableCondition(expression=ContextExpression(expression="!${question_answered}"))
-    ),
-    # Route to healthcare specialist when domain is healthcare
-    OnContextCondition(
-        target=AgentTarget(agent=healthcare_specialist),
-        condition=ExpressionContextCondition(expression=ContextExpression(expression="${current_domain} == 'healthcare'")),
-        available=ExpressionAvailableCondition(expression=ContextExpression(expression="!${question_answered}"))
-    ),
-    # Route to general specialist when domain is general
-    OnContextCondition(
-        target=AgentTarget(agent=general_specialist),
-        condition=ExpressionContextCondition(expression=ContextExpression(expression="${current_domain} == 'general'")),
-        available=ExpressionAvailableCondition(expression=ContextExpression(expression="!${question_answered}"))
-    ),
-])
+router_agent.register_handoffs(
+    conditions=[
+        # Route to tech specialist when domain is technology
+        OnContextCondition(
+            target=AgentTarget(agent=tech_specialist),
+            condition=ExpressionContextCondition(
+                expression=ContextExpression(
+                    expression="${current_domain} == 'technology'"
+                )
+            ),
+            available=ExpressionAvailableCondition(
+                expression=ContextExpression(expression="!${question_answered}")
+            ),
+        ),
+        # Route to finance specialist when domain is finance
+        OnContextCondition(
+            target=AgentTarget(agent=finance_specialist),
+            condition=ExpressionContextCondition(
+                expression=ContextExpression(
+                    expression="${current_domain} == 'finance'"
+                )
+            ),
+            available=ExpressionAvailableCondition(
+                expression=ContextExpression(expression="!${question_answered}")
+            ),
+        ),
+        # Route to healthcare specialist when domain is healthcare
+        OnContextCondition(
+            target=AgentTarget(agent=healthcare_specialist),
+            condition=ExpressionContextCondition(
+                expression=ContextExpression(
+                    expression="${current_domain} == 'healthcare'"
+                )
+            ),
+            available=ExpressionAvailableCondition(
+                expression=ContextExpression(expression="!${question_answered}")
+            ),
+        ),
+        # Route to general specialist when domain is general
+        OnContextCondition(
+            target=AgentTarget(agent=general_specialist),
+            condition=ExpressionContextCondition(
+                expression=ContextExpression(
+                    expression="${current_domain} == 'general'"
+                )
+            ),
+            available=ExpressionAvailableCondition(
+                expression=ContextExpression(expression="!${question_answered}")
+            ),
+        ),
+    ]
+)
 router_agent.handoffs.set_after_work(target=RevertToUserTarget())
 
 # Specialists always return to router for next query
@@ -407,29 +466,30 @@ finance_specialist.handoffs.set_after_work(target=AgentTarget(agent=router_agent
 healthcare_specialist.handoffs.set_after_work(target=AgentTarget(agent=router_agent))
 general_specialist.handoffs.set_after_work(target=AgentTarget(agent=router_agent))
 
+
 # Run the context-aware routing pattern
 def run_context_aware_routing():
     """Run the context-aware routing pattern for dynamic domain-based routing"""
     print("Initiating Context-Aware Routing Pattern...")
 
     # Sample requests to demonstrate the routing
-    sample_general_knowledge = "Could you explain the cultural and historical significance of the Renaissance period in Europe? How did it influence art, science, and philosophy, and what lasting impacts does it have on modern society?"
-    sample_healthcare_knowledge = "I've been experiencing frequent headaches, particularly in the morning, along with some dizziness. What might be causing this and what lifestyle changes or treatments should I consider? Are there specific foods that could help reduce headache frequency?"
-    sample_tech_request = "What's the difference between interpreted and compiled programming languages? Can you give me examples of each and explain the advantages and disadvantages in terms of development speed and performance?"
-    sample_finance_request = "Can you explain how blockchain technology works and its potential applications in finance?"
+    # sample_general_knowledge = "Could you explain the cultural and historical significance of the Renaissance period in Europe? How did it influence art, science, and philosophy, and what lasting impacts does it have on modern society?"
+    # sample_healthcare_knowledge = "I've been experiencing frequent headaches, particularly in the morning, along with some dizziness. What might be causing this and what lifestyle changes or treatments should I consider? Are there specific foods that could help reduce headache frequency?"
+    # sample_tech_request = "What's the difference between interpreted and compiled programming languages? Can you give me examples of each and explain the advantages and disadvantages in terms of development speed and performance?"
+    # sample_finance_request = "Can you explain how blockchain technology works and its potential applications in finance?"
     sample_ambiguous_request = "Can you tell me about benefits? I'm trying to understand all my options and make the right decision."
 
     agent_pattern = DefaultPattern(
-    agents=[
+        agents=[
             router_agent,
             tech_specialist,
             finance_specialist,
             healthcare_specialist,
-            general_specialist
+            general_specialist,
         ],
-    initial_agent=router_agent,
-    context_variables=shared_context,
-    user_agent=user,
+        initial_agent=router_agent,
+        context_variables=shared_context,
+        user_agent=user,
     )
 
     chat_result, final_context, last_agent = initiate_group_chat(
@@ -467,6 +527,7 @@ def run_context_aware_routing():
     for message in chat_result.chat_history:
         if "name" in message and message["name"] != "_Group_Tool_Executor":
             print(f"{message['name']}")
+
 
 if __name__ == "__main__":
     run_context_aware_routing()

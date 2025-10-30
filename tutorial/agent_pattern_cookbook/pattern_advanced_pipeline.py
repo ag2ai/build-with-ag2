@@ -8,69 +8,120 @@ from autogen import (
 )
 from autogen.agentchat import initiate_group_chat
 from autogen.agentchat.group.patterns import DefaultPattern
-from autogen.agentchat.group import AgentTarget, AgentNameTarget, OnContextCondition, ContextExpression, ExpressionContextCondition, ReplyResult, ContextVariables, RevertToUserTarget
+from autogen.agentchat.group import (
+    AgentTarget,
+    AgentNameTarget,
+    OnContextCondition,
+    ContextExpression,
+    ExpressionContextCondition,
+    ReplyResult,
+    ContextVariables,
+    RevertToUserTarget,
+)
 
 # E-commerce order processing pipeline
 # Each agent handles a specific stage of order processing in sequence
 
 # Setup LLM configuration
-llm_config = LLMConfig(config_list={"api_type": "openai", "model": "gpt-5-nano", "parallel_tool_calls": False, "cache_seed": None})
+llm_config = LLMConfig(
+    config_list={
+        "api_type": "openai",
+        "model": "gpt-5-nano",
+        "parallel_tool_calls": False,
+        "cache_seed": None,
+    }
+)
 
 # Shared context for tracking order processing state
-shared_context = ContextVariables(data={
-    # Pipeline state
-    "pipeline_started": False,
-    "pipeline_completed": False,
+shared_context = ContextVariables(
+    data={
+        # Pipeline state
+        "pipeline_started": False,
+        "pipeline_completed": False,
+        # Stage completion tracking
+        "validation_completed": False,
+        "inventory_completed": False,
+        "payment_completed": False,
+        "fulfillment_completed": False,
+        "notification_completed": False,
+        # Order data
+        "order_details": {},
+        "validation_results": {},
+        "inventory_results": {},
+        "payment_results": {},
+        "fulfillment_results": {},
+        "notification_results": {},
+        # Error state
+        "has_error": False,
+        "error_message": "",
+        "error_stage": "",
+    }
+)
 
-    # Stage completion tracking
-    "validation_completed": False,
-    "inventory_completed": False,
-    "payment_completed": False,
-    "fulfillment_completed": False,
-    "notification_completed": False,
-
-    # Order data
-    "order_details": {},
-    "validation_results": {},
-    "inventory_results": {},
-    "payment_results": {},
-    "fulfillment_results": {},
-    "notification_results": {},
-
-    # Error state
-    "has_error": False,
-    "error_message": "",
-    "error_stage": ""
-})
 
 # Pydantic models for pipeline stages
 class ValidationResult(BaseModel):
-    is_valid: bool = Field(..., description="Boolean indicating if the order passed validation")
-    error_message: Optional[str] = Field(None, description="Explanation if validation failed")
-    validation_details: Optional[dict] = Field(None, description="Any additional validation information")
+    is_valid: bool = Field(
+        ..., description="Boolean indicating if the order passed validation"
+    )
+    error_message: Optional[str] = Field(
+        None, description="Explanation if validation failed"
+    )
+    validation_details: Optional[dict] = Field(
+        None, description="Any additional validation information"
+    )
+
 
 class InventoryResult(BaseModel):
-    items_available: bool = Field(..., description="Boolean indicating if all items are available")
-    error_message: Optional[str] = Field(None, description="Explanation if any items are out of stock")
-    reserved_items: Optional[list] = Field(None, description="Details of items reserved for this order")
+    items_available: bool = Field(
+        ..., description="Boolean indicating if all items are available"
+    )
+    error_message: Optional[str] = Field(
+        None, description="Explanation if any items are out of stock"
+    )
+    reserved_items: Optional[list] = Field(
+        None, description="Details of items reserved for this order"
+    )
+
 
 class PaymentResult(BaseModel):
-    payment_successful: bool = Field(..., description="Boolean indicating if payment was processed successfully")
-    error_message: Optional[str] = Field(None, description="Explanation if payment failed")
-    transaction_details: Optional[dict] = Field(None, description="Details of the payment transaction")
+    payment_successful: bool = Field(
+        ..., description="Boolean indicating if payment was processed successfully"
+    )
+    error_message: Optional[str] = Field(
+        None, description="Explanation if payment failed"
+    )
+    transaction_details: Optional[dict] = Field(
+        None, description="Details of the payment transaction"
+    )
+
 
 class FulfillmentResult(BaseModel):
-    fulfillment_instructions: str = Field(..., description="Detailed instructions for order fulfillment")
-    shipping_details: str = Field(..., description="Information about shipping method, tracking, etc.")
+    fulfillment_instructions: str = Field(
+        ..., description="Detailed instructions for order fulfillment"
+    )
+    shipping_details: str = Field(
+        ..., description="Information about shipping method, tracking, etc."
+    )
     estimated_delivery: str = Field(..., description="Expected delivery timeframe")
 
+
 class NotificationResult(BaseModel):
-    notification_sent: bool = Field(..., description="Boolean indicating if notification was sent")
-    notification_method: str = Field(..., description="Method used to notify the customer (email, SMS, etc.)")
-    notification_content: str = Field(..., description="Content of the notification message")
+    notification_sent: bool = Field(
+        ..., description="Boolean indicating if notification was sent"
+    )
+    notification_method: str = Field(
+        ..., description="Method used to notify the customer (email, SMS, etc.)"
+    )
+    notification_content: str = Field(
+        ..., description="Content of the notification message"
+    )
+
 
 # Pipeline stage functions
-def start_order_processing(order_json: str, context_variables: ContextVariables) -> ReplyResult:
+def start_order_processing(
+    order_json: str, context_variables: ContextVariables
+) -> ReplyResult:
     """Start the order processing pipeline with provided order details JSON string"""
     context_variables["pipeline_started"] = True
 
@@ -82,7 +133,7 @@ def start_order_processing(order_json: str, context_variables: ContextVariables)
         return ReplyResult(
             message=f"Order processing started for Order #{order_details.get('order_id', 'Unknown')}",
             context_variables=context_variables,
-            target=AgentNameTarget("validation_agent")
+            target=AgentNameTarget("validation_agent"),
         )
     except json.JSONDecodeError:
         context_variables["has_error"] = True
@@ -92,14 +143,18 @@ def start_order_processing(order_json: str, context_variables: ContextVariables)
         return ReplyResult(
             message="Failed to process order: Invalid JSON format",
             context_variables=context_variables,
-            target=RevertToUserTarget()
+            target=RevertToUserTarget(),
         )
+
 
 def run_validation_check(context_variables: ContextVariables) -> str:
     """Run the validation check for the order"""
     return "Validation check completed successfully."
 
-def complete_validation(validation_result: ValidationResult, context_variables: ContextVariables) -> ReplyResult:
+
+def complete_validation(
+    validation_result: ValidationResult, context_variables: ContextVariables
+) -> ReplyResult:
     """Complete the validation stage and pass to inventory check"""
     # Store the validation result in context variables
     context_variables["validation_results"] = validation_result.model_dump()
@@ -108,26 +163,32 @@ def complete_validation(validation_result: ValidationResult, context_variables: 
     # Check if validation failed
     if not validation_result.is_valid:
         context_variables["has_error"] = True
-        context_variables["error_message"] = validation_result.error_message or "Validation failed"
+        context_variables["error_message"] = (
+            validation_result.error_message or "Validation failed"
+        )
         context_variables["error_stage"] = "validation"
 
         return ReplyResult(
             message=f"Validation failed: {validation_result.error_message or 'Unknown error'}",
             context_variables=context_variables,
-            target=RevertToUserTarget()
+            target=RevertToUserTarget(),
         )
 
     return ReplyResult(
         message="Order validated successfully. Proceeding to inventory check.",
         context_variables=context_variables,
-        target=AgentNameTarget("inventory_agent")
+        target=AgentNameTarget("inventory_agent"),
     )
+
 
 def run_inventory_check(context_variables: ContextVariables) -> str:
     """Run the inventory check for the order"""
     return "Inventory check completed successfully."
 
-def complete_inventory_check(inventory_result: InventoryResult, context_variables: ContextVariables) -> ReplyResult:
+
+def complete_inventory_check(
+    inventory_result: InventoryResult, context_variables: ContextVariables
+) -> ReplyResult:
     """Complete the inventory check stage and pass to payment processing"""
     # Store the inventory result in context variables
     context_variables["inventory_results"] = inventory_result.model_dump()
@@ -136,26 +197,32 @@ def complete_inventory_check(inventory_result: InventoryResult, context_variable
     # Check if inventory check failed
     if not inventory_result.items_available:
         context_variables["has_error"] = True
-        context_variables["error_message"] = inventory_result.error_message or "Inventory check failed"
+        context_variables["error_message"] = (
+            inventory_result.error_message or "Inventory check failed"
+        )
         context_variables["error_stage"] = "inventory"
 
         return ReplyResult(
             message=f"Inventory check failed: {inventory_result.error_message or 'Unknown error'}",
             context_variables=context_variables,
-            target=RevertToUserTarget()
+            target=RevertToUserTarget(),
         )
 
     return ReplyResult(
         message="Inventory check completed successfully. Proceeding to payment processing.",
         context_variables=context_variables,
-        target=AgentNameTarget("payment_agent")
+        target=AgentNameTarget("payment_agent"),
     )
+
 
 def check_payment_info(context_variables: ContextVariables) -> str:
     """Check the payment information for the order"""
     return "Payment information verified successfully."
 
-def complete_payment_processing(payment_result: PaymentResult, context_variables: ContextVariables) -> ReplyResult:
+
+def complete_payment_processing(
+    payment_result: PaymentResult, context_variables: ContextVariables
+) -> ReplyResult:
     """Complete the payment processing stage and pass to fulfillment"""
     # Store the payment result in context variables
     context_variables["payment_results"] = payment_result.model_dump()
@@ -164,22 +231,27 @@ def complete_payment_processing(payment_result: PaymentResult, context_variables
     # Check if payment processing failed
     if not payment_result.payment_successful:
         context_variables["has_error"] = True
-        context_variables["error_message"] = payment_result.error_message or "Payment processing failed"
+        context_variables["error_message"] = (
+            payment_result.error_message or "Payment processing failed"
+        )
         context_variables["error_stage"] = "payment"
 
         return ReplyResult(
             message=f"Payment processing failed: {payment_result.error_message or 'Unknown error'}",
             context_variables=context_variables,
-            target=RevertToUserTarget()
+            target=RevertToUserTarget(),
         )
 
     return ReplyResult(
         message="Payment processed successfully. Proceeding to order fulfillment.",
         context_variables=context_variables,
-        target=AgentNameTarget("fulfillment_agent")
+        target=AgentNameTarget("fulfillment_agent"),
     )
 
-def complete_fulfillment(fulfillment_result: FulfillmentResult, context_variables: ContextVariables) -> ReplyResult:
+
+def complete_fulfillment(
+    fulfillment_result: FulfillmentResult, context_variables: ContextVariables
+) -> ReplyResult:
     """Complete the fulfillment stage and pass to notification"""
     # Store the fulfillment result in context variables
     context_variables["fulfillment_results"] = fulfillment_result.model_dump()
@@ -188,10 +260,13 @@ def complete_fulfillment(fulfillment_result: FulfillmentResult, context_variable
     return ReplyResult(
         message="Order fulfillment completed. Proceeding to customer notification.",
         context_variables=context_variables,
-        target=AgentNameTarget("notification_agent")
+        target=AgentNameTarget("notification_agent"),
     )
 
-def complete_notification(notification_result: NotificationResult, context_variables: ContextVariables) -> ReplyResult:
+
+def complete_notification(
+    notification_result: NotificationResult, context_variables: ContextVariables
+) -> ReplyResult:
     """Complete the notification stage and finish the pipeline"""
     # Store the notification result in context variables
     context_variables["notification_results"] = notification_result.model_dump()
@@ -201,8 +276,9 @@ def complete_notification(notification_result: NotificationResult, context_varia
     return ReplyResult(
         message="Customer notification sent. Order processing completed successfully.",
         context_variables=context_variables,
-        target=RevertToUserTarget()
+        target=RevertToUserTarget(),
     )
+
 
 # Pipeline agents
 entry_agent = ConversableAgent(
@@ -217,7 +293,7 @@ entry_agent = ConversableAgent(
 
     The order details will be in a valid JSON format containing information about the customer, items, payment, etc.""",
     functions=[start_order_processing],
-    llm_config=llm_config
+    llm_config=llm_config,
 )
 
 validation_agent = ConversableAgent(
@@ -235,7 +311,7 @@ validation_agent = ConversableAgent(
 
     Always use the run_validation_check tool before using the complete_validation tool to submit your ValidationResult and move the order to the next stage.""",
     functions=[run_validation_check, complete_validation],
-    llm_config=llm_config
+    llm_config=llm_config,
 )
 
 inventory_agent = ConversableAgent(
@@ -257,7 +333,7 @@ inventory_agent = ConversableAgent(
 
     Always use the run_inventory_check tool to do an inventory check before using the complete_inventory_check tool to submit your InventoryResult and move the order to the next stage.""",
     functions=[run_inventory_check, complete_inventory_check],
-    llm_config=llm_config
+    llm_config=llm_config,
 )
 
 payment_agent = ConversableAgent(
@@ -279,7 +355,7 @@ payment_agent = ConversableAgent(
 
     Always use the check_payment_info tool before running the complete_payment_processing tool to submit your PaymentResult and move the order to the next stage.""",
     functions=[check_payment_info, complete_payment_processing],
-    llm_config=llm_config
+    llm_config=llm_config,
 )
 
 fulfillment_agent = ConversableAgent(
@@ -300,7 +376,7 @@ fulfillment_agent = ConversableAgent(
 
     Always use the complete_fulfillment tool to submit your FulfillmentResult and move the order to the next stage.""",
     functions=[complete_fulfillment],
-    llm_config=llm_config
+    llm_config=llm_config,
 )
 
 notification_agent = ConversableAgent(
@@ -321,21 +397,22 @@ notification_agent = ConversableAgent(
 
     Always use the complete_notification tool to submit your NotificationResult and complete the order processing pipeline.""",
     functions=[complete_notification],
-    llm_config=llm_config
+    llm_config=llm_config,
 )
 
 # User agent for interaction
-user = UserProxyAgent(
-    name="user",
-    code_execution_config=False
-)
+user = UserProxyAgent(name="user", code_execution_config=False)
 
 # Register handoffs for the pipeline
 # Entry agent starts the pipeline
 entry_agent.handoffs.add_context_condition(
     OnContextCondition(
         target=AgentTarget(validation_agent),
-        condition=ExpressionContextCondition(ContextExpression("${pipeline_started} == True and ${validation_completed} == False"))
+        condition=ExpressionContextCondition(
+            ContextExpression(
+                "${pipeline_started} == True and ${validation_completed} == False"
+            )
+        ),
     ),
 )
 entry_agent.handoffs.set_after_work(RevertToUserTarget())
@@ -355,6 +432,7 @@ fulfillment_agent.handoffs.set_after_work(AgentTarget(notification_agent))
 # Notification agent finishes the pipeline and returns to user
 notification_agent.handoffs.set_after_work(RevertToUserTarget())
 
+
 # Run the pipeline
 def run_pipeline_pattern():
     """Run the pipeline pattern for e-commerce order processing"""
@@ -373,39 +451,39 @@ def run_pipeline_pattern():
                 "city": "Anytown",
                 "state": "CA",
                 "zip": "90210",
-                "country": "USA"
+                "country": "USA",
             },
             "billing_address": {
                 "street": "123 Main St",
                 "city": "Anytown",
                 "state": "CA",
                 "zip": "90210",
-                "country": "USA"
-            }
+                "country": "USA",
+            },
         },
         "order_items": [
             {
                 "item_id": "PROD-001",
                 "name": "Smartphone XYZ",
                 "quantity": 1,
-                "price": 699.99
+                "price": 699.99,
             },
             {
                 "item_id": "PROD-042",
                 "name": "Phone Case",
                 "quantity": 2,
-                "price": 24.99
-            }
+                "price": 24.99,
+            },
         ],
         "shipping_method": "express",
         "payment_info": {
             "method": "credit_card",
             "card_last_four": "4242",
             "amount": 749.97,
-            "currency": "USD"
+            "currency": "USD",
         },
         "promocode": "SUMMER10",
-        "order_date": "2025-03-08T14:30:00Z"
+        "order_date": "2025-03-08T14:30:00Z",
     }
 
     sample_order_json = json.dumps(sample_order)
@@ -418,7 +496,7 @@ def run_pipeline_pattern():
             inventory_agent,
             payment_agent,
             fulfillment_agent,
-            notification_agent
+            notification_agent,
         ],
         user_agent=user,
         context_variables=shared_context,
@@ -434,22 +512,40 @@ def run_pipeline_pattern():
         print("Order processing completed successfully!")
         print("\n===== ORDER PROCESSING SUMMARY =====\n")
         print(f"Order ID: {final_context['order_details'].get('order_id')}")
-        print(f"Customer: {final_context['order_details'].get('customer', {}).get('name')}")
-        print(f"Total Amount: ${final_context['order_details'].get('payment_info', {}).get('amount')}")
+        print(
+            f"Customer: {final_context['order_details'].get('customer', {}).get('name')}"
+        )
+        print(
+            f"Total Amount: ${final_context['order_details'].get('payment_info', {}).get('amount')}"
+        )
 
         # Show the progression through pipeline stages
         print("\n===== PIPELINE PROGRESSION =====\n")
-        print(f"Validation: {'✅ Passed' if final_context['validation_results'].get('is_valid') else '❌ Failed'}")
-        print(f"Inventory: {'✅ Available' if final_context['inventory_results'].get('items_available') else '❌ Unavailable'}")
-        print(f"Payment: {'✅ Successful' if final_context['payment_results'].get('payment_successful') else '❌ Failed'}")
-        print(f"Fulfillment: {'✅ Completed' if 'fulfillment_results' in final_context else '❌ Not reached'}")
-        print(f"Notification: {'✅ Sent' if final_context['notification_results'].get('notification_sent') else '❌ Not sent'}")
+        print(
+            f"Validation: {'✅ Passed' if final_context['validation_results'].get('is_valid') else '❌ Failed'}"
+        )
+        print(
+            f"Inventory: {'✅ Available' if final_context['inventory_results'].get('items_available') else '❌ Unavailable'}"
+        )
+        print(
+            f"Payment: {'✅ Successful' if final_context['payment_results'].get('payment_successful') else '❌ Failed'}"
+        )
+        print(
+            f"Fulfillment: {'✅ Completed' if 'fulfillment_results' in final_context else '❌ Not reached'}"
+        )
+        print(
+            f"Notification: {'✅ Sent' if final_context['notification_results'].get('notification_sent') else '❌ Not sent'}"
+        )
 
         # Display shipping information
-        if 'fulfillment_results' in final_context:
+        if "fulfillment_results" in final_context:
             print("\n===== SHIPPING INFORMATION =====\n")
-            print(f"Shipping Method: {final_context['fulfillment_results'].get('shipping_details', '')}")
-            print(f"Estimated Delivery: {final_context['fulfillment_results'].get('estimated_delivery')}")
+            print(
+                f"Shipping Method: {final_context['fulfillment_results'].get('shipping_details', '')}"
+            )
+            print(
+                f"Estimated Delivery: {final_context['fulfillment_results'].get('estimated_delivery')}"
+            )
 
         print("\n\n===== SPEAKER ORDER =====\n")
         for message in chat_result.chat_history:
@@ -458,7 +554,10 @@ def run_pipeline_pattern():
     else:
         print("Order processing did not complete successfully.")
         if final_context["has_error"]:
-            print(f"Error during {final_context['error_stage']} stage: {final_context['error_message']}")
+            print(
+                f"Error during {final_context['error_stage']} stage: {final_context['error_message']}"
+            )
+
 
 if __name__ == "__main__":
     run_pipeline_pattern()
