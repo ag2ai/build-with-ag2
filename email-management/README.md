@@ -69,7 +69,7 @@ The primary dependency is the `ag2` library.
       - Click on "Gmail API" from the results
       - Click the "Enable" button
 
-   d. Create OAuth 2.0 credentials:
+   d. Create [OAuth 2.0 credentials](https://developers.google.com/workspace/guides/create-credentials):
       - Go to "APIs & Services" > "Credentials" in the left sidebar
       - Click "+ CREATE CREDENTIALS" at the top
       - Select "OAuth client ID" from the dropdown
