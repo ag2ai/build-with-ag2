@@ -9,12 +9,6 @@ from email_utils import (
     fetch_email_thread,
 )
 import autogen
-from autogen.agentchat.contrib.swarm_agent import (
-    initiate_swarm_chat,
-    AFTER_WORK,
-    AfterWorkOption,
-)
-
 from autogen.agentchat import initiate_group_chat
 from autogen import ConversableAgent, LLMConfig
 from autogen.agentchat.group import (
@@ -80,8 +74,6 @@ read_email_ids = []
 
 
 # -------- First, sort emails by sender. Provide the option to mark all emails from a specific sender as read. --------
-
-
 def mark_all_from_sender_as_read(sender: str) -> str:
     try:
         emails = sorted_grouped_emails[sender]
@@ -147,28 +139,36 @@ for sender, emails in sorted_grouped_emails.items():
     print("-" * 100)
     print("\n")
 
-initiate_swarm_chat(
-    filter_agent,
-    agents=[filter_agent],
-    messages=input_str,
-    user_agent=user_proxy,
-    after_work=AFTER_WORK(AfterWorkOption.REVERT_TO_USER),
-)
+# Only proceed with filtering if there are senders with multiple emails
+if input_str.strip():
+    agent_pattern = DefaultPattern(
+        agents=[
+            filter_agent,
+        ],
+        initial_agent=filter_agent,
+        user_agent=user_proxy,
+        group_after_work=RevertToUserTarget(),
+    )
 
-agent_pattern = DefaultPattern(
-    agents=[
-        filter_agent,
-    ],
-    initial_agent=filter_agent,
-    user_agent=user_proxy,
-    group_after_work=RevertToUserTarget(),
-)
+    result, final_context, last_agent = initiate_group_chat(
+        pattern=agent_pattern,
+        messages=input_str,
+        max_rounds=10,
+    )
 
-result, final_context, last_agent = initiate_group_chat(
-    pattern=agent_pattern,
-    messages=input_str,
-    max_rounds=10,
-)
+    try:
+        result, final_context, last_agent = initiate_group_chat(
+            pattern=agent_pattern,
+            messages=input_str,
+            max_rounds=10,
+        )
+    except (IndexError, ValueError) as e:
+        print(f"Skipping bulk filtering due to message processing error: {e}")
+        print(
+            "You may want to try using a different LLM provider or update the autogen library."
+        )
+else:
+    print("No senders with multiple emails found. Skipping bulk filtering.")
 
 # remove read emails from unread_emails
 for email in unread_emails:
@@ -194,8 +194,26 @@ def get_email_body(email_id: str) -> str:
 
 
 def get_full_thread(email_thread_id: str) -> str:
-    """Get the full thread of an email."""
-    return fetch_email_thread(gmail_service, email_thread_id)
+    """Get the full thread of an email as a formatted string for the agent."""
+    thread_emails = fetch_email_thread(gmail_service, email_thread_id)
+    if not thread_emails:
+        return "No thread found or error fetching thread."
+
+    # Format the thread as a readable string for the agent
+    formatted_thread = "Email Thread:\n" + "=" * 80 + "\n"
+    for i, email in enumerate(thread_emails, 1):
+        formatted_thread += f"\n--- Email {i} of {len(thread_emails)} ---\n"
+        formatted_thread += f"Message ID: {email.get('message_id', 'N/A')}\n"
+        formatted_thread += f"From: {email.get('from', 'N/A')}\n"
+        formatted_thread += f"To: {email.get('to', 'N/A')}\n"
+        formatted_thread += f"Date: {email.get('date', 'N/A')}\n"
+        formatted_thread += f"Subject: {email.get('subject', 'N/A')}\n"
+        if email.get("attachments"):
+            formatted_thread += f"Attachments: {', '.join(email['attachments'])}\n"
+        formatted_thread += f"\nBody:\n{email.get('body', 'No body content')}\n"
+        formatted_thread += "-" * 80 + "\n"
+
+    return formatted_thread
 
 
 email_assistant = ConversableAgent(
@@ -226,17 +244,24 @@ for email in unread_emails:
     email_str += f"Subject: {email['subject']}\n"
     email_str += "\n"
 
-agent_pattern = DefaultPattern(
-    agents=[
-        email_assistant,
-    ],
-    initial_agent=email_assistant,
-    user_agent=user_proxy,
-    group_after_work=RevertToUserTarget(),
-)
+# Only proceed if there are unread emails to process
+if email_str.strip():
+    agent_pattern = DefaultPattern(
+        agents=[
+            email_assistant,
+        ],
+        initial_agent=email_assistant,
+        user_agent=user_proxy,
+        group_after_work=RevertToUserTarget(),
+    )
 
-result, final_context, last_agent = initiate_group_chat(
-    pattern=agent_pattern,
-    messages=email_str,
-    max_rounds=10,
-)
+    try:
+        result, final_context, last_agent = initiate_group_chat(
+            pattern=agent_pattern,
+            messages=email_str,
+            max_rounds=10,
+        )
+    except (AssertionError, IndexError, ValueError) as e:
+        print(f"Skipping email assistant chat due to error: {e}")
+else:
+    print("No unread emails remaining to process after filtering.")
