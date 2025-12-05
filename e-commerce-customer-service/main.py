@@ -49,6 +49,17 @@ from functions import (
 #     "tools": [],
 # }
 
+# AWS Bedrock
+# llm_config = LLMConfig(
+#     api_type="bedrock",
+#     model="us.anthropic.claude-sonnet-4-20250514-v1:0",
+#     aws_region="us-east-1",
+#     cache_seed=42,
+#     temperature=1,
+#     tools=[],
+#     timeout=120,
+# )
+
 llm_config = LLMConfig(
     api_type="openai",
     model="gpt-5-nano",

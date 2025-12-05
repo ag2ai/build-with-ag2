@@ -27,6 +27,7 @@ def get_order_history(context_variables: ContextVariables) -> str:
 
 # for order management agent
 def check_order_status(order_number: str, context_variables: ContextVariables) -> str:
+    """Check the order status of the user."""
     orders = context_variables["user_info"]["orders"]
     if order_number not in orders:
         return "The order number is invalid"
@@ -35,6 +36,8 @@ def check_order_status(order_number: str, context_variables: ContextVariables) -
 
 # for login agent
 def login_account(context_variables: ContextVariables) -> Union[str, ReplyResult]:
+    """login user account."""
+
     def mock_login_process():
         return True, MOCK_USER_INFO
 
@@ -57,6 +60,7 @@ def login_account(context_variables: ContextVariables) -> Union[str, ReplyResult
 def check_return_eligibility(
     order_number: str, context_variables: ContextVariables
 ) -> str:
+    """check order return eligibility for user."""
     orders = context_variables["user_info"]["orders"]
     if order_number not in orders:
         return "The order number is invalid"
@@ -72,6 +76,7 @@ def check_return_eligibility(
 def initiate_return_process(
     order_number: str, context_variables: ContextVariables
 ) -> Union[str, ReplyResult]:
+    """initiate return process for a user order."""
     orders = context_variables["user_info"]["orders"]
     if (
         not check_return_eligibility(order_number, context_variables)
@@ -87,7 +92,7 @@ def initiate_return_process(
 def verify_order_number(
     order_number: str, context_variables: ContextVariables
 ) -> Union[str, ReplyResult]:
-    # check the database to see if the order number is valid
+    """check the database to see if the order number is valid."""
     if order_number not in MOCK_ORDER_DATABASE:
         return "The order number is invalid"
 
@@ -105,6 +110,7 @@ def verify_user_information(
     phone_number_last_4_digit: str = None,
     context_variables: ContextVariables = None,
 ) -> str:
+    """verify user's information."""
     if context_variables["order_info"] is None:
         return "An valid order number is not provided."
 
