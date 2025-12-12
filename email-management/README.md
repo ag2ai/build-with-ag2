@@ -51,40 +51,9 @@ The primary dependency is the `ag2` library.
 
 3. **Set up Google Gmail API credentials:**
 
-   To access the Gmail API, you need to create OAuth 2.0 credentials in Google Cloud Console. Follow these steps:
-
-   a. Go to Google Cloud Console:
-      - Visit [Google Cloud Console](https://console.cloud.google.com/)
-      - Sign in with your Google account
-
-   b. Create or select a project:
-      - Click on the project dropdown at the top
-      - Click "New Project" to create a new project, or select an existing one
-      - Give your project a name (e.g., "Email Management Assistant")
-      - Click "Create"
-
-   c. Enable the Gmail API:
-      - In the left sidebar, go to "APIs & Services" > "Library"
-      - Search for "Gmail API" in the search bar
-      - Click on "Gmail API" from the results
-      - Click the "Enable" button
-
-   d. Create [OAuth 2.0 credentials](https://developers.google.com/workspace/guides/create-credentials):
-      - Go to "APIs & Services" > "Credentials" in the left sidebar
-      - Click "+ CREATE CREDENTIALS" at the top
-      - Select "OAuth client ID" from the dropdown
-      - If prompted, configure the OAuth consent screen first
-      - Now create the OAuth client ID:
-        - Application type: Select "Desktop app"
-        - Name: Give it a name (e.g., "Email Management Client")
-        - Click "Create"
-      - A popup will appear with your Client ID and Client Secret
-      - Click "Download JSON" to download the credentials file
-      - **Important:** Rename the downloaded file to `credentials.json`
-
-   e. Place credentials in the project:
-      - Move the `credentials.json` file to the root directory of this project (`email-management/`)
-      - The file should be at the same level as `main.py`
+- You also need to set up google credentials to access Gmail API. Search for "Gmail API" in the Google Cloud Console and enable the API.
+- Follow the instructions [here](https://developers.google.com/workspace/guides/create-credentials) to set up the credentials and download the credentials JSON.
+- Rename the downloaded file to `credentials.json` and move it to the root directory of this project (`email-management/`). The file should be at the same level as `main.py`
 
 ## Running the Code
 
@@ -100,7 +69,7 @@ The primary dependency is the `ag2` library.
    ```
    - The script will prompt you to authenticate your Gmail account and authorize the application to access your emails.
    - A `token.json` file will be generated to store the authentication token for future use.
-   Then you can interact with the manager to triage your emails.
+     Then you can interact with the manager to triage your emails.
 
 ## Contact
 
