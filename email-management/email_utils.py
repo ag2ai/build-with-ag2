@@ -293,7 +293,7 @@ def parse_email_data(
 
 
 def group_emails_by_sender(
-    email_list: List[Dict[str, Union[str, List[str]]]]
+    email_list: List[Dict[str, Union[str, List[str]]]],
 ) -> Dict[str, List[Dict[str, Union[str, List[str]]]]]:
     """
     Groups emails by sender email.

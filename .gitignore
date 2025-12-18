@@ -191,3 +191,6 @@ samples/apps/autogen-studio/autogenstudio/models/test/
 
 notebook/coding
 data-hack-summit/module5_building_custom_agents.ipynb/custom_agent1_appsec_agent.ipynb
+
+# API configuration files
+credentials.json
