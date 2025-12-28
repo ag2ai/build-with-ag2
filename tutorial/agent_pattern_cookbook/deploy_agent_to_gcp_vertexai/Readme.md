@@ -5,7 +5,6 @@ This project deploys an AutoGen AG2 (AutoGen 2.0) conversational agent to Google
 ## 📋 Table of Contents
 
 - [Overview](#overview)
-- [Architecture](#architecture)
 - [Prerequisites](#prerequisites)
 - [Project Setup](#project-setup)
 - [Local Development](#local-development)
