@@ -33,11 +33,11 @@ Before you begin, ensure you have:
    - Access to create projects and enable APIs
 
 2. **Google Cloud SDK (gcloud CLI)**
- 
+
    # Install gcloud CLI
    # macOS:
    brew install google-cloud-sdk
-   
+
    # Or download from:
    # https://cloud.google.com/sdk/docs/install
    3. **Docker** (optional, for local testing)sh
@@ -184,7 +184,7 @@ gcloud artifacts repositories create ag2-agent-repo2 \
    2. **Submit the build:**
    gcloud builds submit --config cloudbuild.yaml
    3. **Deploy to Cloud Run:**
-   
+
    gcloud run deploy ag2-agent \
      --image us-central1-docker.pkg.dev/YOUR_PROJECT_ID/ag2-agent-repo2/ag2-agent:latest \
      --platform managed \
@@ -264,7 +264,7 @@ uvicorn.run(app, host="0.0.0.0", port=port)
 
 **Cause:** New GCP projects have limited quotas for Vertex AI resources.
 
-**Solution:** 
+**Solution:**
 - Use Cloud Run instead (different quota pool)
 - Request quota increase in GCP Console → IAM & Admin → Quotas
 
@@ -293,4 +293,3 @@ gcloud run services logs read ag2-agent --region=us-central1
 # Cloud Build logs
 gcloud builds list
 gcloud builds log BUILD_ID## 📁 Project Structure
-
