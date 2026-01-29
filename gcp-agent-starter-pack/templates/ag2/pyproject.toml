@@ -62,7 +62,9 @@ packages = ["app"]
 [tool.agent-starter-pack]
 name = "AG2 Agent"
 description = "AG2 multi-agent framework with A2A protocol support on Google Cloud"
-base_template = "custom_a2a"
+# Note: the base_template is not required but should be used if a base template is
+# made available for custom A2A templates
+# base_template = "custom_a2a"
 
 [tool.agent-starter-pack.settings]
 deployment_targets = ["cloud_run"]
