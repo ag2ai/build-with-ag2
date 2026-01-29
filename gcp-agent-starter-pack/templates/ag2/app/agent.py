@@ -62,3 +62,7 @@ def get_current_time() -> ReplyResult:
     """Returns the current UTC time."""
     current_time = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
     return ReplyResult(message=f"The current time is {current_time}.")
+
+
+# Prevent ADK app injection - AG2 uses its own A2A server in fast_api_app.py
+app = None
