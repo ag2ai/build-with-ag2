@@ -29,7 +29,7 @@ else:
     logger = logging.getLogger(__name__)
 
 # Create AG2 A2A server
-APP_URL = os.getenv("APP_URL", "http://0.0.0.0:8000")
+APP_URL = os.getenv("APP_URL", "http://0.0.0.0:8000/a2a/app")
 server = A2aAgentServer(root_agent, url=APP_URL)
 
 # Build FastAPI app using A2A SDK
