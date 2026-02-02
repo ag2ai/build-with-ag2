@@ -83,10 +83,10 @@ The agent is served via the A2A protocol, enabling:
 
 ```bash
 # Check agent card
-curl http://localhost:8000/.well-known/agent.json
+curl http://localhost:8000/a2a/app/.well-known/agent-card.json
 
 # Send a message
-curl -X POST http://localhost:8000/ \
+curl -X POST http://localhost:8000/a2a/app/ \
   -H "Content-Type: application/json" \
   -d '{
     "jsonrpc": "2.0",

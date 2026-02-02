@@ -37,7 +37,11 @@ app: FastAPI = A2AFastAPIApplication(
     agent_card=server.card,
     extended_agent_card=server.extended_agent_card,
     http_handler=server.build_request_handler(),
-).build()
+).build(
+    agent_card_url="/a2a/app/.well-known/agent-card.json",
+    rpc_url="/a2a/app/",
+    extended_agent_card_url="/a2a/app/agent/authenticatedExtendedCard",
+)
 
 app.title = "AG2 Agent"
 app.description = "AG2 ConversableAgent with A2A protocol support"
