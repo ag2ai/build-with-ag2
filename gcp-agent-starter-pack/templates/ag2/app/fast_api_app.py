@@ -8,11 +8,31 @@ import logging
 import os
 
 from a2a.server.apps import A2AFastAPIApplication
+from a2a.types import AgentSkill
 from autogen.a2a import A2aAgentServer
+from autogen.a2a.server import CardSettings
 from fastapi import FastAPI
 from pydantic import BaseModel
 
 from .agent import root_agent
+
+# Define agent skills for the A2A agent card
+AGENT_SKILLS = [
+    AgentSkill(
+        id="get_weather",
+        name="Get Weather",
+        description="Get weather information for a location",
+        tags=["weather", "forecast"],
+        examples=["What's the weather in San Francisco?", "How's the weather in NYC?"],
+    ),
+    AgentSkill(
+        id="get_current_time",
+        name="Get Current Time",
+        description="Get the current UTC time",
+        tags=["time", "utility"],
+        examples=["What time is it?", "What's the current time?"],
+    ),
+]
 from .app_utils.telemetry import setup_telemetry
 
 setup_telemetry()
@@ -29,8 +49,12 @@ else:
     logger = logging.getLogger(__name__)
 
 # Create AG2 A2A server
-APP_URL = os.getenv("APP_URL", "http://0.0.0.0:8000/a2a/app")
-server = A2aAgentServer(root_agent, url=APP_URL)
+APP_URL = os.getenv("APP_URL", "http://0.0.0.0:8000/a2a/app/")
+server = A2aAgentServer(
+    root_agent,
+    url=APP_URL,
+    agent_card=CardSettings(skills=AGENT_SKILLS),
+)
 
 # Build FastAPI app using A2A SDK
 app: FastAPI = A2AFastAPIApplication(
