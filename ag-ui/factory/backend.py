@@ -90,7 +90,9 @@ def submit_review(
     needs_revision: Annotated[bool, "Whether revision is needed"],
     context_variables: ContextVariables,
 ) -> ReplyResult:
-    context_variables["feedback"] = f"Strengths: {strengths}\nImprovements: {improvements}"
+    context_variables["feedback"] = (
+        f"Strengths: {strengths}\nImprovements: {improvements}"
+    )
     context_variables["needs_revision"] = needs_revision
 
     iteration = context_variables.get("iteration", 0)
@@ -114,9 +116,13 @@ def submit_review(
 
 
 @agent.register_for_execution()
-@agent.register_for_llm(description="Submit revised document incorporating feedback. Loops back to review.")
+@agent.register_for_llm(
+    description="Submit revised document incorporating feedback. Loops back to review."
+)
 def submit_revision(
-    revised_document: Annotated[str, "Revised document incorporating reviewer feedback"],
+    revised_document: Annotated[
+        str, "Revised document incorporating reviewer feedback"
+    ],
     context_variables: ContextVariables,
 ) -> ReplyResult:
     context_variables["document_draft"] = revised_document
@@ -130,7 +136,9 @@ def submit_revision(
 
 
 @agent.register_for_execution()
-@agent.register_for_llm(description="Submit the final polished document. Call this last.")
+@agent.register_for_llm(
+    description="Submit the final polished document. Call this last."
+)
 def submit_final(
     final_document: Annotated[str, "Finalized document in markdown"],
     context_variables: ContextVariables,
@@ -182,4 +190,5 @@ async def run_agent(
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8457)
