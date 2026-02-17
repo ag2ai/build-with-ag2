@@ -20,6 +20,13 @@ A curated collection of awesome agentic applications built with [AG2](https://gi
 
 - ☑ [Manage Todos With Realtime Agent](manage-todos-with-realtime-agent): A voice-controlled todo assistant with real-time interaction.
 
+## 🖥️ AG-UI Examples
+
+Examples of connecting AG2 agents to browser frontends using the [AG-UI protocol](https://docs.ag-ui.com/introduction). Each example includes a FastAPI backend and a vanilla HTML/JS frontend — no React or build step required.
+
+- 🌤️ [Weather Agent](ag-ui/weather/): Single-agent chat with a weather tool. Demonstrates `AGUIStream`, streaming text, tool call events, and SSE consumption in the browser.
+- 🏭 [Factory Agent](ag-ui/factory/): Multi-agent document pipeline (plan → draft → review → revise → finalize). Demonstrates `ContextVariables` with `STATE_SNAPSHOT` events to provide multi-agent context to the UI.
+
 ## 🚀 Getting Started
 
 1. **Clone the repository**
