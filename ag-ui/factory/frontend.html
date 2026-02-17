@@ -558,8 +558,15 @@
         const loopIndicator = document.getElementById('loop-indicator');
         const iterationDisplay = document.getElementById('iteration-display');
 
+        function uuid() {
+            return crypto.randomUUID?.() || 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+                const r = Math.random() * 16 | 0;
+                return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+            });
+        }
+
         const messages = [];
-        const threadId = crypto.randomUUID();
+        const threadId = uuid();
         let isStreaming = false;
 
         marked.setOptions({ breaks: true, gfm: true });
@@ -703,7 +710,7 @@
 
             // Add user message to log
             addLogEntry('user', content, false);
-            messages.push({ id: crypto.randomUUID(), role: 'user', content });
+            messages.push({ id: uuid(), role: 'user', content });
             inputEl.value = '';
             sendBtn.disabled = true;
             isStreaming = true;
@@ -720,7 +727,7 @@
             try {
                 const payload = {
                     threadId,
-                    runId: crypto.randomUUID(),
+                    runId: uuid(),
                     messages,
                     tools: [],
                     context: [],
