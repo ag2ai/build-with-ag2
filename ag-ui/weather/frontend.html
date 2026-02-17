@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AG2 Agent Chat</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Jersey+10&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+    <!-- Decorative sky elements -->
+    <img src="/assets/sun.png" class="sun" alt="">
+    <img src="/assets/cloud.png" class="cloud cloud-1" alt="">
+    <img src="/assets/cloud.png" class="cloud cloud-2" alt="">
+    <img src="/assets/cloud.png" class="cloud cloud-3" alt="">
+    <div class="ground-layer"></div>
+
+    <!-- Chat panel -->
+    <div class="chat-panel">
+        <div class="header">
+            <img src="/assets/Robot-MS-Blue.png" class="header-robot" alt="AG2 Robot">
+            <div class="header-text">
+                <h1>AG2 Agent Chat</h1>
+                <p>Powered by AG-UI Protocol</p>
+            </div>
+            <div class="status-dot" title="Connected"></div>
+        </div>
+
+        <div class="messages" id="messages">
+            <div class="welcome" id="welcome">
+                <img src="/assets/Robot-MS-Blue.png" class="welcome-robot" alt="AG2 Robot">
+                <h2>Hello! I'm your AG2 Weather Agent</h2>
+                <div class="quick-actions">
+                    <button class="quick-action" onclick="askQuestion('What\'s the weather in Tokyo?')">Tokyo Weather</button>
+                    <button class="quick-action" onclick="askQuestion('What\'s the weather in San Francisco?')">SF Weather</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="input-area">
+            <input type="text" id="input" placeholder="Ask the AG2 agent anything..." autofocus>
+            <button class="send-btn" id="send-btn" onclick="sendMessage()">SEND</button>
+        </div>
+        <div class="footer">
+            AG2 &mdash; Open-Source Multi-Agent Framework &bull; <a href="https://docs.ag2.ai/latest/docs/user-guide/ag-ui/" target="_blank">docs.ag2.ai</a>
+        </div>
+    </div>
+
+    <script>
+        const messagesEl = document.getElementById('messages');
+        const inputEl = document.getElementById('input');
+        const sendBtn = document.getElementById('send-btn');
+        const welcomeEl = document.getElementById('welcome');
+        const statusDot = document.querySelector('.status-dot');
+
+        const messages = [];
+        const threadId = 'demo-thread';
+        let msgSeq = 0;
+        let isStreaming = false;
+
+        marked.setOptions({ breaks: true, gfm: true });
+
+        function askQuestion(text) {
+            inputEl.value = text;
+            sendMessage();
+        }
+
+        function createMessageRow(role, content) {
+            const row = document.createElement('div');
+            row.className = `msg-row ${role === 'user' ? 'user' : 'bot'}`;
+
+            if (role === 'user') {
+                // no avatar for user messages
+            } else {
+                const avatar = document.createElement('img');
+                avatar.src = '/assets/Robot-MS-Blue.png';
+                avatar.className = 'msg-avatar';
+                avatar.alt = 'AG2';
+                row.appendChild(avatar);
+            }
+
+            const bubble = document.createElement('div');
+            bubble.className = 'msg-bubble';
+            if (role === 'user') {
+                bubble.textContent = content;
+            } else {
+                bubble.innerHTML = content;
+            }
+            row.appendChild(bubble);
+
+            return row;
+        }
+
+        function createWeatherCard(data, isLoading) {
+            const card = document.createElement('div');
+            card.className = `weather-card${isLoading ? ' loading' : ''}`;
+
+            if (isLoading) {
+                card.innerHTML = `
+                    <h3>${data.location || 'Loading...'}</h3>
+                    <div class="weather-subtitle">Fetching weather...</div>
+                    <div class="weather-main">
+                        <div>
+                            <div class="weather-temp">--<span class="unit">&deg;C</span></div>
+                        </div>
+                        <div class="weather-conditions">--</div>
+                    </div>
+                    <div class="weather-details">
+                        <div class="weather-detail">
+                            <div class="weather-detail-label">Humidity</div>
+                            <div class="weather-detail-value">--%</div>
+                        </div>
+                        <div class="weather-detail">
+                            <div class="weather-detail-label">Wind</div>
+                            <div class="weather-detail-value">-- km/h</div>
+                        </div>
+                        <div class="weather-detail">
+                            <div class="weather-detail-label">Feels Like</div>
+                            <div class="weather-detail-value">--&deg;</div>
+                        </div>
+                    </div>`;
+            } else {
+                const tempC = data.temperature;
+                const tempF = (tempC * 9/5 + 32).toFixed(1);
+                card.innerHTML = `
+                    <h3>${data.location}</h3>
+                    <div class="weather-subtitle">Current Weather</div>
+                    <div class="weather-main">
+                        <div>
+                            <div class="weather-temp">${tempC}<span class="unit">&deg;C</span></div>
+                            <div class="weather-temp-secondary">${tempF}&deg;F</div>
+                        </div>
+                        <div class="weather-conditions">${data.conditions}</div>
+                    </div>
+                    <div class="weather-details">
+                        <div class="weather-detail">
+                            <div class="weather-detail-label">Humidity</div>
+                            <div class="weather-detail-value">${data.humidity}%</div>
+                        </div>
+                        <div class="weather-detail">
+                            <div class="weather-detail-label">Wind</div>
+                            <div class="weather-detail-value">${data.windSpeed} km/h</div>
+                        </div>
+                        <div class="weather-detail">
+                            <div class="weather-detail-label">Feels Like</div>
+                            <div class="weather-detail-value">${data.feelsLike}&deg;</div>
+                        </div>
+                    </div>`;
+            }
+            return card;
+        }
+
+        function scrollToBottom() {
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const content = inputEl.value.trim();
+            if (!content || isStreaming) return;
+
+            if (welcomeEl) welcomeEl.style.display = 'none';
+
+            const userRow = createMessageRow('user', content);
+            messagesEl.appendChild(userRow);
+            messages.push({ id: String(++msgSeq), role: 'user', content });
+            inputEl.value = '';
+            scrollToBottom();
+
+            const botRow = createMessageRow('bot', '');
+            const bubble = botRow.querySelector('.msg-bubble');
+            const avatar = botRow.querySelector('.msg-avatar');
+            bubble.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
+            avatar.classList.add('thinking');
+            messagesEl.appendChild(botRow);
+            scrollToBottom();
+
+            isStreaming = true;
+            sendBtn.disabled = true;
+
+            // Tool call tracking
+            let currentToolCallId = null;
+            let weatherCardEl = null;
+            let weatherData = {};
+
+            // Helpers scoped to this invocation
+            let assistantContent = '';
+            let firstChunk = true;
+
+            function clearThinking() {
+                if (firstChunk) {
+                    bubble.innerHTML = '';
+                    avatar.classList.remove('thinking');
+                    firstChunk = false;
+                }
+            }
+
+            function renderText() {
+                if (weatherCardEl) {
+                    let textNode = bubble.querySelector('.assistant-text');
+                    if (!textNode) {
+                        textNode = document.createElement('div');
+                        textNode.className = 'assistant-text';
+                        textNode.style.marginTop = '12px';
+                        bubble.appendChild(textNode);
+                    }
+                    textNode.innerHTML = marked.parse(assistantContent);
+                } else {
+                    bubble.innerHTML = marked.parse(assistantContent);
+                }
+                scrollToBottom();
+            }
+
+            try {
+                const payload = {
+                    threadId,
+                    runId: 'run-' + msgSeq,
+                    messages,
+                    tools: [],
+                    context: [],
+                    state: {},
+                    forwardedProps: {},
+                };
+
+                const response = await fetch('/chat/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'text/event-stream',
+                    },
+                    body: JSON.stringify(payload),
+                });
+
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop() || '';
+
+                    for (const line of lines) {
+                        if (!line.startsWith('data: ')) continue;
+                        const data = line.slice(6);
+                        if (data === '[DONE]') continue;
+
+                        try {
+                            const event = JSON.parse(data);
+
+                            switch (event.type) {
+                                case 'RUN_STARTED':
+                                    statusDot.classList.add('running');
+                                    statusDot.title = 'Agent running';
+                                    break;
+
+                                case 'RUN_FINISHED':
+                                    statusDot.classList.remove('running');
+                                    statusDot.title = 'Idle';
+                                    break;
+
+                                case 'TOOL_CALL_START':
+                                    if (event.toolCallName === 'get_weather') {
+                                        currentToolCallId = event.toolCallId;
+                                        clearThinking();
+                                        weatherCardEl = createWeatherCard({ location: 'Loading...' }, true);
+                                        bubble.appendChild(weatherCardEl);
+                                        scrollToBottom();
+                                    }
+                                    break;
+
+                                case 'TOOL_CALL_ARGS':
+                                    if (currentToolCallId === event.toolCallId) {
+                                        try {
+                                            const args = JSON.parse(event.delta);
+                                            if (args.location) {
+                                                weatherData.location = args.location;
+                                                weatherCardEl = createWeatherCard(weatherData, true);
+                                                bubble.innerHTML = '';
+                                                bubble.appendChild(weatherCardEl);
+                                            }
+                                        } catch (e) { /* partial JSON, skip */ }
+                                    }
+                                    break;
+
+                                case 'TOOL_CALL_RESULT':
+                                    if (currentToolCallId === event.toolCallId) {
+                                        try {
+                                            let resultStr = event.content;
+                                            if (resultStr.startsWith('{') && resultStr.includes("'")) {
+                                                resultStr = resultStr.replace(/'/g, '"');
+                                            }
+                                            const result = JSON.parse(resultStr);
+                                            if (result.temperature !== undefined) {
+                                                weatherData = result;
+                                                weatherCardEl = createWeatherCard(result, false);
+                                                bubble.innerHTML = '';
+                                                bubble.appendChild(weatherCardEl);
+                                                scrollToBottom();
+                                            }
+                                        } catch (e) {
+                                            console.log('Weather parse error:', e);
+                                        }
+                                    }
+                                    break;
+
+                                case 'TOOL_CALL_END':
+                                    currentToolCallId = null;
+                                    break;
+
+                                case 'TEXT_MESSAGE_START':
+                                    clearThinking();
+                                    break;
+
+                                case 'TEXT_MESSAGE_CONTENT':
+                                case 'TEXT_MESSAGE_CHUNK':
+                                    clearThinking();
+                                    assistantContent += event.delta || '';
+                                    renderText();
+                                    break;
+
+                                case 'TEXT_MESSAGE_END':
+                                    break;
+
+                                case 'RUN_ERROR':
+                                    statusDot.classList.remove('running');
+                                    statusDot.title = 'Idle';
+                                    bubble.innerHTML = `<span style="color: #f87171;">Error: ${event.message}</span>`;
+                                    avatar.classList.remove('thinking');
+                                    break;
+                            }
+                        } catch (e) {
+                            // skip parse errors
+                        }
+                    }
+                }
+
+                if (assistantContent || weatherData.location) {
+                    messages.push({
+                        id: String(++msgSeq),
+                        role: 'assistant',
+                        content: assistantContent || `Weather for ${weatherData.location}`,
+                    });
+                }
+            } catch (error) {
+                statusDot.classList.remove('running');
+                statusDot.title = 'Idle';
+                bubble.innerHTML = `<span style="color: #f87171;">Connection error: ${error.message}</span>`;
+                botRow.querySelector('.msg-avatar').classList.remove('thinking');
+            }
+
+            isStreaming = false;
+            sendBtn.disabled = false;
+            inputEl.focus();
+        }
+
+        inputEl.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>

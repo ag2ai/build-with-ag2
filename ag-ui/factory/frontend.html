@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feedback Factory - AG2 Multi-Agent Workshop</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Jersey+10&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --ag2-blue: #4b9cd6;
+            --ag2-indigo: #526cfe;
+            --ag2-sky-top: #b5e8d5;
+            --ag2-sky-bottom: #f5e6a3;
+            --panel-bg: rgba(20, 24, 44, 0.94);
+            --panel-border: #4b9cd6;
+            --text-primary: #f0f4f8;
+            --text-secondary: #a0b4c8;
+            --green: #4ade80;
+            --orange: #fb923c;
+            --pink: #f472b6;
+            --blue: #4b9cd6;
+        }
+
+        html, body { height: 100%; overflow: hidden; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--text-primary);
+            background: linear-gradient(180deg, var(--ag2-sky-top) 0%, #d4f0e0 30%, #eee8b0 60%, var(--ag2-sky-bottom) 80%, #6abf69 90%, #c49a6c 100%);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Ground layer */
+        .ground-layer {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            height: 80px;
+            background: url('/assets/roadscape.png') repeat-x bottom;
+            background-size: auto 80px;
+            image-rendering: pixelated;
+            z-index: 0;
+            opacity: 0.5;
+        }
+
+        /* Header bar */
+        .top-bar {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 12px 24px;
+            background: var(--panel-bg);
+            border-bottom: 3px solid var(--panel-border);
+            backdrop-filter: blur(16px);
+        }
+        .top-bar img {
+            width: 40px; height: 40px;
+            image-rendering: pixelated;
+            filter: drop-shadow(0 0 6px rgba(75,156,214,0.5));
+        }
+        .top-bar h1 {
+            font-family: 'Jersey 10', cursive;
+            font-size: 28px;
+            font-weight: 400;
+            color: var(--ag2-blue);
+            letter-spacing: 1px;
+        }
+        .top-bar .subtitle {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Main 3-panel layout */
+        .panels {
+            position: relative;
+            z-index: 1;
+            flex: 1;
+            display: grid;
+            grid-template-columns: 220px 1fr 320px;
+            gap: 0;
+            overflow: hidden;
+        }
+
+        .panel {
+            background: var(--panel-bg);
+            backdrop-filter: blur(16px);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .panel + .panel { border-left: 2px solid rgba(75,156,214,0.2); }
+
+        .panel-header {
+            font-family: 'Jersey 10', cursive;
+            font-size: 18px;
+            font-weight: 400;
+            color: var(--ag2-blue);
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(75,156,214,0.15);
+            letter-spacing: 1px;
+        }
+
+        /* ─── LEFT PANEL: Agent Pipeline ─── */
+        .pipeline { padding: 16px; overflow-y: auto; flex: 1; }
+
+        .agent-card {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            background: rgba(75,156,214,0.28);
+            border: 2px solid rgba(75,156,214,0.45);
+            border-radius: 4px;
+            margin-bottom: 4px;
+            transition: all 0.3s;
+        }
+        .agent-card.active {
+            border-color: var(--green);
+            background: rgba(74,222,128,0.08);
+        }
+        .agent-card.done {
+            border-color: rgba(75,156,214,0.3);
+            opacity: 0.7;
+        }
+        .agent-card img {
+            width: 36px; height: 36px;
+            image-rendering: pixelated;
+            filter: drop-shadow(0 0 4px rgba(75,156,214,0.3));
+        }
+        .agent-card.active img {
+            animation: agent-bounce 0.8s ease-in-out infinite;
+        }
+        @keyframes agent-bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-3px); }
+        }
+        .agent-info { flex: 1; }
+        .agent-name {
+            font-family: 'Jersey 10', cursive;
+            font-size: 16px;
+            font-weight: 400;
+            color: var(--text-primary);
+        }
+        .agent-role {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+        .agent-status {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 2px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .status-waiting { background: rgba(160,180,200,0.15); color: var(--text-secondary); }
+        .status-active { background: rgba(74,222,128,0.2); color: var(--green); animation: pulse-status 1.5s ease-in-out infinite; }
+        .status-done { background: rgba(75,156,214,0.15); color: var(--ag2-blue); }
+
+        @keyframes pulse-status {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Arrow connector between agents */
+        .arrow {
+            display: flex;
+            justify-content: center;
+            padding: 2px 0;
+            color: rgba(75,156,214,0.3);
+            font-size: 16px;
+        }
+        .arrow.active-arrow { color: var(--green); }
+
+        /* Loop indicator */
+        .loop-indicator {
+            margin-top: 8px;
+            padding: 8px 12px;
+            border: 1px dashed rgba(251,146,60,0.4);
+            border-radius: 4px;
+            font-size: 11px;
+            color: var(--orange);
+            text-align: center;
+            display: none;
+        }
+        .loop-indicator.visible { display: block; }
+
+        /* Iteration counter */
+        .iteration-badge {
+            margin-top: 12px;
+            padding: 8px 12px;
+            background: rgba(75,156,214,0.1);
+            border: 1px solid rgba(75,156,214,0.2);
+            border-radius: 4px;
+            text-align: center;
+        }
+        .iteration-badge .label {
+            font-size: 10px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .iteration-badge .value {
+            font-family: 'Jersey 10', cursive;
+            font-size: 22px;
+            color: var(--ag2-blue);
+        }
+
+        /* ─── CENTER PANEL: Document ─── */
+        .document-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(75,156,214,0.3) transparent;
+        }
+        .document-area::-webkit-scrollbar { width: 6px; }
+        .document-area::-webkit-scrollbar-thumb { background: rgba(75,156,214,0.3); border-radius: 3px; }
+
+        .stage-label {
+            display: inline-block;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            padding: 3px 10px;
+            border-radius: 2px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+        }
+        .stage-planning { background: rgba(74,222,128,0.15); color: var(--green); }
+        .stage-drafting { background: rgba(75,156,214,0.15); color: var(--blue); }
+        .stage-review { background: rgba(251,146,60,0.15); color: var(--orange); }
+        .stage-revision { background: rgba(244,114,182,0.15); color: var(--pink); }
+        .stage-finalization { background: rgba(82,108,254,0.15); color: var(--ag2-indigo); }
+        .stage-done { background: rgba(74,222,128,0.2); color: var(--green); }
+
+        .doc-content {
+            font-size: 14px;
+            line-height: 1.7;
+            color: var(--text-primary);
+        }
+        .doc-content h1, .doc-content h2, .doc-content h3 {
+            color: var(--ag2-blue);
+            margin: 16px 0 8px;
+        }
+        .doc-content h1 { font-size: 20px; }
+        .doc-content h2 { font-size: 17px; }
+        .doc-content h3 { font-size: 15px; }
+        .doc-content p { margin-bottom: 10px; }
+        .doc-content ul, .doc-content ol { margin: 8px 0; padding-left: 20px; }
+        .doc-content li { margin-bottom: 4px; }
+        .doc-content strong { color: var(--ag2-blue); }
+        .doc-content code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            background: rgba(0,0,0,0.3);
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+        .doc-content pre {
+            background: rgba(0,0,0,0.4);
+            border: 1px solid rgba(75,156,214,0.2);
+            border-radius: 4px;
+            padding: 12px;
+            overflow-x: auto;
+            margin: 8px 0;
+        }
+        .doc-content pre code { background: none; padding: 0; }
+
+        /* Feedback cards */
+        .feedback-card {
+            margin: 12px 0;
+            padding: 12px 16px;
+            border-radius: 4px;
+            border-left: 3px solid;
+        }
+        .feedback-strengths {
+            border-color: var(--green);
+            background: rgba(74,222,128,0.06);
+        }
+        .feedback-improvements {
+            border-color: var(--orange);
+            background: rgba(251,146,60,0.06);
+        }
+        .feedback-card .feedback-title {
+            font-family: 'Jersey 10', cursive;
+            font-size: 15px;
+            font-weight: 400;
+            margin-bottom: 6px;
+        }
+        .feedback-strengths .feedback-title { color: var(--green); }
+        .feedback-improvements .feedback-title { color: var(--orange); }
+        .feedback-card .feedback-text {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        /* Completion banner */
+        .complete-banner {
+            display: none;
+            margin-top: 16px;
+            padding: 16px;
+            background: rgba(74,222,128,0.1);
+            border: 2px solid var(--green);
+            border-radius: 4px;
+            text-align: center;
+            box-shadow: -2px 0 0 0 var(--green), 2px 0 0 0 var(--green), 0 -2px 0 0 var(--green), 0 2px 0 0 var(--green);
+        }
+        .complete-banner.visible { display: block; }
+        .complete-banner h3 {
+            font-family: 'Jersey 10', cursive;
+            font-size: 20px;
+            font-weight: 400;
+            color: var(--green);
+        }
+        .complete-banner p {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* Welcome state */
+        .doc-welcome {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+        }
+        .doc-welcome img {
+            width: 80px; height: 80px;
+            image-rendering: pixelated;
+            opacity: 0.4;
+            margin-bottom: 16px;
+        }
+        .doc-welcome h3 {
+            font-family: 'Jersey 10', cursive;
+            font-size: 20px;
+            font-weight: 400;
+            color: var(--text-secondary);
+        }
+        .doc-welcome p { font-size: 13px; margin-top: 8px; }
+
+        /* ─── RIGHT PANEL: Conversation Log ─── */
+        .chat-log {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(75,156,214,0.3) transparent;
+        }
+        .chat-log::-webkit-scrollbar { width: 6px; }
+        .chat-log::-webkit-scrollbar-thumb { background: rgba(75,156,214,0.3); border-radius: 3px; }
+
+        .log-entry {
+            display: flex;
+            gap: 8px;
+            align-items: flex-start;
+            padding: 8px 10px;
+            margin-bottom: 4px;
+            background: rgba(75,156,214,0.2);
+            border: 1px solid rgba(75,156,214,0.3);
+            border-radius: 4px;
+        }
+        .log-entry img {
+            width: 24px; height: 24px;
+            image-rendering: pixelated;
+            flex-shrink: 0;
+        }
+        .log-entry .user-icon {
+            width: 24px; height: 24px;
+            background: var(--ag2-indigo);
+            border-radius: 2px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; color: white; flex-shrink: 0;
+        }
+        .log-name {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+        .log-name.planner { color: var(--green); }
+        .log-name.writer { color: var(--blue); }
+        .log-name.reviewer { color: var(--orange); }
+        .log-name.editor { color: var(--pink); }
+        .log-name.user { color: var(--ag2-indigo); }
+        .log-text {
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+        .log-tool {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            padding: 4px 8px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 3px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+            display: inline-block;
+        }
+
+        /* ─── BOTTOM INPUT BAR ─── */
+        .input-bar {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            gap: 10px;
+            padding: 12px 24px;
+            background: var(--panel-bg);
+            border-top: 3px solid var(--panel-border);
+            backdrop-filter: blur(16px);
+        }
+        .input-bar input {
+            flex: 1;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            padding: 10px 16px;
+            background: rgba(0,0,0,0.3);
+            border: 2px solid rgba(75,156,214,0.2);
+            border-radius: 3px;
+            color: var(--text-primary);
+            outline: none;
+        }
+        .input-bar input:focus { border-color: var(--ag2-blue); }
+        .input-bar input::placeholder { color: var(--text-secondary); opacity: 0.5; }
+        .input-bar button {
+            font-family: 'Jersey 10', cursive;
+            font-size: 18px;
+            padding: 8px 24px;
+            background: var(--ag2-blue);
+            color: #0d1117;
+            border: 2px solid var(--ag2-blue);
+            border-radius: 3px;
+            cursor: pointer;
+            letter-spacing: 1px;
+            box-shadow: -2px 0 0 0 var(--ag2-blue), 2px 0 0 0 var(--ag2-blue), 0 -2px 0 0 var(--ag2-blue), 0 2px 0 0 var(--ag2-blue);
+        }
+        .input-bar button:hover { background: #5cb3e8; }
+        .input-bar button:disabled { opacity: 0.4; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+    <div class="ground-layer"></div>
+
+    <!-- Top bar -->
+    <div class="top-bar">
+        <img src="/assets/Robot-MS-Blue.png" alt="AG2">
+        <div>
+            <h1>Feedback Factory</h1>
+            <div class="subtitle">AG2 Multi-Agent Document Workshop &bull; Powered by AG-UI</div>
+        </div>
+    </div>
+
+    <!-- Three-panel layout -->
+    <div class="panels">
+        <!-- LEFT: Agent Pipeline -->
+        <div class="panel">
+            <div class="panel-header">Agent Pipeline</div>
+            <div class="pipeline">
+                <div class="agent-card" id="card-planner">
+                    <img src="/assets/Robot-MS-Green.png" alt="Planner">
+                    <div class="agent-info">
+                        <div class="agent-name">Planner</div>
+                        <div class="agent-role">Creates outline</div>
+                    </div>
+                    <span class="agent-status status-waiting" id="status-planner">WAIT</span>
+                </div>
+                <div class="arrow" id="arrow-1">&#9660;</div>
+
+                <div class="agent-card" id="card-writer">
+                    <img src="/assets/Robot-MS-Blue.png" alt="Writer">
+                    <div class="agent-info">
+                        <div class="agent-name">Writer</div>
+                        <div class="agent-role">Drafts document</div>
+                    </div>
+                    <span class="agent-status status-waiting" id="status-writer">WAIT</span>
+                </div>
+                <div class="arrow" id="arrow-2">&#9660;</div>
+
+                <div class="agent-card" id="card-reviewer">
+                    <img src="/assets/Robot-MS-Orange.png" alt="Reviewer">
+                    <div class="agent-info">
+                        <div class="agent-name">Reviewer</div>
+                        <div class="agent-role">Gives feedback</div>
+                    </div>
+                    <span class="agent-status status-waiting" id="status-reviewer">WAIT</span>
+                </div>
+                <div class="arrow" id="arrow-3">&#9660;</div>
+
+                <div class="agent-card" id="card-editor">
+                    <img src="/assets/Robot-MS-Pink.png" alt="Editor">
+                    <div class="agent-info">
+                        <div class="agent-name">Editor</div>
+                        <div class="agent-role">Revises & finalizes</div>
+                    </div>
+                    <span class="agent-status status-waiting" id="status-editor">WAIT</span>
+                </div>
+
+                <div class="loop-indicator" id="loop-indicator">&#8635; Review loop active</div>
+
+                <div class="iteration-badge">
+                    <div class="label">Iteration</div>
+                    <div class="value" id="iteration-display">0 / 2</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CENTER: Document Panel -->
+        <div class="panel">
+            <div class="panel-header">Document</div>
+            <div class="document-area" id="document-area">
+                <div class="doc-welcome" id="doc-welcome">
+                    <img src="/assets/Robot-MS-Green.png" alt="">
+                    <h3>Ready to create</h3>
+                    <p>Type a document request below to start the multi-agent feedback loop.</p>
+                </div>
+                <div id="doc-stage-container" style="display:none;">
+                    <span class="stage-label stage-planning" id="stage-label">PLANNING</span>
+                    <div class="doc-content" id="doc-content"></div>
+                    <div class="complete-banner" id="complete-banner">
+                        <h3>Document Complete!</h3>
+                        <p>All agents have finished their work.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT: Conversation Log -->
+        <div class="panel">
+            <div class="panel-header">Conversation Log</div>
+            <div class="chat-log" id="chat-log"></div>
+        </div>
+    </div>
+
+    <!-- Input bar -->
+    <div class="input-bar">
+        <input type="text" id="input" placeholder="Describe the document you want created..." autofocus>
+        <button id="send-btn" onclick="sendMessage()">START</button>
+    </div>
+
+    <script>
+        const inputEl = document.getElementById('input');
+        const sendBtn = document.getElementById('send-btn');
+        const chatLog = document.getElementById('chat-log');
+        const docContent = document.getElementById('doc-content');
+        const docWelcome = document.getElementById('doc-welcome');
+        const docStageContainer = document.getElementById('doc-stage-container');
+        const stageLabel = document.getElementById('stage-label');
+        const completeBanner = document.getElementById('complete-banner');
+        const loopIndicator = document.getElementById('loop-indicator');
+        const iterationDisplay = document.getElementById('iteration-display');
+
+        const messages = [];
+        const threadId = crypto.randomUUID();
+        let isStreaming = false;
+
+        marked.setOptions({ breaks: true, gfm: true });
+
+        // Agent config: name -> { robot, color }
+        const agentConfig = {
+            planner: { robot: 'Robot-MS-Green.png', color: 'planner' },
+            writer: { robot: 'Robot-MS-Blue.png', color: 'writer' },
+            reviewer: { robot: 'Robot-MS-Orange.png', color: 'reviewer' },
+            editor: { robot: 'Robot-MS-Pink.png', color: 'editor' },
+        };
+
+        // State tracking
+        let currentAgent = null;
+        let currentStage = 'planning';
+        let iteration = 0;
+        const maxIterations = 2;
+
+        function setAgentActive(name) {
+            // Reset all cards
+            ['planner', 'writer', 'reviewer', 'editor'].forEach(a => {
+                const card = document.getElementById(`card-${a}`);
+                const status = document.getElementById(`status-${a}`);
+                if (currentAgent === a || (card.classList.contains('done'))) {
+                    card.classList.remove('active');
+                    card.classList.add('done');
+                    status.className = 'agent-status status-done';
+                    status.textContent = 'DONE';
+                } else if (a !== name) {
+                    card.classList.remove('active', 'done');
+                    status.className = 'agent-status status-waiting';
+                    status.textContent = 'WAIT';
+                }
+            });
+            if (name) {
+                const card = document.getElementById(`card-${name}`);
+                const status = document.getElementById(`status-${name}`);
+                card.classList.remove('done');
+                card.classList.add('active');
+                status.className = 'agent-status status-active';
+                status.textContent = 'ACTIVE';
+                currentAgent = name;
+            }
+        }
+
+        function setStage(stage) {
+            currentStage = stage;
+            const stageMap = {
+                planning: 'PLANNING', drafting: 'DRAFTING', review: 'REVIEW',
+                revision: 'REVISION', finalization: 'FINALIZING', done: 'COMPLETE',
+            };
+            stageLabel.textContent = stageMap[stage] || stage.toUpperCase();
+            stageLabel.className = `stage-label stage-${stage}`;
+
+            // Show loop indicator during review/revision cycles
+            if (stage === 'review' || stage === 'revision') {
+                loopIndicator.classList.add('visible');
+            } else {
+                loopIndicator.classList.remove('visible');
+            }
+        }
+
+        function updateIteration(iter) {
+            iteration = iter;
+            iterationDisplay.textContent = `${iter} / ${maxIterations}`;
+        }
+
+        function addLogEntry(agentName, text, isToolCall) {
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+
+            if (agentName === 'user') {
+                entry.innerHTML = `<div class="user-icon">></div>`;
+            } else {
+                const config = agentConfig[agentName];
+                if (config) {
+                    entry.innerHTML = `<img src="/assets/${config.robot}" alt="${agentName}">`;
+                }
+            }
+
+            const body = document.createElement('div');
+            const nameEl = document.createElement('div');
+            nameEl.className = `log-name ${agentName}`;
+            nameEl.textContent = agentName;
+            body.appendChild(nameEl);
+
+            if (isToolCall) {
+                const tool = document.createElement('div');
+                tool.className = 'log-tool';
+                tool.textContent = text;
+                body.appendChild(tool);
+            } else {
+                const textEl = document.createElement('div');
+                textEl.className = 'log-text';
+                textEl.textContent = text.length > 150 ? text.substring(0, 150) + '...' : text;
+                body.appendChild(textEl);
+            }
+
+            entry.appendChild(body);
+            chatLog.appendChild(entry);
+            chatLog.scrollTop = chatLog.scrollHeight;
+        }
+
+        function renderDocument(content, type) {
+            if (type === 'plan') {
+                docContent.innerHTML = marked.parse(content);
+            } else if (type === 'draft' || type === 'revision' || type === 'final') {
+                docContent.innerHTML = marked.parse(content);
+            } else if (type === 'review') {
+                // Parse review feedback into cards
+                docContent.innerHTML = content;
+            }
+            document.getElementById('document-area').scrollTop = 0;
+        }
+
+        function renderFeedback(strengths, improvements) {
+            let html = '';
+            if (strengths) {
+                html += `<div class="feedback-card feedback-strengths">
+                    <div class="feedback-title">Strengths</div>
+                    <div class="feedback-text">${strengths}</div>
+                </div>`;
+            }
+            if (improvements) {
+                html += `<div class="feedback-card feedback-improvements">
+                    <div class="feedback-title">Improvements Needed</div>
+                    <div class="feedback-text">${improvements}</div>
+                </div>`;
+            }
+            docContent.innerHTML = html;
+        }
+
+        async function sendMessage() {
+            const content = inputEl.value.trim();
+            if (!content || isStreaming) return;
+
+            // Show document panel
+            docWelcome.style.display = 'none';
+            docStageContainer.style.display = 'block';
+            setStage('planning');
+
+            // Add user message to log
+            addLogEntry('user', content, false);
+            messages.push({ id: crypto.randomUUID(), role: 'user', content });
+            inputEl.value = '';
+            sendBtn.disabled = true;
+            isStreaming = true;
+
+            // Activate first agent
+            setAgentActive('planner');
+
+            // Tool call tracking
+            let currentToolName = null;
+            let currentToolId = null;
+            let toolArgsBuffer = '';
+            let textBuffer = '';
+
+            try {
+                const payload = {
+                    threadId,
+                    runId: crypto.randomUUID(),
+                    messages,
+                    tools: [],
+                    context: [],
+                    state: {},
+                    forwardedProps: {},
+                };
+
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'text/event-stream' },
+                    body: JSON.stringify(payload),
+                });
+
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop() || '';
+
+                    for (const line of lines) {
+                        if (!line.startsWith('data: ')) continue;
+                        const data = line.slice(6);
+                        if (data === '[DONE]') continue;
+
+                        try {
+                            const event = JSON.parse(data);
+
+                            switch (event.type) {
+                                case 'TEXT_MESSAGE_START':
+                                    break;
+
+                                case 'TEXT_MESSAGE_CONTENT':
+                                    textBuffer += event.delta || '';
+                                    break;
+
+                                case 'TEXT_MESSAGE_END':
+                                    break;
+
+                                case 'TEXT_MESSAGE_CHUNK':
+                                    // Non-streaming fallback
+                                    textBuffer += event.delta || '';
+                                    break;
+
+                                case 'TOOL_CALL_START':
+                                    // Flush any text buffer
+                                    if (textBuffer) {
+                                        // Detect which agent is speaking from the text
+                                        if (currentAgent) {
+                                            addLogEntry(currentAgent, textBuffer, false);
+                                        }
+                                        textBuffer = '';
+                                    }
+                                    currentToolName = event.toolCallName;
+                                    currentToolId = event.toolCallId;
+                                    toolArgsBuffer = '';
+                                    addLogEntry(currentAgent || 'planner', `calling ${currentToolName}()`, true);
+                                    break;
+
+                                case 'TOOL_CALL_ARGS':
+                                    if (event.toolCallId === currentToolId) {
+                                        toolArgsBuffer += event.delta || '';
+                                    }
+                                    break;
+
+                                case 'TOOL_CALL_RESULT':
+                                    if (event.toolCallId === currentToolId) {
+                                        handleToolResult(currentToolName, toolArgsBuffer, event.content);
+                                    }
+                                    break;
+
+                                case 'TOOL_CALL_END':
+                                    currentToolName = null;
+                                    currentToolId = null;
+                                    toolArgsBuffer = '';
+                                    break;
+
+                                case 'STATE_SNAPSHOT':
+                                    // Read active agent and stage from ContextVariables
+                                    const state = event.snapshot || {};
+                                    if (state.active_agent !== undefined) {
+                                        setAgentActive(state.active_agent || null);
+                                    }
+                                    if (state.stage) {
+                                        setStage(state.stage);
+                                    }
+                                    if (state.iteration !== undefined) {
+                                        updateIteration(state.iteration);
+                                    }
+                                    break;
+
+                                case 'RUN_FINISHED':
+                                    // Flush remaining text
+                                    if (textBuffer && currentAgent) {
+                                        addLogEntry(currentAgent, textBuffer, false);
+                                        textBuffer = '';
+                                    }
+                                    break;
+
+                                case 'RUN_ERROR':
+                                    addLogEntry('system', `Error: ${event.message}`, false);
+                                    break;
+                            }
+                        } catch (e) {
+                            // skip parse errors
+                        }
+                    }
+                }
+
+                // Flush any remaining text
+                if (textBuffer && currentAgent) {
+                    addLogEntry(currentAgent, textBuffer, false);
+                }
+
+            } catch (error) {
+                addLogEntry('system', `Connection error: ${error.message}`, false);
+            }
+
+            isStreaming = false;
+            sendBtn.disabled = false;
+            inputEl.focus();
+        }
+
+        function handleToolResult(toolName, argsStr, resultContent) {
+            // Try to parse tool arguments
+            let args = {};
+            try { args = JSON.parse(argsStr); } catch(e) {}
+
+            // Try to parse result
+            let resultMsg = resultContent;
+            try {
+                let r = resultContent;
+                if (r.startsWith('{') && r.includes("'")) r = r.replace(/'/g, '"');
+                const parsed = JSON.parse(r);
+                if (parsed.message) resultMsg = parsed.message;
+            } catch(e) {}
+
+            // Agent transitions are now driven by STATE_SNAPSHOT events
+            // from ContextVariables. This switch only handles rendering.
+            switch (toolName) {
+                case 'submit_plan':
+                    const plan = `**Audience:** ${args.audience || 'General'}\n**Tone:** ${args.tone || 'Professional'}\n\n**Outline:**\n${args.outline || ''}`;
+                    renderDocument(plan, 'plan');
+                    addLogEntry('planner', resultMsg, false);
+                    break;
+
+                case 'submit_draft':
+                    renderDocument(args.document || '', 'draft');
+                    addLogEntry('writer', resultMsg, false);
+                    break;
+
+                case 'submit_review':
+                    renderFeedback(args.strengths || '', args.improvements || '');
+                    addLogEntry('reviewer', `Needs revision: ${args.needs_revision ? 'Yes' : 'No'}`, false);
+                    break;
+
+                case 'submit_revision':
+                    renderDocument(args.revised_document || '', 'revision');
+                    addLogEntry('editor', resultMsg, false);
+                    break;
+
+                case 'submit_final':
+                    // Mark all as done
+                    ['planner', 'writer', 'reviewer', 'editor'].forEach(a => {
+                        document.getElementById(`card-${a}`).classList.remove('active');
+                        document.getElementById(`card-${a}`).classList.add('done');
+                        document.getElementById(`status-${a}`).className = 'agent-status status-done';
+                        document.getElementById(`status-${a}`).textContent = 'DONE';
+                    });
+                    renderDocument(args.final_document || '', 'final');
+                    completeBanner.classList.add('visible');
+                    addLogEntry('editor', 'Document finalized!', false);
+                    break;
+            }
+        }
+
+        inputEl.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
