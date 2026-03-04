@@ -1,0 +1,17 @@
+{
+  "query": "Is AI in a hype cycle?",
+  "max_sections": 3,
+  "max_revisions": 3,
+  "publish_formats": {
+    "markdown": true,
+    "pdf": false,
+    "docx": false
+  },
+  "include_human_feedback": false,
+  "follow_guidelines": false,
+  "model": "gpt-4o",
+  "guidelines": [
+    "Each sub section MUST include supporting sources using hyperlinks."
+  ],
+  "verbose": true
+}

@@ -26,6 +26,7 @@ Examples of connecting AG2 agents to browser frontends using the [AG-UI protocol
 
 - 🌤️ [Weather Agent](ag-ui/weather/): Single-agent chat with a weather tool. Demonstrates `AGUIStream`, streaming text, tool call events, and SSE consumption in the browser.
 - 🏭 [Factory Agent](ag-ui/factory/): Multi-agent document pipeline (plan → draft → review → revise → finalize). Demonstrates `ContextVariables` with `STATE_SNAPSHOT` events to provide multi-agent context to the UI.
+- 🔬 [GPT Researcher](ag-ui/gpt-researcher/): Wraps the GPT Researcher multi-agent pipeline as an AG2 tool and streams pipeline stage updates and the final report to a browser frontend via AG-UI.
 
 ## 🚀 Getting Started
 

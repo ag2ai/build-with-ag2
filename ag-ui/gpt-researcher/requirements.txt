@@ -1,0 +1,5 @@
+ag2[openai,ag-ui]>=0.11.2
+gpt-researcher
+fastapi
+uvicorn[standard]
+python-dotenv
