@@ -10,7 +10,8 @@
 
         /* Left: research input and report output */
         .main { flex: 1; display: flex; flex-direction: column; padding: 24px; gap: 16px; overflow: hidden; }
-        .main > h2 { font-size: 20px; font-weight: 600; }
+        .main > h2 { font-size: 20px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+        .main > h2 img { height: 24px; width: auto; }
         .input-row { display: flex; gap: 8px; }
         .input-row input {
             flex: 1; padding: 10px 14px; border: 1px solid #ddd; border-radius: 6px;
@@ -95,7 +96,10 @@
 </head>
 <body>
     <div class="main">
-        <h2>GPT Researcher + AG2</h2>
+        <h2>
+            <img src="https://raw.githubusercontent.com/ag2ai/ag2/main/website/static/img/ag2.svg" alt="AG2">
+            GPT Researcher
+        </h2>
         <div class="input-row">
             <input type="text" id="query" placeholder="Enter your research question..." autofocus>
             <button id="run-btn" onclick="startResearch()">Research</button>
