@@ -10,7 +10,7 @@ The research pipeline uses AG2's DefaultPattern to orchestrate 7 agents in a
 sequential pipeline. Each agent has its own tool(s) and hands off to the next
 via AgentNameTarget, following the same pattern as AG2's pipeline cookbook.
 This orchestration happens inside an agent that represents the main agent for
-AG-UI. 
+AG-UI.
 
 A custom AG-UI SSE endpoint translates AG2 group chat events into AG-UI
 protocol events for the frontend. A separate /logs SSE endpoint forwards
