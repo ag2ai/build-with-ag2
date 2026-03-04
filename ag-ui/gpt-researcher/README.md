@@ -1,24 +1,24 @@
 # GPT Researcher + AG2
 
-Integrates the [GPT Researcher](https://github.com/assafelovic/gpt-researcher) multi-agent pipeline with AG2 and exposes it via the [AG-UI protocol](https://docs.ag2.ai/latest/docs/user-guide/ag-ui/). A single orchestrator agent wraps the GPT Researcher `ChiefEditorAgent` as a tool and streams pipeline progress and the final report to a browser frontend in real time.
+Integrates [GPT Researcher](https://github.com/assafelovic/gpt-researcher) with AG2 and exposes it via the [AG-UI protocol](https://docs.ag2.ai/latest/docs/user-guide/ag-ui/). A single orchestrator agent wraps GPT Researcher as a tool and streams pipeline stage updates and the final report to a browser frontend in real time.
 
 Comes with two run modes:
 
 - **`main.py`** — terminal mode, runs the pipeline and prints the report
-- **`server.py`** — web UI mode, serves `frontend.html` with live pipeline stage updates and streamed report output
+- **`server.py`** — web UI mode, serves `frontend.html` with live stage updates and streamed report output
 
-The frontend is a single HTML file (no React, no build step) that reads `STATE_SNAPSHOT` events over SSE to highlight which pipeline agent is currently active.
+The frontend is a single HTML file (no React, no build step) that reads `STATE_SNAPSHOT` events over SSE to highlight which pipeline stage is currently active.
 
 ## AG2 Features
 
 - [AG-UI Protocol](https://docs.ag2.ai/latest/docs/user-guide/ag-ui/) — streaming typed events to a browser frontend
 - [ConversableAgent](https://docs.ag2.ai/latest/docs/user-guide/agentchat-user-guide/basics/conversable-agent/) — orchestrator agent with a single research tool
-- [Tool Use / Function Calling](https://docs.ag2.ai/latest/docs/user-guide/agentchat-user-guide/basics/tools/) — `run_research` wraps the full GPT Researcher pipeline
-- [Context Variables](https://docs.ag2.ai/latest/docs/user-guide/advanced-concepts/orchestration/group-chat/context-variables/) — `stage` and `active_agent` updated during execution; `AGUIStream` emits `STATE_SNAPSHOT` events automatically
+- [Tool Use / Function Calling](https://docs.ag2.ai/latest/docs/user-guide/agentchat-user-guide/basics/tools/) — `run_research` wraps `GPTResearcher.conduct_research()` and `write_report()`
+- [Context Variables](https://docs.ag2.ai/latest/docs/user-guide/advanced-concepts/orchestration/group-chat/context-variables/) — `stage` and `active_agent` updated between phases; `AGUIStream` emits `STATE_SNAPSHOT` events automatically
 
 ## TAGS
 
-TAGS: ag-ui, gpt-researcher, multi-agent, streaming, tool-use, context-variables, sse, fastapi, research
+TAGS: ag-ui, gpt-researcher, research, streaming, tool-use, context-variables, sse, fastapi
 
 ## File Structure
 
@@ -30,86 +30,82 @@ TAGS: ag-ui, gpt-researcher, multi-agent, streaming, tool-use, context-variables
 | `requirements.txt` | Python dependencies |
 | `task.json` | Default research task configuration |
 
-## Prerequisites
+## Installation
 
-This example depends on `multi_agents_ag2` from the GPT Researcher repository. Clone it and install its dependencies first:
+1. Clone and navigate to the folder:
 
-```bash
-git clone https://github.com/assafelovic/gpt-researcher.git
-cd gpt-researcher
-pip install -r requirements.txt
-pip install -r multi_agents_ag2/requirements.txt
-```
+   ```bash
+   git clone https://github.com/ag2ai/build-with-ag2.git
+   cd build-with-ag2/ag-ui/gpt-researcher
+   ```
 
-Then install this example's dependencies:
+2. Install dependencies:
 
-```bash
-pip install -r /path/to/ag-ui/gpt-researcher/requirements.txt
-```
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-Copy (or symlink) the example files into the `gpt-researcher` directory, since `multi_agents_ag2` must be importable at runtime:
+3. Set your API keys. GPT Researcher uses Tavily for web search by default:
 
-```bash
-cp /path/to/ag-ui/gpt-researcher/{main.py,server.py,frontend.html,task.json} .
-```
+   ```bash
+   export OPENAI_API_KEY="sk-..."
+   export TAVILY_API_KEY="tvly-..."
+   ```
 
-## Configuration
+   Or create a `.env` file:
 
-Set your OpenAI API key:
+   ```
+   OPENAI_API_KEY=sk-...
+   TAVILY_API_KEY=tvly-...
+   ```
 
-```bash
-export OPENAI_API_KEY="sk-..."
-```
-
-Or create a `.env` file:
-
-```
-OPENAI_API_KEY=sk-...
-```
-
-Edit `task.json` to change the default research query and settings:
-
-```json
-{
-  "query": "Is AI in a hype cycle?",
-  "max_sections": 3,
-  "max_revisions": 3,
-  "publish_formats": { "markdown": true },
-  "model": "gpt-4o"
-}
-```
+   Get a free Tavily key at https://tavily.com. Alternatively, set `RETRIEVER=bing`, `RETRIEVER=google`, or another [supported retriever](https://docs.gptr.dev/docs/gpt-researcher/search-engines/retrievers) and supply the corresponding API key.
 
 ## Running the Code
 
 ### Terminal mode
 
 ```bash
-python -m main
+python main.py
 ```
 
 ### Web UI mode
 
 ```bash
-python -m server
+python server.py
 ```
 
 Open http://localhost:8457 in your browser. Enter a research question and click **Research**. The right panel highlights each pipeline agent as it becomes active; the report streams into the left panel when complete.
 
 ## How Pipeline State Reaches the Frontend
 
-`run_research` mutates `context_variables` at two points — when research starts and when it completes — and `AGUIStream` automatically detects the changes and emits `STATE_SNAPSHOT` events:
+AGUIStream emits `STATE_SNAPSHOT` events *between* agent turns, not during a single long-running tool call. To make each pipeline stage visible in the UI, the work is split across three tools that the LLM calls in sequence:
+
+| Tool | Agent | Work done |
+|---|---|---|
+| `start_research` | Chief Editor | Initializes `GPTResearcher`, oversees the pipeline |
+| `plan_research` | Editor | LLM plans 3–5 report sections; stores the outline |
+| `conduct_research` | Researcher | Calls `researcher.conduct_research()`, returns source list and findings summary |
+| `review_research` | Reviewer | LLM scores research quality and identifies gaps |
+| `revise_research` | Revisor | Runs a supplementary `GPTResearcher` search for gaps, or confirms research is complete |
+| `write_report` | Writer | Calls `researcher.write_report()` to compile the full report |
+| `publish_report` | Publisher | Stamps the report with source count and date, returns final output |
+
+After each tool returns a `ReplyResult` with updated `context_variables`, AGUIStream compares the new context to the previous snapshot and emits a `STATE_SNAPSHOT` event before the LLM's next turn:
 
 ```python
-context_variables["stage"] = "planning"
-context_variables["active_agent"] = "Chief Editor"
-# ... run pipeline ...
-context_variables["stage"] = "complete"
-context_variables["active_agent"] = "Publisher"
+# Each tool sets context_variables and returns a ReplyResult.
+# AGUIStream detects the change and sends STATE_SNAPSHOT to the frontend
+# before the LLM decides to call the next tool.
+
+context_variables["stage"] = "researching"
+context_variables["active_agent"] = "Researcher"
+await _researcher.conduct_research()
+return ReplyResult(message="Research complete. Call write_report next.",
+                   context_variables=context_variables)
 ```
 
-The frontend listens for `STATE_SNAPSHOT` and updates the progress panel accordingly — no polling, no extra wiring.
-
-For finer-grained per-agent updates (highlighting Researcher, Reviewer, etc. mid-run), subclass `ChiefEditorAgent` and add `context_variables` mutations inside each stage method.
+The frontend listens for `STATE_SNAPSHOT` and updates the progress panel — no polling, no extra wiring.
 
 ## Contact
 

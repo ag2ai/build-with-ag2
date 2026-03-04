@@ -1,24 +1,16 @@
 """
-Terminal mode: run the GPT Researcher multi-agent pipeline from the command line.
+Terminal mode: run GPT Researcher from the command line.
 
-Prerequisites:
-    This sample depends on the multi_agents_ag2 module from the GPT Researcher repo.
-    Clone it and run from the gpt-researcher root, or add the path to PYTHONPATH:
-
-        git clone https://github.com/assafelovic/gpt-researcher.git
-        cd gpt-researcher
-        pip install -r requirements.txt
-        pip install -r multi_agents_ag2/requirements.txt
-        pip install -r /path/to/this/sample/requirements.txt
-
-    Then copy (or symlink) this sample's files into the gpt-researcher folder and run:
-        python -m main
+Install dependencies and run:
+    pip install -r requirements.txt
+    python main.py
 """
 import asyncio
 import json
 from pathlib import Path
 
 from dotenv import load_dotenv
+from gpt_researcher import GPTResearcher
 
 load_dotenv()
 
@@ -28,16 +20,16 @@ def load_task() -> dict:
 
 
 async def main() -> None:
-    # Import here so the module is resolved from PYTHONPATH at runtime
-    from multi_agents_ag2.agents.orchestrator import ChiefEditorAgent
-
     task = load_task()
-    print(f"\nResearching: {task['query']}\n")
+    query = task["query"]
+    report_type = task.get("report_type", "research_report")
 
-    chief_editor = ChiefEditorAgent(task)
-    result = await chief_editor.run_research_task()
+    print(f"\nResearching: {query}\n")
 
-    report = result.get("report", "")
+    researcher = GPTResearcher(query=query, report_type=report_type)
+    await researcher.conduct_research()
+    report = await researcher.write_report()
+
     print("\n--- Research Complete ---\n")
     print(report)
 

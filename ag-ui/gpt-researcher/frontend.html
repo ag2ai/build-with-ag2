@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <title>GPT Researcher + AG2</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: system-ui, sans-serif; display: flex; height: 100vh; background: #f5f5f5; }
 
         /* Left: research input and report output */
         .main { flex: 1; display: flex; flex-direction: column; padding: 24px; gap: 16px; overflow: hidden; }
-        .main h2 { font-size: 20px; font-weight: 600; }
+        .main > h2 { font-size: 20px; font-weight: 600; }
         .input-row { display: flex; gap: 8px; }
         .input-row input {
             flex: 1; padding: 10px 14px; border: 1px solid #ddd; border-radius: 6px;
@@ -20,12 +21,53 @@
             border-radius: 6px; cursor: pointer; font-size: 15px; white-space: nowrap;
         }
         .input-row button:disabled { opacity: 0.5; cursor: default; }
+
+        /* Report: renders markdown as HTML */
         .report {
             flex: 1; overflow-y: auto; border: 1px solid #ddd; border-radius: 6px;
-            padding: 20px; background: #fff; white-space: pre-wrap; font-size: 14px;
-            line-height: 1.8; color: #333;
+            padding: 28px 32px; background: #fff; color: #1a1a1a;
+            font-size: 15px; line-height: 1.7;
         }
-        .report.placeholder { color: #aaa; font-style: italic; }
+        .report.placeholder { color: #aaa; font-style: italic; display: flex; align-items: center; justify-content: center; }
+
+        /* Markdown content styles */
+        .report h1 { font-size: 22px; font-weight: 700; margin: 0 0 16px; color: #111; }
+        .report h2 { font-size: 18px; font-weight: 600; margin: 28px 0 10px; color: #111; border-bottom: 1px solid #eee; padding-bottom: 6px; }
+        .report h3 { font-size: 15px; font-weight: 600; margin: 20px 0 8px; color: #222; }
+        .report p { margin: 0 0 12px; }
+        .report ul, .report ol { margin: 0 0 12px 24px; }
+        .report li { margin-bottom: 4px; }
+        .report a { color: #1a73e8; text-decoration: none; }
+        .report a:hover { text-decoration: underline; }
+        .report strong { font-weight: 600; }
+        .report em { font-style: italic; }
+        .report blockquote {
+            border-left: 3px solid #ddd; margin: 0 0 12px; padding: 8px 16px;
+            color: #555; background: #fafafa; border-radius: 0 4px 4px 0;
+        }
+        .report code {
+            background: #f4f4f4; border-radius: 3px; padding: 1px 5px;
+            font-family: ui-monospace, monospace; font-size: 13px;
+        }
+        .report pre {
+            background: #f4f4f4; border-radius: 6px; padding: 14px 16px;
+            overflow-x: auto; margin: 0 0 12px;
+        }
+        .report pre code { background: none; padding: 0; font-size: 13px; }
+
+        /* Tables */
+        .report table {
+            border-collapse: collapse; width: 100%; margin: 0 0 16px;
+            font-size: 14px;
+        }
+        .report th {
+            background: #f0f4ff; font-weight: 600; text-align: left;
+            padding: 9px 12px; border: 1px solid #dde4f0; color: #333;
+        }
+        .report td {
+            padding: 8px 12px; border: 1px solid #e8ecf4; vertical-align: top;
+        }
+        .report tr:nth-child(even) td { background: #fafbff; }
 
         /* Right: pipeline progress panel */
         .pipeline {
@@ -116,12 +158,18 @@
 
     // STATE_SNAPSHOT handler: the backend updates context_variables when each
     // pipeline stage changes, and AGUIStream broadcasts them here automatically.
+    // The full report arrives in snapshot.report from the write_report tool,
+    // so the LLM never needs to output the report text itself.
     function handleSnapshot(snapshot) {
         if (snapshot.stage) {
             stageEl.textContent = snapshot.stage.replace(/_/g, ' ');
         }
-        if (snapshot.active_agent) {
+        if (snapshot.active_agent !== undefined) {
             setActiveAgent(snapshot.active_agent);
+        }
+        if (snapshot.report) {
+            reportEl.classList.remove('placeholder');
+            reportEl.innerHTML = marked.parse(snapshot.report);
         }
     }
 
@@ -130,8 +178,8 @@
         if (!query) return;
 
         runBtn.disabled = true;
-        reportEl.textContent = '';
-        reportEl.classList.remove('placeholder');
+        reportEl.innerHTML = 'Researching…';
+        reportEl.classList.add('placeholder');
         stageEl.textContent = 'Starting...';
         resetAgents();
 
@@ -141,8 +189,6 @@
             messages: [{ id: '1', role: 'user', content: query }],
             state: {}, context: [], tools: [], forwardedProps: {},
         };
-
-        let reportText = '';
 
         try {
             const response = await fetch('/research/', {
@@ -174,15 +220,8 @@
                             case 'STATE_SNAPSHOT':
                                 handleSnapshot(event.snapshot);
                                 break;
-                            case 'TEXT_MESSAGE_CONTENT':
-                                reportText += event.delta || '';
-                                reportEl.textContent = reportText;
-                                break;
-                            case 'TEXT_MESSAGE_CHUNK':
-                                reportText += event.delta || '';
-                                reportEl.textContent = reportText;
-                                break;
                             case 'RUN_ERROR':
+                                reportEl.classList.remove('placeholder');
                                 reportEl.textContent = 'Error: ' + (event.message || 'Unknown error');
                                 break;
                         }
