@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <link rel="icon" href="/assets/faviconlight.svg" type="image/svg+xml" media="(prefers-color-scheme: light)">
+    <link rel="icon" href="/assets/favicondark.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)">
     <title>GPT Researcher + AG2</title>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
@@ -22,6 +24,27 @@
         }
         .input-row button:disabled { opacity: 0.5; cursor: default; }
 
+        /* Activity log */
+        .activity {
+            max-height: 220px; overflow-y: auto; border: 1px solid #ddd; border-radius: 6px;
+            padding: 12px 16px; background: #fafafa; font-size: 13px; line-height: 1.5;
+            display: none; flex-shrink: 0;
+        }
+        .activity.visible { display: block; }
+        .activity-agent {
+            font-weight: 600; font-size: 12px; color: #1a73e8; margin: 8px 0 4px;
+            text-transform: uppercase; letter-spacing: 0.03em;
+        }
+        .activity-agent:first-child { margin-top: 0; }
+        .activity-tool {
+            font-family: ui-monospace, monospace; font-size: 12px; color: #888;
+            padding: 2px 0;
+        }
+        .activity-tool.done { color: #34a853; }
+        .activity-log {
+            font-size: 12px; color: #666; padding: 1px 0;
+        }
+        .activity-log.source { color: #1a73e8; }
         /* Report: renders markdown as HTML */
         .report {
             flex: 1; overflow-y: auto; border: 1px solid #ddd; border-radius: 6px;
@@ -74,6 +97,7 @@
             width: 260px; display: flex; flex-direction: column; border-left: 1px solid #ddd;
             padding: 24px; background: #fff; gap: 16px; flex-shrink: 0;
         }
+        .pipeline-logo { width: 48px; height: 48px; display: block; margin: 0 auto 8px; }
         .pipeline h2 { font-size: 16px; font-weight: 600; }
         .status-block { display: flex; flex-direction: column; gap: 4px; }
         .status-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #999; }
@@ -91,6 +115,79 @@
         .agent.done {
             background: #f0faf0; border-color: #34a853; color: #34a853;
         }
+
+        /* HITL review input */
+        .hitl {
+            display: none; flex-direction: column; gap: 10px; border: 2px solid #fbbc04;
+            border-radius: 8px; padding: 16px; background: #fffbea; flex-shrink: 0;
+        }
+        .hitl.visible { display: flex; }
+        .hitl-prompt {
+            font-size: 13px; line-height: 1.6; color: #333; white-space: pre-wrap;
+        }
+        .hitl-actions {
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        .hitl-divider {
+            display: flex; align-items: center; gap: 10px;
+            font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #b8a060;
+        }
+        .hitl-divider::before, .hitl-divider::after {
+            content: ''; flex: 1; border-top: 1px solid #e8d9a0;
+        }
+        .hitl-feedback-row { display: flex; gap: 8px; }
+        .hitl-feedback-row input {
+            flex: 1; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px;
+            font-size: 14px; background: #fff;
+        }
+        .hitl-actions button {
+            padding: 8px 18px; border: none; border-radius: 6px; font-size: 14px;
+            cursor: pointer; white-space: nowrap;
+        }
+        .hitl-actions .btn-approve {
+            background: #34a853; color: #fff; width: 100%; padding: 10px;
+            font-weight: 600; font-size: 14px;
+        }
+        .hitl-actions .btn-approve:disabled { opacity: 0.5; cursor: default; }
+        .hitl-actions .btn-feedback { background: #1a73e8; color: #fff; }
+        .hitl-actions .btn-feedback:disabled { opacity: 0.5; cursor: default; }
+
+        /* Structured HITL summary */
+        .hitl-section { margin-bottom: 10px; }
+        .hitl-section-title {
+            font-size: 12px; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.04em; color: #7a5c00; margin-bottom: 4px;
+        }
+        .hitl-query { font-size: 14px; font-weight: 600; color: #1a1a1a; }
+        .hitl-meta { font-size: 13px; color: #555; }
+        .hitl-meta strong { color: #333; }
+        .hitl-sections-list {
+            list-style: decimal; margin: 4px 0 0 20px; font-size: 13px; color: #333;
+        }
+        .hitl-sections-list li { margin-bottom: 2px; }
+        .hitl-sources a {
+            display: block; font-size: 12px; color: #1a73e8;
+            text-decoration: none; overflow: hidden; text-overflow: ellipsis;
+            white-space: nowrap; line-height: 1.6;
+        }
+        .hitl-sources a:hover { text-decoration: underline; }
+        .hitl-sources .sources-count { font-size: 12px; color: #888; margin-top: 2px; }
+        .hitl-findings {
+            max-height: 150px; overflow-y: auto; font-size: 12px; color: #444;
+            line-height: 1.5; white-space: pre-wrap; background: #fff8e0;
+            border: 1px solid #f0e4b8; border-radius: 4px; padding: 8px 10px;
+        }
+        .hitl-prompt details { margin-top: 4px; }
+        .hitl-prompt details summary {
+            cursor: pointer; font-size: 12px; color: #7a5c00; font-weight: 500;
+            user-select: none;
+        }
+        .hitl-prompt details summary:hover { color: #5a4000; }
+        .hitl-prompt details[open] summary { margin-bottom: 6px; }
+        .hitl-score { font-weight: 700; }
+        .hitl-score.good { color: #34a853; }
+        .hitl-score.ok { color: #fbbc04; }
+        .hitl-score.poor { color: #ea4335; }
     </style>
 </head>
 <body>
@@ -100,10 +197,23 @@
             <input type="text" id="query" placeholder="Enter your research question..." autofocus>
             <button id="run-btn" onclick="startResearch()">Research</button>
         </div>
+        <div class="activity" id="activity"></div>
+        <div class="hitl" id="hitl">
+            <div class="hitl-prompt" id="hitl-prompt"></div>
+            <div class="hitl-actions">
+                <button class="btn-approve" id="hitl-approve-btn" onclick="sendHitlApprove()">Approve &amp; Write Report</button>
+                <div class="hitl-divider">or</div>
+                <div class="hitl-feedback-row">
+                    <input type="text" id="hitl-input" placeholder="Describe what needs more research...">
+                    <button class="btn-feedback" id="hitl-feedback-btn" onclick="sendHitlFeedback()">Send Feedback</button>
+                </div>
+            </div>
+        </div>
         <div class="report placeholder" id="report">Your report will appear here when research is complete.</div>
     </div>
 
     <div class="pipeline">
+        <img src="/assets/ag2-logo.svg" alt="AG2" class="pipeline-logo">
         <h2>Pipeline</h2>
         <div class="status-block">
             <div class="status-label">Stage</div>
@@ -111,7 +221,11 @@
         </div>
         <div class="status-block">
             <div class="status-label">Active agent</div>
-            <div class="status-value" id="active-agent">—</div>
+            <div class="status-value" id="active-agent">&mdash;</div>
+        </div>
+        <div class="status-block">
+            <div class="status-label">Cost</div>
+            <div class="status-value" id="cost" style="font-family: ui-monospace, monospace; font-size: 13px;">&mdash;</div>
         </div>
         <div class="agents" id="agents">
             <div class="agent" data-name="Chief Editor">Chief Editor</div>
@@ -119,6 +233,7 @@
             <div class="agent" data-name="Researcher">Researcher</div>
             <div class="agent" data-name="Reviewer">Reviewer</div>
             <div class="agent" data-name="Revisor">Revisor</div>
+            <div class="agent" data-name="Human Review">Human Review</div>
             <div class="agent" data-name="Writer">Writer</div>
             <div class="agent" data-name="Publisher">Publisher</div>
         </div>
@@ -130,13 +245,27 @@
     const reportEl = document.getElementById('report');
     const stageEl = document.getElementById('stage');
     const activeAgentEl = document.getElementById('active-agent');
+    const activityEl = document.getElementById('activity');
+    const costEl = document.getElementById('cost');
+    const hitlEl = document.getElementById('hitl');
+    const hitlPromptEl = document.getElementById('hitl-prompt');
+    const hitlInputEl = document.getElementById('hitl-input');
+    const hitlFeedbackBtn = document.getElementById('hitl-feedback-btn');
+    const hitlApproveBtn = document.getElementById('hitl-approve-btn');
 
-    const AGENT_ORDER = [
-        'Chief Editor', 'Editor', 'Researcher', 'Reviewer', 'Revisor', 'Writer', 'Publisher'
-    ];
+    // Streaming state
+    let currentAgent = null;
+    let currentToolName = null;
+    let totalCost = 0;
+    let currentToolId = null;
+    let currentToolEl = null;
+
 
     function setActiveAgent(name) {
         const agentEls = document.querySelectorAll('.agent');
+        // Check if the name matches any agent in the pipeline list
+        const isKnownAgent = Array.from(agentEls).some(el => el.dataset.name === name);
+        if (!isKnownAgent) return; // ignore unknown agents (e.g. "User") to preserve current state
         let found = false;
         agentEls.forEach(el => {
             if (el.dataset.name === name) {
@@ -148,24 +277,179 @@
                 el.className = 'agent done';
             }
         });
-        activeAgentEl.textContent = name || '—';
+        activeAgentEl.textContent = name || '\u2014';
     }
 
     function resetAgents() {
         document.querySelectorAll('.agent').forEach(el => el.className = 'agent');
-        activeAgentEl.textContent = '—';
+        activeAgentEl.textContent = '\u2014';
     }
 
-    // STATE_SNAPSHOT handler: the backend updates context_variables when each
-    // pipeline stage changes, and AGUIStream broadcasts them here automatically.
-    // The full report arrives in snapshot.report from the write_report tool,
-    // so the LLM never needs to output the report text itself.
+    // --- Activity log helpers ---
+
+    function ensureAgentSection(agentName) {
+        if (agentName && agentName !== currentAgent) {
+            currentAgent = agentName;
+            const header = document.createElement('div');
+            header.className = 'activity-agent';
+            header.textContent = agentName;
+            activityEl.appendChild(header);
+        }
+    }
+
+    function addToolEntry(toolName) {
+        const el = document.createElement('div');
+        el.className = 'activity-tool';
+        el.textContent = '\u2699 ' + toolName + '\u2026';
+        activityEl.appendChild(el);
+        activityEl.scrollTop = activityEl.scrollHeight;
+        return el;
+    }
+
+    function addLogEntry(text, className) {
+        const el = document.createElement('div');
+        el.className = 'activity-log' + (className ? ' ' + className : '');
+        el.textContent = text;
+        activityEl.appendChild(el);
+        activityEl.scrollTop = activityEl.scrollHeight;
+    }
+
+    // --- Handle gpt-researcher log stream messages ---
+
+    let reportAccumulator = '';
+
+    function handleLogMessage(msg) {
+        const type = msg.type;
+        const output = msg.output || '';
+
+        if (type === 'done') return;
+
+        if (type === 'report') {
+            // Report text chunk — render progressively in the report area only
+            reportAccumulator += output;
+            reportEl.classList.remove('placeholder');
+            reportEl.innerHTML = marked.parse(reportAccumulator);
+            return;
+        }
+
+        if (type === 'cost') {
+            // Accumulate per-call costs from gpt-researcher
+            const costStr = (msg.data && msg.data.total_cost) || '';
+            const parsed = parseFloat(costStr.replace('$', ''));
+            if (!isNaN(parsed)) {
+                totalCost += parsed;
+                costEl.textContent = '$' + totalCost.toFixed(4);
+            }
+            return;
+        }
+
+        if (type === 'hitl_summary') {
+            // Render structured HITL summary with rich details
+            const d = msg.data || {};
+            if (d.query) {
+                hitlPromptEl.innerHTML = renderHitlSummary(d);
+            }
+            return;
+        }
+
+        if (type === 'state') {
+            // Pipeline state update from the orchestrator reply function
+            handleSnapshot(msg.data || {});
+            return;
+        }
+
+        if (type === 'logs') {
+            const text = output.replace(/^\s+/, '');
+            if (!text) return;
+
+            if (text.includes('Added source url') || text.includes('\u2705')) {
+                addLogEntry(text, 'source');
+            } else {
+                addLogEntry(text, '');
+            }
+            return;
+        }
+    }
+
+    // --- Render structured HITL summary ---
+
+    function renderHitlSummary(d) {
+        const scoreNum = parseInt(d.score) || 0;
+        const scoreClass = scoreNum >= 7 ? 'good' : scoreNum >= 4 ? 'ok' : 'poor';
+        const gaps = (d.gaps || 'none').trim();
+        const hasGaps = gaps.toLowerCase() !== 'none' && gaps !== '';
+
+        let html = '';
+
+        // Query
+        html += `<div class="hitl-section"><div class="hitl-section-title">Research Query</div>`;
+        html += `<div class="hitl-query">${escapeHtml(d.query)}</div></div>`;
+
+        // Quality + Gaps
+        html += `<div class="hitl-section"><div class="hitl-section-title">Quality Assessment</div>`;
+        html += `<div class="hitl-meta">Score: <span class="hitl-score ${scoreClass}">${scoreNum}/10</span>`;
+        if (hasGaps) {
+            html += ` &mdash; Gaps: <strong>${escapeHtml(gaps)}</strong>`;
+        } else {
+            html += ` &mdash; No gaps identified`;
+        }
+        html += `</div></div>`;
+
+        // Report outline / sections
+        if (d.sections) {
+            const items = d.sections.split(',').map(s => s.trim()).filter(Boolean);
+            if (items.length) {
+                html += `<div class="hitl-section"><div class="hitl-section-title">Report Outline</div>`;
+                html += `<ol class="hitl-sections-list">`;
+                items.forEach(s => { html += `<li>${escapeHtml(s)}</li>`; });
+                html += `</ol></div>`;
+            }
+        }
+
+        // Sources (collapsible)
+        const sources = d.sources || [];
+        const totalSources = d.sources_count || sources.length;
+        if (sources.length) {
+            html += `<div class="hitl-section"><details>`;
+            html += `<summary>Sources (${totalSources} collected, showing top ${sources.length})</summary>`;
+            html += `<div class="hitl-sources">`;
+            sources.forEach(url => {
+                html += `<a href="${escapeHtml(url)}" target="_blank" rel="noopener">${escapeHtml(url)}</a>`;
+            });
+            if (totalSources > sources.length) {
+                html += `<div class="sources-count">+ ${totalSources - sources.length} more sources</div>`;
+            }
+            html += `</div></details></div>`;
+        }
+
+        // Findings preview (collapsible)
+        if (d.findings_preview) {
+            html += `<div class="hitl-section"><details>`;
+            html += `<summary>Findings Preview</summary>`;
+            html += `<div class="hitl-findings">${escapeHtml(d.findings_preview)}</div>`;
+            html += `</details></div>`;
+        }
+
+        html += `<div class="hitl-meta" style="margin-top:8px;">Approve to proceed with writing, or provide feedback for additional research.</div>`;
+
+        return html;
+    }
+
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str || '';
+        return div.innerHTML;
+    }
+
+    // --- Snapshot handler ---
+
     function handleSnapshot(snapshot) {
         if (snapshot.stage) {
             stageEl.textContent = snapshot.stage.replace(/_/g, ' ');
         }
         if (snapshot.active_agent !== undefined) {
             setActiveAgent(snapshot.active_agent);
+            ensureAgentSection(snapshot.active_agent);
         }
         if (snapshot.report) {
             reportEl.classList.remove('placeholder');
@@ -173,15 +457,107 @@
         }
     }
 
+    // --- Log stream connection (uses EventSource for reliable SSE) ---
+
+    let logSource = null;
+
+    function connectLogStream() {
+        if (logSource) {
+            logSource.close();
+        }
+        logSource = new EventSource('/logs');
+        logSource.onmessage = function(event) {
+            try {
+                const msg = JSON.parse(event.data);
+                if (msg.type === 'done') {
+                    logSource.close();
+                    logSource = null;
+                    return;
+                }
+                handleLogMessage(msg);
+            } catch (e) { /* skip parse errors */ }
+        };
+        logSource.onerror = function() {
+            // Connection closed or errored — clean up
+            if (logSource) {
+                logSource.close();
+                logSource = null;
+            }
+        };
+    }
+
+    // --- HITL (Human-in-the-Loop) helpers ---
+
+    function showHitl(prompt) {
+        // Only set prompt text if the structured summary hasn't been set yet via /logs
+        if (!hitlPromptEl.innerHTML) {
+            hitlPromptEl.textContent = prompt || 'Please review the research findings.';
+        }
+        hitlInputEl.value = '';
+        hitlEl.classList.add('visible');
+        hitlInputEl.focus();
+    }
+
+    function hideHitl() {
+        hitlEl.classList.remove('visible');
+        hitlPromptEl.innerHTML = '';
+        hitlFeedbackBtn.disabled = false;
+        hitlApproveBtn.disabled = false;
+    }
+
+    async function sendHitlResponse(text) {
+        hitlFeedbackBtn.disabled = true;
+        hitlApproveBtn.disabled = true;
+        try {
+            await fetch('/research/respond', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ response: text }),
+            });
+        } catch (e) {
+            console.error('HITL respond error:', e);
+        }
+        hideHitl();
+    }
+
+    function sendHitlApprove() {
+        sendHitlResponse('Looks good, proceed with writing the report.');
+    }
+
+    function sendHitlFeedback() {
+        const text = hitlInputEl.value.trim();
+        if (!text) return;
+        sendHitlResponse(text);
+    }
+
+    hitlInputEl.addEventListener('keydown', e => {
+        if (e.key === 'Enter') sendHitlFeedback();
+    });
+
+    // --- Main research flow ---
+
     async function startResearch() {
         const query = queryEl.value.trim();
         if (!query) return;
 
         runBtn.disabled = true;
-        reportEl.innerHTML = 'Researching…';
+        queryEl.disabled = true;
+        reportEl.innerHTML = 'Researching\u2026';
         reportEl.classList.add('placeholder');
         stageEl.textContent = 'Starting...';
         resetAgents();
+
+        // Reset activity log and cost
+        activityEl.innerHTML = '';
+        activityEl.classList.add('visible');
+        currentAgent = null;
+        currentToolName = null;
+        currentToolId = null;
+        currentToolEl = null;
+        reportAccumulator = '';
+        totalCost = 0;
+        costEl.textContent = '\u2014';
+        hideHitl();
 
         const payload = {
             threadId: 'research-thread',
@@ -189,6 +565,9 @@
             messages: [{ id: '1', role: 'user', content: query }],
             state: {}, context: [], tools: [], forwardedProps: {},
         };
+
+        // Connect to the gpt-researcher log stream (runs in parallel)
+        connectLogStream();
 
         try {
             const response = await fetch('/research/', {
@@ -214,12 +593,57 @@
 
                 for (const line of lines) {
                     if (!line.startsWith('data: ')) continue;
+                    const data = line.slice(6);
+                    if (data === '[DONE]') continue;
                     try {
-                        const event = JSON.parse(line.slice(6));
+                        const event = JSON.parse(data);
                         switch (event.type) {
+                            // TEXT_MESSAGE events are the LLM's orchestration
+                            // chatter — not shown in the activity log. Real
+                            // content arrives via /logs (research progress) and
+                            // STATE_SNAPSHOT (report).
+                            case 'TEXT_MESSAGE_START':
+                            case 'TEXT_MESSAGE_CONTENT':
+                            case 'TEXT_MESSAGE_CHUNK':
+                            case 'TEXT_MESSAGE_END':
+                                break;
+
+                            case 'TOOL_CALL_START':
+                                currentToolName = event.toolCallName;
+                                currentToolId = event.toolCallId;
+                                currentToolEl = addToolEntry(currentToolName);
+                                break;
+
+                            case 'TOOL_CALL_ARGS':
+                                break;
+
+                            case 'TOOL_CALL_RESULT':
+                                break;
+
+                            case 'TOOL_CALL_END':
+                                if (currentToolEl && currentToolName) {
+                                    currentToolEl.className = 'activity-tool done';
+                                    currentToolEl.textContent = '\u2713 ' + currentToolName;
+                                }
+                                currentToolName = null;
+                                currentToolId = null;
+                                currentToolEl = null;
+                                break;
+
+                            case 'INPUT_REQUEST':
+                                showHitl(event.prompt || 'Please review the research findings.');
+                                break;
+
                             case 'STATE_SNAPSHOT':
                                 handleSnapshot(event.snapshot);
                                 break;
+
+                            case 'RUN_STARTED':
+                                break;
+
+                            case 'RUN_FINISHED':
+                                break;
+
                             case 'RUN_ERROR':
                                 reportEl.classList.remove('placeholder');
                                 reportEl.textContent = 'Error: ' + (event.message || 'Unknown error');
@@ -228,12 +652,19 @@
                     } catch (e) { /* skip parse errors */ }
                 }
             }
+
         } catch (err) {
             reportEl.textContent = 'Connection error: ' + err.message;
         } finally {
             runBtn.disabled = false;
+            queryEl.disabled = false;
             stageEl.textContent = 'Complete';
             setActiveAgent('');
+            // Clean up log stream
+            if (logSource) {
+                logSource.close();
+                logSource = null;
+            }
         }
     }
 
