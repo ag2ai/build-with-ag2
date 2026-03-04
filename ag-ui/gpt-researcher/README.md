@@ -1,6 +1,6 @@
 # GPT Researcher + AG2
 
-Integrates [GPT Researcher](https://github.com/assafelovic/gpt-researcher) with AG2 and exposes it via the [AG-UI protocol](https://docs.ag2.ai/latest/docs/user-guide/ag-ui/). A single orchestrator agent wraps GPT Researcher as a tool and streams pipeline stage updates and the final report to a browser frontend in real time.
+Integrates [GPT Researcher](https://github.com/assafelovic/gpt-researcher) with AG2 and provides a realtime UI using the [AG-UI protocol](https://docs.ag2.ai/latest/docs/user-guide/ag-ui/). A single orchestrator agent wraps GPT Researcher as a tool and streams pipeline stage updates and the final report to a browser frontend in real time.
 
 Comes with two run modes:
 

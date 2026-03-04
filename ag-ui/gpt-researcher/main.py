@@ -5,6 +5,7 @@ Install dependencies and run:
     pip install -r requirements.txt
     python main.py
 """
+
 import asyncio
 import json
 from pathlib import Path
