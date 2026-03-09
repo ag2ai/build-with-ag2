@@ -29,13 +29,6 @@ New to AG2? Follow this progression:
 
 - ☑ [Manage Todos With Realtime Agent](manage-todos-with-realtime-agent): A voice-controlled todo assistant with real-time interaction.
 
-## 📚 Tutorials & Workshops
-
-Resources for learning AG2 from the ground up — from individual patterns to full hands-on workshops.
-
-- 🧩 [Agent Pattern Cookbook](tutorial/agent_pattern_cookbook/): 13 ready-to-run examples of agent orchestration patterns (basic → advanced), with a pattern selection guide and human workforce analogies.
-- 🎓 [Workshop: Mastering Real-World Agentic AI with AG2](workshop-08232025-data-hack-summit/): A 7-module hands-on workshop (notebooks) covering AG2 fundamentals, architectures, advanced patterns, tool integration, and real-world examples.
-
 ## 🖥️ AG-UI Examples
 
 Examples of connecting AG2 agents to browser frontends using the [AG-UI protocol](https://docs.ag-ui.com/introduction). Each example includes a FastAPI backend and a vanilla HTML/JS frontend — no React or build step required.
