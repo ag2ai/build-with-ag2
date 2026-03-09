@@ -10,15 +10,31 @@ A curated collection of awesome agentic applications built with [AG2](https://gi
 
 - 🎓 Production-ready, extensively documented agentic projects that help you contribute to the thriving AI agent ecosystem
 
+## 🗺️ Learning Path
+
+New to AG2? Follow this progression:
+
+1. **Learn the patterns** → [Agent Pattern Cookbook](tutorial/agent_pattern_cookbook/) — 13 runnable examples from simple two-agent chat to hierarchical multi-agent systems.
+2. **See real apps** → Browse the [Featured Agentic Apps](#-featured-agentic-apps) section below for complete, documented projects.
+3. **Add a UI** → Explore [AG-UI Examples](#%EF%B8%8F-ag-ui-examples) to connect your agents to a browser frontend.
+4. **Deep dive** → Work through the [7-module workshop](workshop-08232025-data-hack-summit/) for a comprehensive hands-on course.
+
 ## 📂 Featured Agentic Apps
 - 🛍️ [E-Commerce Custom Service for Order Management](e-commerce-customer-service) (last updated and ran on 09/20/2025, ag2 version 0.9.9): A smart, agent-driven system that makes order tracking quick and easy while simplifying returns for both logged-in and guest users.
 - 📈 [Financial Analysis](financial-analysis) (last updated and ran on 09/20/2025, ag2 version 0.9.9): A AI-powered stock analysis generating market insights and recommendations.
 - 🤖 [Automated Machine Learning for Kaggle](automate-ml-for-kaggle) (last updated and ran on 09/20/2025, ag2 version 0.9.9): An agent system to automate the machine learning pipeline for Kaggle competitions.
 - 🧑‍🔬 [Deep Research Agent](deep-research-agent): Reference implementation of the deep research agent.
-- ✈️ [Travel Planner](travel-planner): An trip planning swarm system that create an itinerary together with a customer.
-- 🎮 [AI Game Design Agent Team](game-design-agent-team): A collaborative game design system that generates comprehensive game concepts through the coordination of multiple specialized AI agents.
+- ✈️ [Travel Planner](travel-planner): A trip planning swarm system that creates an itinerary together with a customer.
+- 🎮 [AI Game Design Agent Team](game-design-agent-team) ⚠️ *(currently broken — pending fix for AG2 0.9+)*: A collaborative game design system that generates comprehensive game concepts through the coordination of multiple specialized AI agents.
 
 - ☑ [Manage Todos With Realtime Agent](manage-todos-with-realtime-agent): A voice-controlled todo assistant with real-time interaction.
+
+## 📚 Tutorials & Workshops
+
+Resources for learning AG2 from the ground up — from individual patterns to full hands-on workshops.
+
+- 🧩 [Agent Pattern Cookbook](tutorial/agent_pattern_cookbook/): 13 ready-to-run examples of agent orchestration patterns (basic → advanced), with a pattern selection guide and human workforce analogies.
+- 🎓 [Workshop: Mastering Real-World Agentic AI with AG2](workshop-08232025-data-hack-summit/): A 7-module hands-on workshop (notebooks) covering AG2 fundamentals, architectures, advanced patterns, tool integration, and real-world examples.
 
 ## 🖥️ AG-UI Examples
 
