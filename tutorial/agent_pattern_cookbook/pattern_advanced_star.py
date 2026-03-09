@@ -26,7 +26,7 @@ from autogen.agentchat.group import (
 
 # Setup LLM configuration
 llm_config = LLMConfig(
-    config_list={
+    {
         "api_type": "openai",
         "model": "gpt-4.1-mini",
         "parallel_tool_calls": False,

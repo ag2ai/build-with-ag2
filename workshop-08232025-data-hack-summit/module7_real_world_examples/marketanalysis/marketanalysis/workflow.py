@@ -9,8 +9,7 @@ from fastagency.runtimes.ag2 import Workflow
 from marketanalysis.market_analysis import agent_pattern
 
 llm_config = LLMConfig(
-    model="gpt-4o-mini",
-    api_key=os.getenv("OPENAI_API_KEY"),
+    {"model": "gpt-4o-mini", "api_key": os.getenv("OPENAI_API_KEY")},
     temperature=0.8,
 )
 

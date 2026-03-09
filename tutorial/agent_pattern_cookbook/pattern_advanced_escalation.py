@@ -134,7 +134,7 @@ def main():
         """,
         functions=[new_question_asked],
         llm_config=LLMConfig(
-            config_list={
+            {
                 "model": "gpt-4.1-mini",
                 "temperature": 0,
                 "cache_seed": None,
@@ -166,7 +166,7 @@ def main():
         """,
         functions=[answer_question_basic],
         llm_config=LLMConfig(
-            config_list={
+            {
                 "api_type": "openai",
                 "model": "gpt-5-nano",
                 "temperature": 0,
@@ -196,7 +196,7 @@ def main():
         """,
         functions=[answer_question_intermediate],
         llm_config=LLMConfig(
-            config_list={
+            {
                 "api_type": "openai",
                 "model": "gpt-5-nano",
                 "temperature": 0,
@@ -226,7 +226,7 @@ def main():
         """,
         functions=[answer_question_advanced],
         llm_config=LLMConfig(
-            config_list={
+            {
                 "api_type": "anthropic",
                 "model": "claude-3-7-sonnet-20250219",
                 "seed": 42,

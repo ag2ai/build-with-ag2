@@ -4,8 +4,7 @@ from autogen import LLMConfig
 
 def main():
     llm_config = LLMConfig(
-        api_type="openai",
-        model="gpt-5-nano",
+        {"api_type": "openai", "model": "gpt-5-nano"},
         cache_seed=42,
         temperature=1,
         tools=[],

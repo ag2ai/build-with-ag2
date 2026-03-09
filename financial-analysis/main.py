@@ -53,8 +53,7 @@ def getUuids(companyName):
 # llm_config = {"config_list": config_list, "timeout": 60}
 
 llm_config = LLMConfig(
-    api_type="openai",
-    model="gpt-4o",
+    {"api_type": "openai", "model": "gpt-4o"},
     cache_seed=42,
     temperature=0.1,
     timeout=60,

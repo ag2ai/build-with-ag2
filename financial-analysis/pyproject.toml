@@ -5,7 +5,7 @@ description = "Financial analysis agent with AG2"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "ag2[openai]>=0.9.9",
+    "ag2[openai]>=0.11.2",
     "requests",
     "yfinance",
     "matplotlib",

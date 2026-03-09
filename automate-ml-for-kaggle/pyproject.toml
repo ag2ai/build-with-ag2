@@ -5,7 +5,7 @@ description = "Automate ML workflows for Kaggle competitions"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "ag2[jupyter-executor,openai]>=0.9.9",
+    "ag2[jupyter-executor,openai]>=0.11.2",
     "scikit-learn",
     "pandas",
     "matplotlib",

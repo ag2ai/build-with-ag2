@@ -61,12 +61,13 @@ from functions import (
 # )
 
 llm_config = LLMConfig(
-    api_type="openai",
-    model="gpt-5-nano",
-    cache_seed=42,
-    temperature=1,
-    tools=[],
-    timeout=120,
+    {
+        "api_type": "openai",
+        "model": "gpt-5-nano",
+        "cache_seed": 42,
+        "temperature": 1,
+        "timeout": 120,
+    }
 )
 
 

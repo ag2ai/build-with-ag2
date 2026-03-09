@@ -1,4 +1,3 @@
-from copy import deepcopy
 from enum import Enum
 from typing import Annotated, Any, List, Tuple
 from pydantic import BaseModel, Field
@@ -291,12 +290,13 @@ def complete_writing_task(
 
 
 # Create the agents for the group chat
-def create_research_writing_group_chat(llm_config_base: dict[str, Any]):
+def create_research_writing_group_chat(llm_config_base: LLMConfig):
     """Create and configure all agents for the research-writing group chat."""
 
     # Triage agent
-    structured_config = deepcopy(llm_config_base)
-    structured_config["config_list"][0]["response_format"] = TaskAssignment
+    structured_config = LLMConfig(
+        {**llm_config_base.config_list[0], "response_format": TaskAssignment}
+    )
 
     triage_agent = ConversableAgent(
         name="triage_agent",
@@ -312,7 +312,7 @@ def create_research_writing_group_chat(llm_config_base: dict[str, Any]):
     )
 
     llm_config_with_tools = LLMConfig(
-        config_list={
+        {
             "model": "gpt-4.1-mini",
             "api_type": "openai",
             "parallel_tool_calls": False,
@@ -527,9 +527,7 @@ def create_research_writing_group_chat(llm_config_base: dict[str, Any]):
 def run_research_writing(user_request: str) -> Tuple[ChatResult, ContextVariables]:
     """Run the research and writing group chat for a given user request."""
 
-    llm_config_base = {
-        "config_list": [{"model": "gpt-4.1-mini", "api_type": "openai"}],
-    }
+    llm_config_base = LLMConfig({"model": "gpt-4.1-mini", "api_type": "openai"})
 
     # Create the agents
     agents = create_research_writing_group_chat(llm_config_base)

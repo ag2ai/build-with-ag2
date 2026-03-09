@@ -25,7 +25,7 @@ from autogen.agentchat.group import (
 
 # Setup LLM configuration
 llm_config = LLMConfig(
-    config_list={"api_type": "openai", "model": "gpt-4.1-mini", "cache_seed": None}
+    {"api_type": "openai", "model": "gpt-4.1-mini", "cache_seed": None}
 )
 
 # Shared context for tracking the conversation and redundant agent results

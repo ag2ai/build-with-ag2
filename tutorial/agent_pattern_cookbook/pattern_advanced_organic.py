@@ -7,8 +7,8 @@ import os
 load_dotenv()
 
 # Setup LLM configuration
-llm_config = llm_config = LLMConfig(
-    config_list={
+llm_config = LLMConfig(
+    {
         "api_type": "openai",
         "model": "gpt-5-nano",
         "api_key": os.getenv("OPENAI_API_KEY"),

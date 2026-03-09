@@ -3,7 +3,7 @@ import os
 from autogen import ConversableAgent, LLMConfig
 
 llm_config = LLMConfig(
-    config_list={
+    {
         "api_type": "openai",
         "model": "gpt-5-nano",
         "api_key": os.environ["OPENAI_API_KEY"],

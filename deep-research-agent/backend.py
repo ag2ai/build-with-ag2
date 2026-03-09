@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Request
 from autogen.agents.experimental import DeepResearchAgent
-from autogen import config_list_from_json
+from autogen import LLMConfig
 import nest_asyncio
 import io
 import contextlib
@@ -13,13 +13,14 @@ app = FastAPI()
 
 def run_agent(user_query):
     """Runs the agent synchronously and returns the final JSON result."""
-    # Load config
-    config_list = config_list_from_json(env_or_file="OAI_CONFIG_LIST")
-
     # Initialize DeepResearchAgent
+    llm_config = LLMConfig(
+        {"api_type": "openai", "model": "gpt-5-nano", "temperature": 1, "timeout": 120}
+    )
+
     agent = DeepResearchAgent(
         name="DeepResearchAgent",
-        llm_config={"config_list": config_list},
+        llm_config=llm_config,
     )
 
     # Run the agent (synchronous call)

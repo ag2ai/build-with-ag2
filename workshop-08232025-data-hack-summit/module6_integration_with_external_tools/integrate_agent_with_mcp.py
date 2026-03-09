@@ -21,7 +21,9 @@ from autogen.tools import tool
 load_dotenv()
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-llm_config = LLMConfig(model="gpt-5-nano", api_type="openai", api_key=OPENAI_API_KEY)
+llm_config = LLMConfig(
+    {"model": "gpt-5-nano", "api_type": "openai", "api_key": OPENAI_API_KEY}
+)
 
 # build server config
 script_dir = os.path.dirname(os.path.abspath(__file__))

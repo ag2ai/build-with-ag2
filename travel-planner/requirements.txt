@@ -1,1 +1,1 @@
-ag2[graph-rag-falkor-db]
+ag2[graph-rag-falkor-db]>=0.11.2
