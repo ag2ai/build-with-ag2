@@ -16,3 +16,8 @@ dependencies = [
     "google-auth-oauthlib",
     "python-docx",
 ]
+
+[tool.uv]
+override-dependencies = [
+    "llama-index-llms-openai>=0.4,<0.7",
+]

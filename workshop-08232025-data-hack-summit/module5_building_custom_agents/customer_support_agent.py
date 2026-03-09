@@ -20,7 +20,9 @@ load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 print(OPENAI_API_KEY)
 
-llm_config = LLMConfig({"api_type": "openai", "model": "gpt-5-nano", "api_key": OPENAI_API_KEY})
+llm_config = LLMConfig(
+    {"api_type": "openai", "model": "gpt-5-nano", "api_key": OPENAI_API_KEY}
+)
 
 # Shared context for ticket state
 shared_context = ContextVariables(

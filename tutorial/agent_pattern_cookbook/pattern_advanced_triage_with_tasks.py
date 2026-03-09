@@ -311,7 +311,8 @@ def create_research_writing_group_chat(llm_config_base: LLMConfig):
         ),
     )
 
-    llm_config_with_tools = LLMConfig({
+    llm_config_with_tools = LLMConfig(
+        {
             "model": "gpt-4.1-mini",
             "api_type": "openai",
             "parallel_tool_calls": False,

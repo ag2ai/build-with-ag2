@@ -19,7 +19,9 @@ load_dotenv()
 TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-llm_config = LLMConfig({"api_type": "openai", "model": "o3-mini", "api_key": OPENAI_API_KEY})
+llm_config = LLMConfig(
+    {"api_type": "openai", "model": "o3-mini", "api_key": OPENAI_API_KEY}
+)
 
 
 # --- Tool stubs (replace with real Tavily/OpenAI API calls) ---

@@ -25,7 +25,8 @@ from autogen.agentchat.group import (
 # transportation, and dining in various cities
 
 # Setup LLM configuration
-llm_config = LLMConfig({
+llm_config = LLMConfig(
+    {
         "api_type": "openai",
         "model": "gpt-4.1-mini",
         "parallel_tool_calls": False,
