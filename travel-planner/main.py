@@ -1,20 +1,26 @@
+import atexit
+import json
 import os
-import autogen
+import tempfile
+from typing import Any
 
-# IMPORTS
-import copy
-from typing import Any, Dict
+from dotenv import load_dotenv
 
+load_dotenv()
 
-from autogen.agentchat.contrib.swarm_agent import (
-    AFTER_WORK,
-    ON_CONDITION,
-    AfterWorkOption,
-    SwarmAgent,
-    SwarmResult,
-    UserProxyAgent,
-    initiate_swarm_chat,
+from autogen import ConversableAgent, UserProxyAgent, LLMConfig
+from autogen.agentchat import initiate_group_chat
+from autogen.agentchat.group import (
+    ReplyResult,
+    ContextVariables,
+    AgentTarget,
+    AgentNameTarget,
+    RevertToUserTarget,
+    TerminateTarget,
+    OnCondition,
+    StringLLMCondition,
 )
+from autogen.agentchat.group.patterns import DefaultPattern
 from autogen.agentchat.contrib.graph_rag.document import Document, DocumentType
 from graphrag_sdk.models.openai import OpenAiGenerativeModel
 from autogen.agentchat.contrib.graph_rag.falkor_graph_query_engine import (
@@ -29,194 +35,243 @@ from ontology import get_trip_ontology
 from google_map_platforms import Itinerary, update_itinerary_with_travel_times
 
 # ---------------------------------------------------------------------
-# ---------------------------------------------------------------------
 # 1. Initialize the LLM Configuration
-
-# Option 1: Load the configuration file
-config_path = "OAI_CONFIG_LIST"
-config_list = autogen.config_list_from_json(
-    config_path, filter_dict={"model": ["gpt-4o"]}
-)
-# Option 2: Load the keys directly
-# config_list = [
-#     {
-#         "model": "gpt-4o",
-#         "api_key": open("...", "r").read(),
-#     }
-# ]
-
-llm_config = {"config_list": config_list, "timeout": 120}
-os.environ["OPENAI_API_KEY"] = config_list[0][
-    "api_key"
-]  # Put the OpenAI API key into the environment
-
-# TODO: configure the Google API key
-# os.environ["GOOGLE_MAP_API_KEY"] = open("<google_api_key_path>", "r").read()
-
 # ---------------------------------------------------------------------
+
+api_key = os.environ.get("OPENAI_API_KEY")
+if not api_key:
+    raise ValueError(
+        "OPENAI_API_KEY not set. Copy .env.example to .env and add your key."
+    )
+
+llm_config = LLMConfig(
+    {"model": "gpt-4o", "api_key": api_key},
+    timeout=120,
+)
+
 # ---------------------------------------------------------------------
 # 2. Initialize the FalkorDB GraphRAG
+# ---------------------------------------------------------------------
+
+falkordb_host = os.environ.get("FALKORDB_HOST", "0.0.0.0")
+falkordb_port = int(os.environ.get("FALKORDB_PORT", "6379"))
+
+_temp_files: list[str] = []
+
+
+def _cleanup_temp_files() -> None:
+    for path in _temp_files:
+        try:
+            os.unlink(path)
+        except OSError:
+            pass
+
+
+atexit.register(_cleanup_temp_files)
+
+
+def _json_to_jsonl(json_path: str) -> str:
+    """Convert a JSON array file to a JSONL temp file (required by graphrag_sdk)."""
+    with open(json_path) as f:
+        data = json.load(f)
+    tmp = tempfile.NamedTemporaryFile(mode="w", suffix=".jsonl", delete=False)
+    for item in data:
+        tmp.write(json.dumps(item) + "\n")
+    tmp.close()
+    _temp_files.append(tmp.name)
+    return tmp.name
+
+
 input_paths = [
     "./trip_planner_data/attractions.json",
     "./trip_planner_data/cities.json",
     "./trip_planner_data/restaurants.json",
 ]
 input_documents = [
-    Document(doctype=DocumentType.TEXT, path_or_url=input_path)
-    for input_path in input_paths
+    Document(doctype=DocumentType.TEXT, path_or_url=_json_to_jsonl(p))
+    for p in input_paths
 ]
 
-# Get the ontology
 trip_data_ontology = get_trip_ontology()
 
-# Create FalkorGraphQueryEngine
 query_engine = FalkorGraphQueryEngine(
     name="trip_data",
-    host="0.0.0.0",  # Change
-    port=6379,  # if needed
+    host=falkordb_host,
+    port=falkordb_port,
     ontology=trip_data_ontology,
     model=OpenAiGenerativeModel("gpt-4o"),
 )
 
-# Ingest data and initialize the database
-query_engine.init_db(input_doc=input_documents)
-
-# If you have already ingested and created the database, you can use this connect_db instead of init_db
-# query_engine.connect_db()
-
+# Data already ingested on first run — use connect_db to reconnect.
+# To re-ingest from scratch, replace connect_db with init_db below.
+query_engine.connect_db()
 
 # ---------------------------------------------------------------------
+# 3. Define context and tool functions
 # ---------------------------------------------------------------------
-# Create Swarm Agents and start the conversation
 
-trip_context = {
-    "itinerary_confirmed": False,
-    "itinerary": "",
-    "structured_itinerary": None,
-}
+trip_context = ContextVariables(
+    data={
+        "itinerary_confirmed": False,
+        "structured_itinerary": None,
+    }
+)
 
 
 def mark_itinerary_as_complete(
-    final_itinerary: str, context_variables: Dict[str, Any]
-) -> SwarmResult:
+    final_itinerary: str, context_variables: ContextVariables
+) -> ReplyResult:
     """Store and mark our itinerary as accepted by the customer."""
     context_variables["itinerary_confirmed"] = True
-    context_variables["itinerary"] = final_itinerary
 
-    # This will update the context variables and then transfer to the Structured Output agent
-    return SwarmResult(
-        agent="structured_output_agent",
+    return ReplyResult(
+        message="Itinerary recorded and confirmed.",
         context_variables=context_variables,
-        values="Itinerary recorded and confirmed.",
+        target=AgentNameTarget("structured_output_agent"),
     )
 
 
 def create_structured_itinerary(
-    context_variables: Dict[str, Any], structured_itinerary: str
-) -> SwarmResult:
+    structured_itinerary: str, context_variables: ContextVariables
+) -> ReplyResult:
     """Once a structured itinerary is created, store it and pass on to the Route Timing agent."""
-    # Ensure the itinerary is confirmed, if not, back to the Planner agent to confirm it with the customer
     if not context_variables["itinerary_confirmed"]:
-        return SwarmResult(
-            agent="planner_agent",
-            values="Itinerary not confirmed, please confirm the itinerary with the customer first.",
+        return ReplyResult(
+            message="Itinerary not confirmed, please confirm the itinerary with the customer first.",
+            context_variables=context_variables,
+            target=AgentNameTarget("planner_agent"),
+        )
+
+    # Validate it's actually JSON before storing
+    try:
+        json.loads(structured_itinerary)
+    except (ValueError, TypeError):
+        return ReplyResult(
+            message="Structured itinerary is not valid JSON, please reformat it correctly.",
+            context_variables=context_variables,
+            target=AgentNameTarget("structured_output_agent"),
+        )
+
+    # Only store the first valid itinerary — ignore duplicate parallel calls
+    if context_variables.get("structured_itinerary") is not None:
+        return ReplyResult(
+            message="Structured itinerary already stored.",
+            context_variables=context_variables,
+            target=AgentNameTarget("route_timing_agent"),
         )
 
     context_variables["structured_itinerary"] = structured_itinerary
 
-    # This will update the context variables and then transfer to the Route Timing agent
-    return SwarmResult(
-        agent="route_timing_agent",
+    return ReplyResult(
+        message="Structured itinerary stored.",
         context_variables=context_variables,
-        values="Structured itinerary stored.",
+        target=AgentNameTarget("route_timing_agent"),
     )
 
 
-# Planner agent, interacting with the customer and GraphRag agent, to create an itinerary
-planner_agent = SwarmAgent(
+# ---------------------------------------------------------------------
+# 4. Create Agents
+# ---------------------------------------------------------------------
+
+planner_agent = ConversableAgent(
     name="planner_agent",
-    system_message="You are a trip planner agent. It is important to know where the customer is going, how many days, what they want to do."
-    + "You will work with another agent, graphrag_agent, to get information about restaurant and attractions. "
-    + "You are also working with the customer, so you must ask the customer what they want to do if you don’t have LOCATION, NUMBER OF DAYS, MEALS, and ATTRACTIONS. "
-    + "When you have the customer's requirements, work with graphrag_agent to get information for an itinerary."
-    + "You are responsible for creating the itinerary and for each day in the itinerary you MUST HAVE events and EACH EVENT MUST HAVE a 'type' ('Restaurant' or 'Attraction'), 'location' (name of restaurant or attraction), 'city', and 'description'. "
-    + "Finally, YOU MUST ask the customer if they are happy with the itinerary before marking the itinerary as complete.",
-    functions=[mark_itinerary_as_complete],
+    system_message=(
+        "You are a trip planner agent. It is important to know where the customer is going, how many days, what they want to do. "
+        "You will work with another agent, graphrag_agent, to get information about restaurants and attractions. "
+        "You are also working with the customer, so you must ask the customer what they want to do if you don't have LOCATION, NUMBER OF DAYS, MEALS, and ATTRACTIONS. "
+        "When you have the customer's requirements, work with graphrag_agent to get information for an itinerary. "
+        "You are responsible for creating the itinerary and for each day in the itinerary you MUST HAVE events and EACH EVENT MUST HAVE a 'type' ('Restaurant' or 'Attraction'), 'location' (name of restaurant or attraction), 'city', and 'description'. "
+        "IMPORTANT: The itinerary must ONLY contain 'Restaurant' and 'Attraction' events. Do NOT include accommodation, hotels, or any other event types — mention hotels in plain text to the customer if asked, but NEVER add them to the itinerary. "
+        "Finally, YOU MUST ask the customer if they are happy with the itinerary before marking the itinerary as complete."
+    ),
     llm_config=llm_config,
+    functions=[mark_itinerary_as_complete],
 )
 
-# FalkorDB GraphRAG agent, utilising the FalkorDB to gather data for the Planner agent
-graphrag_agent = SwarmAgent(
+graphrag_agent = ConversableAgent(
     name="graphrag_agent",
     system_message="Return a list of restaurants and/or attractions. List them separately and provide ALL the options in the location. Do not provide travel advice.",
+    llm_config=False,
 )
 
-# Adding the FalkorDB capability to the agent
-graph_rag_capability = FalkorGraphRagCapability(query_engine)
-graph_rag_capability.add_to_agent(graphrag_agent)
-
-# Structured Output agent, formatting the itinerary into a structured format through the response_format on the LLM Configuration
-structured_config_list = copy.deepcopy(config_list)
-for config in structured_config_list:
-    config["response_format"] = Itinerary
-
-structured_output_agent = SwarmAgent(
+structured_output_agent = ConversableAgent(
     name="structured_output_agent",
-    system_message="You are a data formatting agent, format the provided itinerary in the context below into the provided format.",
-    llm_config={"config_list": structured_config_list, "timeout": 120},
+    system_message=(
+        "You are a data formatting agent. Format the itinerary from the conversation into the required structured format, "
+        "then YOU MUST call the create_structured_itinerary tool with the resulting JSON string. Do not skip this tool call."
+    ),
+    llm_config=LLMConfig(
+        {"model": "gpt-4o", "api_key": api_key},
+        response_format=Itinerary,
+        timeout=120,
+    ),
     functions=[create_structured_itinerary],
 )
 
-# Route Timing agent, adding estimated travel times to the itinerary by utilising the Google Maps Platform
-route_timing_agent = SwarmAgent(
+route_timing_agent = ConversableAgent(
     name="route_timing_agent",
-    system_message="You are a route timing agent. YOU MUST call the update_itinerary_with_travel_times tool if you do not see the exact phrase 'Timed itinerary added to context with travel times' is seen in this conversation. Only after this please tell the customer 'Your itinerary is ready!'.",
+    system_message=(
+        "You are a route timing agent. YOU MUST call the update_itinerary_with_travel_times tool if you do not see the exact phrase "
+        "'Timed itinerary added to context with travel times' in this conversation. Only after this please tell the customer 'Your itinerary is ready!'."
+    ),
     llm_config=llm_config,
     functions=[update_itinerary_with_travel_times],
 )
 
-# Our customer will be a human in the loop
+# Add FalkorDB capability to graphrag_agent
+graph_rag_capability = FalkorGraphRagCapability(query_engine)
+graph_rag_capability.add_to_agent(graphrag_agent)
+
 customer = UserProxyAgent(name="customer", code_execution_config=False)
 
-planner_agent.register_hand_off(
-    hand_to=[
-        ON_CONDITION(
-            graphrag_agent,
-            "Need information on the restaurants and attractions for a location. DO NOT call more than once at a time.",
-        ),  # Get info from FalkorDB GraphRAG
-        ON_CONDITION(structured_output_agent, "Itinerary is confirmed by the customer"),
-        AFTER_WORK(
-            AfterWorkOption.REVERT_TO_USER
-        ),  # Revert to the customer for more information on their plans
+# ---------------------------------------------------------------------
+# 5. Register handoffs
+# ---------------------------------------------------------------------
+
+planner_agent.handoffs.add_many(
+    [
+        OnCondition(
+            target=AgentTarget(graphrag_agent),
+            condition=StringLLMCondition(
+                "Need information on the restaurants and attractions for a location. DO NOT call more than once at a time."
+            ),
+        ),
+        OnCondition(
+            target=AgentTarget(structured_output_agent),
+            condition=StringLLMCondition("Itinerary is confirmed by the customer"),
+        ),
     ]
 )
+planner_agent.handoffs.set_after_work(RevertToUserTarget())
 
-# Back to the Planner when information has been retrieved
-graphrag_agent.register_hand_off(hand_to=[AFTER_WORK(planner_agent)])
+graphrag_agent.handoffs.set_after_work(AgentTarget(planner_agent))
+structured_output_agent.handoffs.set_after_work(AgentTarget(route_timing_agent))
+route_timing_agent.handoffs.set_after_work(TerminateTarget())
 
-# Once we have formatted our itinerary, we can hand off to the route timing agent to add in the travel timings
-structured_output_agent.register_hand_off(hand_to=[AFTER_WORK(route_timing_agent)])
+# ---------------------------------------------------------------------
+# 6. Start the conversation
+# ---------------------------------------------------------------------
 
-# Finally, once the route timing agent has finished, we can terminate the swarm
-route_timing_agent.register_hand_off(
-    hand_to=[
-        AFTER_WORK(AfterWorkOption.TERMINATE)
-    ]  # Once this agent has finished, the swarm can terminate
-)
-
-# Start the conversation
-chat_result, context_variables, last_agent = initiate_swarm_chat(
+pattern = DefaultPattern(
     initial_agent=planner_agent,
     agents=[planner_agent, graphrag_agent, structured_output_agent, route_timing_agent],
     user_agent=customer,
     context_variables=trip_context,
+    group_after_work=TerminateTarget(),
+)
+
+chat_result, context_variables, last_agent = initiate_group_chat(
+    pattern=pattern,
     messages="I want to go to Rome for a couple of days. Can you help me plan my trip?",
-    after_work=AfterWorkOption.TERMINATE,
     max_rounds=100,
 )
 
+# ---------------------------------------------------------------------
+# 7. Print itinerary
+# ---------------------------------------------------------------------
 
-def print_itinerary(itinerary_data):
+
+def print_itinerary(itinerary_data: dict[str, Any]) -> None:
     header = "█             █\n █           █ \n  █  █████  █  \n   ██     ██   \n  █         █  \n █  ███████  █ \n █ ██ ███ ██ █ \n   █████████   \n\n ██   ███ ███  \n█  █ █       █ \n████ █ ██  ██  \n█  █ █  █ █    \n█  █  ██  ████ \n"
     width = 80
     icons = {"Travel": "🚶", "Restaurant": "🍽️", "Attraction": "🏛️"}
@@ -234,7 +289,7 @@ def print_itinerary(itinerary_data):
 
         for event in day["events"]:
             event_type = event["type"]
-            print(f"\n  {icons[event_type]} {event['location']}")
+            print(f"\n  {icons.get(event_type, '📍')} {event['location']}")
             if event_type != "Travel":
                 words = event["description"].split()
                 line = "    "

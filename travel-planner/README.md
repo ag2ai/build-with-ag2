@@ -1,11 +1,10 @@
-## Trip Planning
-
-WIP: This project is currently not working properly.Latest release of AG2 0.9 introduced minor issues which will be fixed as soon as possible.
+# Trip Planning
 
 - This code is forked from the [trip planning notebook](https://docs.ag2.ai/notebooks/agentchat_swarm_graphrag_trip_planner#trip-planning-with-a-falkordb-graphrag-agent-using-a-swarm) from AG2.
 - By [Mark](https://github.com/marklysze)
+- Last revision: 03/09/2026 — migrated to AG2 0.9+ API
 
-In this project, we're building a trip planning swarm which has an objective to create an itinerary together with a customer. The end result will be an itinerary that has route times and distances calculated between activities.
+A trip planning swarm that creates an itinerary together with a customer. The end result is an itinerary with route times and distances calculated between activities.
 
 ## Details
 
@@ -13,16 +12,12 @@ The following diagram outlines the key components of the Swarm, with highlights 
 
 - FalkorDB agent using a GraphRAG database of restaurants and attractions
 - Structured Output agent that will enforce a strict format for the accepted itinerary
-- Routing agent that utilises the Google Maps API to calculate distances between activites
+- Routing agent that utilises the Google Maps API to calculate distances between activities
 - Swarm orchestration utilising context variables
-
-<!-- Add figure here -->
 
 ![Swarm Diagram](./trip_planner_data/travel-planning-overview.png)
 
 ## AG2 Features
-
-This project demonstrates the following AG2 features:
 
 - [Swarm Orchestration](https://docs.ag2.ai/docs/user-guide/advanced-concepts/swarm/deep-dive)
 - [GraphRAG](https://github.com/ag2ai/ag2/blob/main/notebook/agentchat_graph_rag_falkordb.ipynb)
@@ -34,54 +29,52 @@ TAGS: trip planning, swarm, graphrag, structured output, itinerary planning, tra
 
 ## Installation
 
-1. Clone and navigate to the folder:
-   ```bash
-   git clone https://github.com/ag2ai/build-with-ag2.git
-   cd build-with-ag2/game_design_agent_team
-   ```
-2. Install the required dependencies:
+Requires Python >= 3.12.
 
-   ```bash
-   pip install -r requirements.txt
-   ```
+### 1. Install dependencies
 
-   The dependency is ag2 with graphrag option.
+```bash
+uv sync
+```
 
-3. Set up a FalkorDB graph database. Please refer to [https://docs.falkordb.com/](https://docs.falkordb.com/). After the database is running, please adjust FalkorDB host and port accordingly (line 74-75 in `main.py`). A quick way is to set up docker and run this command:
+Or with pip:
 
-   ```bash
-   docker run -p 6379:6379 -p 3000:3000 -it --rm falkordb/falkordb:latest
-   ```
+```bash
+pip install "ag2[graph-rag-falkor-db]>=0.9.9" python-dotenv requests
+```
 
-   **Note:** You need to have a FalkorDB graph database running. If you are running one in a Docker container, please ensure your Docker network is setup to allow access to it.
+### 2. Start FalkorDB
 
-## Run the code
+FalkorDB is required to run the GraphRAG agent. Start it with Docker:
 
-### 1. Google Maps API Key
+```bash
+docker run -d --name travel-planner-falkordb -p 6379:6379 falkordb/falkordb:latest
+```
 
-To use Google's API to calculate travel times, you will need to have enabled the `Directions API` in your Google Maps Platform. You can get an API key and free quota, see [here](https://developers.google.com/maps/documentation/directions/overview) and [here](https://developers.google.com/maps/get-started) for more details.
+> **Note**: If port 6379 is already in use by another project, use a different port (e.g. `-p 6381:6379`) and set `FALKORDB_PORT=6381` in your `.env` file.
 
-Once you have your API key, set your environment variable `GOOGLE_MAP_API_KEY` to the key.
+### 3. Configure environment variables
 
-### 2. Set Configuration and OpenAI API Key
+```bash
+cp .env.example .env
+```
 
-Please modify the `config_list` in the `main.py` file (line 35). Read more about configurations [here](https://docs.ag2.ai/docs/topics/llm_configuration). This configuration will be used to set up ag2 agents.
+Open `.env` and fill in:
+- `OPENAI_API_KEY` — required
+- `FALKORDB_PORT` — change if you used a different port above
+- `GOOGLE_MAP_API_KEY` — optional, needed for travel time calculation between locations
 
-By default, FalkorDB uses OpenAI LLMs and that requires an OpenAI key in your environment variable `OPENAI_API_KEY`. We will extract the key from the configuration you set (line 49). If you are not using OpenAI in `config_list`, you may comment out the line and read from your environment variable directly.
-
-### 3. Run the code
+## Running the code
 
 ```bash
 python main.py
 ```
 
-You can now interact with the system through the command line to plan a trip to Rome! You can also modify the initial message to plan a trip to another city.
+You can interact with the system through the command line to plan a trip to Rome. Modify the initial message at the bottom of `main.py` to plan a trip to another city.
 
-**Note**: after first run of the code, the db will be initialized and you can switch to `connect_db` in line 82 and 85 in `main.py` for faster rerun.
+> **Tip**: After the first run, the FalkorDB graph is already populated. Switch `init_db` to `connect_db` in `main.py` for faster subsequent runs.
 
 ## Contact
-
-For more information or any questions, please refer to the documentation or reach out to us!
 
 - AG2 Documentation: https://docs.ag2.ai/docs/Home
 - AG2 GitHub: https://github.com/ag2ai/ag2
