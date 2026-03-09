@@ -2,10 +2,14 @@ import json
 import os
 from pydantic import BaseModel
 import requests
-
-from autogen.agentchat.contrib.swarm_agent import (
-    SwarmResult,
+from autogen.agentchat.group import (
+    ReplyResult,
+    ContextVariables,
+    AgentNameTarget,
+    StayTarget,
 )
+
+_GOOGLE_MAP_API_KEY = os.environ.get("GOOGLE_MAP_API_KEY")
 
 
 class Event(BaseModel):
@@ -32,7 +36,7 @@ def _fetch_travel_time(origin: str, destination: str) -> dict:
         "origin": origin,
         "destination": destination,
         "mode": "walking",  # driving (default), bicycling, transit
-        "key": os.environ.get("GOOGLE_MAP_API_KEY"),
+        "key": _GOOGLE_MAP_API_KEY,
     }
 
     response = requests.get(endpoint, params=params)
@@ -45,22 +49,23 @@ def _fetch_travel_time(origin: str, destination: str) -> dict:
         }
 
 
-def update_itinerary_with_travel_times(context_variables: dict) -> SwarmResult:
+def update_itinerary_with_travel_times(
+    context_variables: ContextVariables,
+) -> ReplyResult:
     """Update the complete itinerary with travel times between each event."""
-    """
-    Retrieves route information using Google Maps Directions API.
-    API documentation at https://developers.google.com/maps/documentation/directions/get-directions
-    """
 
     # Ensure that we have a structured itinerary, if not, back to the structured_output_agent to make it
     if context_variables.get("structured_itinerary") is None:
-        return SwarmResult(
-            agent="structured_output_agent",
-            values="Structured itinerary not found, please create the structured output, structured_output_agent.",
+        return ReplyResult(
+            message="Structured itinerary not found, please create the structured output, structured_output_agent.",
+            context_variables=context_variables,
+            target=AgentNameTarget("structured_output_agent"),
         )
     elif "timed_itinerary" in context_variables:
-        return SwarmResult(
-            values="Timed itinerary already done, inform the customer that their itinerary is ready!"
+        return ReplyResult(
+            message="Timed itinerary already done, inform the customer that their itinerary is ready!",
+            context_variables=context_variables,
+            target=StayTarget(),
         )
 
     # Process the itinerary, converting it back to an object and working through each event to work out travel time and distance
@@ -70,17 +75,11 @@ def update_itinerary_with_travel_times(context_variables: dict) -> SwarmResult:
     for day in itinerary_object.days:
         events = day.events
         new_events = []
-        pre_event, cur_event = None, None
-        event_count = len(events)
-        index = 0
-        while index < event_count:
-            if index > 0:
-                pre_event = events[index - 1]
-
-            cur_event = events[index]
-            if pre_event:
-                origin = ", ".join([pre_event.location, pre_event.city])
-                destination = ", ".join([cur_event.location, cur_event.city])
+        for i, cur_event in enumerate(events):
+            if i > 0:
+                pre_event = events[i - 1]
+                origin = f"{pre_event.location}, {pre_event.city}"
+                destination = f"{cur_event.location}, {cur_event.city}"
                 maps_api_response = _fetch_travel_time(
                     origin=origin, destination=destination
                 )
@@ -97,17 +96,17 @@ def update_itinerary_with_travel_times(context_variables: dict) -> SwarmResult:
                             description=travel_time_txt,
                         )
                     )
-                except Exception:
+                except (KeyError, IndexError):
                     print(
                         f"Note: Unable to get travel time from {origin} to {destination}"
                     )
             new_events.append(cur_event)
-            index += 1
         day.events = new_events
 
     context_variables["timed_itinerary"] = itinerary_object.model_dump()
 
-    return SwarmResult(
+    return ReplyResult(
+        message="Timed itinerary added to context with travel times",
         context_variables=context_variables,
-        values="Timed itinerary added to context with travel times",
+        target=StayTarget(),
     )
