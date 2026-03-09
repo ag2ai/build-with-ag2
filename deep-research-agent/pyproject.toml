@@ -5,7 +5,7 @@ description = "Deep research agent with web browsing capabilities"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "ag2[browser-use,openai]>=0.9.9",
+    "ag2[browser-use,openai]>=0.11.2",
     "fastapi>=0.115.8",
     "nest-asyncio>=1.6.0",
     "streamlit>=1.42.0",

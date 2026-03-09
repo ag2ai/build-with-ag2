@@ -22,8 +22,7 @@ from autogen.agentchat.group import (
 from autogen.agentchat.group.patterns import DefaultPattern
 
 # Setup LLM configuration
-llm_config = LLMConfig(
-    config_list={
+llm_config = LLMConfig({
         "api_type": "openai",
         "model": "gpt-5-nano",
         "cache_seed": 41,

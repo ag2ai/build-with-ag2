@@ -13,7 +13,7 @@ Gemini_API_KEY = os.getenv("GEMINI_API_KEY")
 
 # Configure LLM
 llm_config = LLMConfig(
-    config_list={
+    {
         "model": "gemini-2.5-flash",
         "api_type": "google",
         "api_key": Gemini_API_KEY,

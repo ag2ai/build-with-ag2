@@ -107,8 +107,7 @@ def main():
 
     # Option 2: Use LLMConfig (modern approach)
     llm_config = LLMConfig(
-        api_type="openai",
-        model="gpt-4o",
+        {"api_type": "openai", "model": "gpt-4o"},
         cache_seed=42,
         temperature=1,
         tools=[],

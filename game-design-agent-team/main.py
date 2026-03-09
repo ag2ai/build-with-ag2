@@ -5,8 +5,8 @@ from autogen.agentchat.contrib.swarm_agent import (
     SwarmResult,
     initiate_swarm_chat,
     AFTER_WORK,
-    UPDATE_SYSTEM_MESSAGE,
 )
+from autogen import UpdateSystemMessage
 from agent_utils import update_system_message_func  # import helper function
 
 # Initialize session state
@@ -233,7 +233,7 @@ if st.button("Generate Game Concept"):
                     agent="story_agent", context_variables=context_variables
                 )
 
-            state_update = UPDATE_SYSTEM_MESSAGE(update_system_message_func)
+            state_update = UpdateSystemMessage(update_system_message_func)
 
             # Define agents
             story_agent = SwarmAgent(

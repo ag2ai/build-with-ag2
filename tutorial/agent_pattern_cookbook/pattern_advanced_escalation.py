@@ -133,8 +133,7 @@ def main():
         You should never answer the question yourself.
         """,
         functions=[new_question_asked],
-        llm_config=LLMConfig(
-            config_list={
+        llm_config=LLMConfig({
                 "model": "gpt-4.1-mini",
                 "temperature": 0,
                 "cache_seed": None,
@@ -165,8 +164,7 @@ def main():
         Always call the answer_question_basic tool when answering.
         """,
         functions=[answer_question_basic],
-        llm_config=LLMConfig(
-            config_list={
+        llm_config=LLMConfig({
                 "api_type": "openai",
                 "model": "gpt-5-nano",
                 "temperature": 0,
@@ -195,8 +193,7 @@ def main():
         For more specialized or complex questions where you're less certain, rate accordingly lower.
         """,
         functions=[answer_question_intermediate],
-        llm_config=LLMConfig(
-            config_list={
+        llm_config=LLMConfig({
                 "api_type": "openai",
                 "model": "gpt-5-nano",
                 "temperature": 0,
@@ -225,8 +222,7 @@ def main():
         For extremely specialized or cutting-edge questions where you're less certain, rate accordingly lower.
         """,
         functions=[answer_question_advanced],
-        llm_config=LLMConfig(
-            config_list={
+        llm_config=LLMConfig({
                 "api_type": "anthropic",
                 "model": "claude-3-7-sonnet-20250219",
                 "seed": 42,

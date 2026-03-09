@@ -23,8 +23,7 @@ from autogen.agentchat.group import (
 # Each agent handles a specific stage of order processing in sequence
 
 # Setup LLM configuration
-llm_config = LLMConfig(
-    config_list={
+llm_config = LLMConfig({
         "api_type": "openai",
         "model": "gpt-5-nano",
         "parallel_tool_calls": False,

@@ -24,8 +24,7 @@ from autogen.agentchat import initiate_group_chat
 
 # Setup LLM configuration
 # Note that we turn parallel tool calling off for OpenAI so we only get one tool call at a time.
-llm_config = LLMConfig(
-    config_list={
+llm_config = LLMConfig({
         "api_type": "openai",
         "model": "gpt-5-nano",
         "parallel_tool_calls": False,

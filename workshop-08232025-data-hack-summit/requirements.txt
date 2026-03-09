@@ -1,6 +1,6 @@
 absl-py==2.3.1
 accelerate==1.9.0
-ag2==0.9.9
+ag2>=0.11.2
 agent @ file:///Users/priyanshu/Documents/GitHub/gemini-fullstack-langgraph-quickstart/backend
 aiofiles==24.1.0
 aiohappyeyeballs==2.6.1
