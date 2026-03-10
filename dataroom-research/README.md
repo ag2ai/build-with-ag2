@@ -5,6 +5,8 @@
 - Last revision: 06/06/2025
 
 
+> **Note**: For a standalone deep research implementation without Google Drive, see the [Deep Research Agent](../deep-research-agent/) reference project. This project extends it with Google Drive integration.
+
 DataRoom Research is an multi-agent research system that combines the capabilities of DeepResearchAgent with GoogleDriveToolkit, built on the AG2 framework. It enhances OpenAI's deep research agent concept by adding document handling and Google Drive integration.
 
 ## Detailed Description

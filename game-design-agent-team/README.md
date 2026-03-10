@@ -1,6 +1,6 @@
 # AI Game Design Agent Team
 
-WIP: This project is currently not working properly.Latest release of AG2 0.9 introduced minor issues which will be fixed as soon as possible.
+> ⚠️ **BROKEN**: This project is currently not working. The latest release of AG2 0.9 introduced breaking changes. A fix is pending — contributions welcome!
 
 - This project is collected and modified (with permission to include here) from the [awesome-llm-apps](https://github.com/Shubhamsaboo/awesome-llm-apps) repository. Check out the original code [here](https://github.com/Shubhamsaboo/awesome-llm-apps/tree/main/ai_agent_tutorials/ai_game_design_agent_team).
 - By [Shubham](https://x.com/Saboo_Shubham_)

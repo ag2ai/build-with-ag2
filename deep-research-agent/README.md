@@ -5,6 +5,8 @@
 
 DeepResearchAgent is an advanced research tool built on the AG2 framework, inspired by OpenAI's deep research capabilities.
 
+> **Related project**: [DataRoom Research](../dataroom-research/) extends this implementation with Google Drive integration for document-based research.
+
 ## Overview
 
 This reference implementation demonstrates OpenAI's deep research agent functionality. It efficiently retrieves relevant data, processes information, and delivers concise conclusions to help analysts and investors make informed decisions.
