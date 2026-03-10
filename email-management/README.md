@@ -4,11 +4,12 @@
 - Last revision: 06/06/2025 by [willhama](https://github.com/willhama)
 - Last revision: 09/20/2025 by [qingyun-wu](https://github.com/qingyun-wu): added uv support
 - Last revision: 11/28/2025 by [aakash232](https://github.com/aakash232): migrated to latest orchestration patterns
+- Last revision: 03/09/2026 by [faridunm](https://github.com/faridunm): added archive/trash actions, list emails tool, improved agent system messages
 
 An intelligent email management tool that leverages AG2's group chat agents to help you quickly triage, filter, and respond to your emails. This application connects to Gmail, groups unread emails by sender, and offers two steps of automated assistance:
 
 - **Mark as read in Batch:** Identify and mark groups of non-critical emails from the same sender as read.
-- **Individual actions:** Read, summarize, and assist in drafting replies for emails requiring your attention.
+- **Individual actions:** Read, summarize, archive, trash, and assist in drafting replies for emails requiring your attention.
 
 ## Detailed Description
 
@@ -17,7 +18,7 @@ This project streamlines your email workflow by performing the following tasks:
 - **Connecting to Gmail:** Securely authenticates and retrieves unread emails.
 - **Grouping Emails:** Organizes emails by sender and provides summaries (including subject lines and excerpts from the email body) for rapid review.
 - **Bulk Filtering:** Utilizes a group chat agent (_filter_agent_) to analyze email groups, suggesting which sender groups can be marked as read, and then confirms with the user before executing the bulk action.
-- **Individual Email Assistance:** Deploys another group chat agent (_email_assistant_) to classify each email, determining whether an email should be marked as read directly or read in full for further review. The agent also assists in summarizing key points and drafting responses when needed.
+- **Individual Email Assistance:** Deploys another group chat agent (_email_assistant_) to classify each email, determining whether an email should be marked as read, archived, moved to trash, or read in full for further review. The agent also assists in summarizing key points and drafting responses when needed.
 
 ## AG2 Features
 
@@ -60,7 +61,7 @@ The primary dependency is the `ag2` library.
 1. **Settings**
 
    - In `main.py`, set the `max_unread_emails_limit` to be the maximum number of unread emails to fetch at each run. By default, it is set to 20.
-   - By default, `is_mock_read_email` is set to `True` to mock the read email action. If set to `True`, emails in your Gmail account will be marked as read. Please be careful to modify this setting.
+   - By default, `is_mock_read_email` is set to `False`, meaning all actions (mark as read, archive, trash) will be applied to your real Gmail account. Set it to `True` to run in mock mode where no changes are made.
 
 2. **Execute the Main Script:**
    Run the primary script to start the assistant:
