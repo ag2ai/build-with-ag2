@@ -18,13 +18,14 @@ New to AG2? Follow this progression:
 2. **See real apps** → Browse the [Featured Agentic Apps](#-featured-agentic-apps) section below for complete, documented projects.
 3. **Add a UI** → Explore [AG-UI Examples](#%EF%B8%8F-ag-ui-examples) to connect your agents to a browser frontend.
 4. **Deep dive** → Work through the [7-module workshop](workshop-08232025-data-hack-summit/) for a comprehensive hands-on course.
+5. **Go to production** → Use the [GCP Agent Starter Pack](gcp-agent-starter-pack/templates/ag2/) to deploy your agent to Cloud Run with CI/CD and observability.
 
 ## 📂 Featured Agentic Apps
 - 🛍️ [E-Commerce Custom Service for Order Management](e-commerce-customer-service) (last updated and ran on 09/20/2025, ag2 version 0.9.9): A smart, agent-driven system that makes order tracking quick and easy while simplifying returns for both logged-in and guest users.
 - 📈 [Financial Analysis](financial-analysis) (last updated and ran on 09/20/2025, ag2 version 0.9.9): A AI-powered stock analysis generating market insights and recommendations.
 - 🤖 [Automated Machine Learning for Kaggle](automate-ml-for-kaggle) (last updated and ran on 09/20/2025, ag2 version 0.9.9): An agent system to automate the machine learning pipeline for Kaggle competitions.
 - 🧑‍🔬 [Deep Research Agent](deep-research-agent): Reference implementation of the deep research agent.
-- ✈️ [Travel Planner](travel-planner): A trip planning swarm system that creates an itinerary together with a customer.
+- ✈️ [Travel Planner](travel-planner): A trip planning multi-agent system that creates an itinerary together with a customer.
 - 🎮 [AI Game Design Agent Team](game-design-agent-team) ⚠️ *(currently broken — pending fix for AG2 0.9+)*: A collaborative game design system that generates comprehensive game concepts through the coordination of multiple specialized AI agents.
 
 - ☑ [Manage Todos With Realtime Agent](manage-todos-with-realtime-agent): A voice-controlled todo assistant with real-time interaction.
@@ -36,6 +37,10 @@ Examples of connecting AG2 agents to browser frontends using the [AG-UI protocol
 - 🌤️ [Weather Agent](ag-ui/weather/): Single-agent chat with a weather tool. Demonstrates `AGUIStream`, streaming text, tool call events, and SSE consumption in the browser.
 - 🏭 [Factory Agent](ag-ui/factory/): Multi-agent document pipeline (plan → draft → review → revise → finalize). Demonstrates `ContextVariables` with `STATE_SNAPSHOT` events to provide multi-agent context to the UI.
 - 🔬 [GPT Researcher](ag-ui/gpt-researcher/): Wraps the GPT Researcher multi-agent pipeline as an AG2 tool and streams pipeline stage updates and the final report to a browser frontend via AG-UI.
+
+## ☁️ Deploy to Google Cloud
+
+- 🚀 [GCP Agent Starter Pack](gcp-agent-starter-pack/templates/ag2/): Production-ready template that deploys an AG2 agent to Cloud Run with one command. Includes Terraform, CI/CD (Cloud Build or GitHub Actions), OpenTelemetry tracing, and A2A protocol support for cross-framework agent communication.
 
 ## 🚀 Getting Started
 
