@@ -40,7 +40,7 @@ Examples of connecting AG2 agents to browser frontends using the [AG-UI protocol
 
 ## ☁️ Deploy to Google Cloud
 
-- 🚀 [GCP Agent Starter Pack](gcp-agent-starter-pack/templates/ag2/): Production-ready template that deploys an AG2 agent to Cloud Run with one command. Includes Terraform, CI/CD (Cloud Build or GitHub Actions), OpenTelemetry tracing, and A2A protocol support for cross-framework agent communication.
+- 🚀 [GCP Agent Starter Pack](gcp-agent-starter-pack/templates/ag2/): Production-ready template that deploys an AG2 agent to Google's Cloud Run with one command. Includes Terraform, CI/CD (Cloud Build or GitHub Actions), OpenTelemetry tracing, and A2A protocol support for cross-framework agent communication.
 
 ## 🚀 Getting Started
 
