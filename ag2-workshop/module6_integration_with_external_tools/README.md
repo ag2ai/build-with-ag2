@@ -60,4 +60,3 @@ python3.12 integrate_agent_with_mcp.py "Search for papers about large language m
 ```
 
 You should see the agent call the arXiv MCP server and return paper summaries. If you started the Wikipedia server in step 5, the agent can also route queries to Wikipedia.
-

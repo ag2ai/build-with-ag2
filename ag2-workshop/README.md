@@ -9,26 +9,34 @@ This hands-on workshop series takes you through the complete journey of building
 ## 📚 Course Modules
 
 ### Module 1: Introduction and Foundation of AI Agents
+
 **File:** `module1_introduction/module1_introduction.ipynb`
+
 - Understanding the agent paradigm
 - Evolution from rule-based to AI-driven agents
 - Value of agents in modern applications
 - Multi-agent system architecture
 
 ### Module 2: Setup and Environment Configuration
+
 **Directory:** `module2_setup/`
+
 - Setting up AG2 development environment
 - Configuration and dependencies
 - First agent creation
 
 ### Module 3: Core Concepts and Architectures
+
 **Directory:** `module3_core_concepts_and_architectures/`
+
 - Agent communication patterns
 - Message passing and protocols
 - System design principles
 
 ### Module 4: Advanced Agent Design Patterns
+
 **Directory:** `module4_advanced_agent_design_patterns/`
+
 - Context-aware routing (`4.1_context_aware_routing.ipynb`)
 - Escalation mechanisms (`4.2_escalation.ipynb`)
 - Feedback loops (`4.3_feedback_loop.ipynb`)
@@ -39,19 +47,25 @@ This hands-on workshop series takes you through the complete journey of building
 - Reasoning agents (`reasoning_agent.ipynb`)
 
 ### Module 5: Building Custom Agents
+
 **Directory:** `module5_building_custom_agents/`
+
 - Custom agent development
 - Specialized agent behaviors
 - Agent personality and capabilities
 
 ### Module 6: Integration with External Tools
+
 **Directory:** `module6_integration_with_external_tools/`
+
 - Tool calling and API integration
 - External system connectivity
 - Data processing and analysis
 
 ### Module 7: Real-World Example
+
 **Directory:** `module7_real_world_examples/`
+
 - Complete market analysis application (`marketanalysis/`)
 - Streamlit integration (`marketanalysis_streamlit/`)
 - End-to-end implementation
@@ -59,6 +73,7 @@ This hands-on workshop series takes you through the complete journey of building
 ## 🚀 Getting Started
 
 ### Prerequisites
+
 - Python 3.9 or higher (Python 3.12+ required for Module 6 MCP integration)
 - Basic understanding of Python programming
 - Familiarity with AI/ML concepts (helpful but not required)
@@ -66,22 +81,26 @@ This hands-on workshop series takes you through the complete journey of building
 ### Installation
 
 1. Clone this repository:
+
 ```bash
 git clone <repository-url>
 cd ag2-workshop
 ```
 
 2. Install core dependencies (Modules 1–5, 7):
+
 ```bash
 pip install "ag2[openai]" python-dotenv streamlit tavily-python
 ```
 
 3. For Module 6 (MCP integration) — requires Python 3.12+:
+
 ```bash
 pip install "ag2[openai,mcp]" python-dotenv streamlit arxiv wikipedia
 ```
 
 4. Start with Module 1:
+
 ```bash
 jupyter notebook module1_introduction/module1_introduction.ipynb
 ```
@@ -117,4 +136,4 @@ For questions or improvements, please refer to the main AG2 documentation and co
 
 ---
 
-*This tutorial series provides hands-on experience with cutting-edge agentic AI development using AG2.*
+_This tutorial series provides hands-on experience with cutting-edge agentic AI development using AG2._

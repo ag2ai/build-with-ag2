@@ -1,4 +1,3 @@
-import asyncio
 import os
 import sys
 import warnings
@@ -11,8 +10,6 @@ from dotenv import load_dotenv
 from autogen import LLMConfig
 from autogen.agentchat.conversable_agent import ConversableAgent
 from autogen.agentchat.group import AgentTarget
-from autogen.agentchat.group.llm_condition import StringLLMCondition
-from autogen.agentchat.group.on_condition import OnCondition
 from autogen.agentchat.group.reply_result import ReplyResult
 from autogen.mcp.mcp_client import create_toolkit
 from autogen.tools import tool
@@ -83,14 +80,24 @@ def _best_message_from_history(history: list) -> str:
         role = msg.get("role", "")
         name = msg.get("name", "")
         content = msg.get("content", "")
-        if role == "user" and name not in ("", "user") and content and len(str(content).strip()) > 50:
+        if (
+            role == "user"
+            and name not in ("", "user")
+            and content
+            and len(str(content).strip()) > 50
+        ):
             return str(content).strip()
     # Second pass: any non-empty agent reply
     for msg in history:
         role = msg.get("role", "")
         name = msg.get("name", "")
         content = msg.get("content", "")
-        if role == "user" and name not in ("", "user") and content and str(content).strip():
+        if (
+            role == "user"
+            and name not in ("", "user")
+            and content
+            and str(content).strip()
+        ):
             return str(content).strip()
     return ""
 
@@ -198,14 +205,22 @@ async def run_mcp_agent_to_client(query: str, server_name: str) -> ReplyResult:
                     )
                     last_message = await _extract_last_message_async(result)
         else:
-            raise ValueError(f"Unknown server_name: {server_name}. Use 'ArxivServer' or 'WikipediaServer'.")
+            raise ValueError(
+                f"Unknown server_name: {server_name}. Use 'ArxivServer' or 'WikipediaServer'."
+            )
     except Exception as e:
         error_str = str(e)
-        if "429" in error_str or "HTTPError" in type(e).__name__ or "rate" in error_str.lower():
+        if (
+            "429" in error_str
+            or "HTTPError" in type(e).__name__
+            or "rate" in error_str.lower()
+        ):
             last_message = "⚠️ arXiv is rate-limiting requests (HTTP 429). Please wait 60 seconds and try again."
         elif "tool_call_id" in error_str or "BadRequestError" in type(e).__name__:
             last_message = "⚠️ arXiv API was too slow — request timed out internally. Please try again."
-        elif "WikipediaServer" in server_name and ("Connection" in error_str or "ConnectError" in type(e).__name__):
+        elif "WikipediaServer" in server_name and (
+            "Connection" in error_str or "ConnectError" in type(e).__name__
+        ):
             last_message = "Wikipedia MCP server is not running. Start it with: python3.12 mcp_wikipedia.py --storage-path /tmp/wiki_articles sse"
         else:
             last_message = f"Error contacting {server_name}: {error_str[:200]}"
@@ -236,9 +251,12 @@ def run_workflow(prompt):
 if __name__ == "__main__":
     import sys
 
-    prompt = " ".join(sys.argv[1:]) if len(sys.argv) > 1 else "Search arxiv for recent papers on multi-agent AI systems and summarize the top 2 results"
+    prompt = (
+        " ".join(sys.argv[1:])
+        if len(sys.argv) > 1
+        else "Search arxiv for recent papers on multi-agent AI systems and summarize the top 2 results"
+    )
     print(f"\nQuery: {prompt}\n")
     result = run_workflow(prompt)
     print("\n=== Result ===")
     print(result)
-
