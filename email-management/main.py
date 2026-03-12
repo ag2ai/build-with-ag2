@@ -1,4 +1,9 @@
 import random
+
+from dotenv import load_dotenv
+
+load_dotenv()
+
 from email_utils import (
     get_gmail_service,
     get_user_email,
@@ -6,6 +11,8 @@ from email_utils import (
     parse_email_data,
     group_emails_by_sender,
     mark_email_as_read,
+    archive_email,
+    trash_email,
     fetch_email_thread,
 )
 import autogen
@@ -115,13 +122,19 @@ user_proxy = autogen.UserProxyAgent(
 filter_agent = ConversableAgent(
     name="filter_agent",
     llm_config=llm_config,
-    system_message="""You are helping the user to read emails and mark them as read.
-You will be given a list of senders with the number of emails from each sender.
-Please identify what sender's email are less important and can be marked as read in bulk.
-Given your suggestions on what emails by sender can be marked as read and ask the user for confirmation before marking them as read.
+    system_message="""You are an email bulk-action assistant.
+You have been given a list of senders with the number of unread emails and sample subjects from each.
+This is the complete data you have — you cannot fetch additional emails or access the inbox directly.
 
-If you believe no further actions are needed,  ask user if they want to mark more emails as read.
-If no further actions are needed, please reply with TERMINATE.""",
+Your only available action is mark_all_from_sender_as_read, which marks all unread emails from a given sender as read.
+
+Your workflow:
+1. Review the provided sender list and identify low-priority senders whose emails can be safely marked as read in bulk (e.g. newsletters, notifications, automated alerts).
+2. If you find low-priority senders: present your recommendations, ask for confirmation, then call mark_all_from_sender_as_read for each confirmed sender.
+3. If no low-priority senders are found, immediately reply with TERMINATE — do not ask follow-up questions.
+4. After processing all confirmed senders, reply with TERMINATE.
+
+Do not claim capabilities you don't have. If the user asks for something outside your scope (e.g. listing all emails, archiving, deleting), explain that this step only handles bulk mark-as-read by sender, and that individual email actions are available in the next step.""",
     functions=[mark_all_from_sender_as_read],
 )
 
@@ -149,17 +162,11 @@ if input_str.strip():
         group_after_work=RevertToUserTarget(),
     )
 
-    result, final_context, last_agent = initiate_group_chat(
-        pattern=agent_pattern,
-        messages=input_str,
-        max_rounds=10,
-    )
-
     try:
         result, final_context, last_agent = initiate_group_chat(
             pattern=agent_pattern,
             messages=input_str,
-            max_rounds=10,
+            max_rounds=30,
         )
     except (IndexError, ValueError) as e:
         print(f"Skipping bulk filtering due to message processing error: {e}")
@@ -176,6 +183,20 @@ for email in unread_emails:
 
 
 # -------------- Part 2: Email Assistant to help with reading emails one by one, marking as read, and drafting responses --------------
+def list_emails(count: int = 10) -> str:
+    """List unread emails with their ID, sender, subject, and received time. Use count to limit results."""
+    emails_to_show = unread_emails[:count]
+    if not emails_to_show:
+        return "No unread emails."
+    result = f"Showing {len(emails_to_show)} of {len(unread_emails)} unread emails:\n\n"
+    for i, email in enumerate(emails_to_show, 1):
+        result += f"{i}. [{email['message_id']}]\n"
+        result += f"   From: {email['from']}\n"
+        result += f"   Subject: {email['subject']}\n"
+        result += f"   Received: {email.get('received_time', 'N/A')}\n\n"
+    return result
+
+
 def mark_one_email_as_read(email_id: str) -> str:
     read_email_ids.append(email_id)
     if is_mock_read_email:
@@ -215,23 +236,56 @@ def get_full_thread(email_thread_id: str) -> str:
     return formatted_thread
 
 
+def archive_one_email(email_id: str) -> str:
+    """Archive an email — removes it from Inbox but keeps it in All Mail."""
+    if is_mock_read_email:
+        return "Successfully archived email (mock)."
+    return archive_email(gmail_service, email_id)
+
+
+def trash_one_email(email_id: str) -> str:
+    """Move an email to Trash. It will be permanently deleted after 30 days."""
+    if is_mock_read_email:
+        return "Successfully moved email to trash (mock)."
+    return trash_email(gmail_service, email_id)
+
+
 email_assistant = ConversableAgent(
     name="email_assistant",
     llm_config=llm_config,
-    system_message="""You are an email assistant.
-All email with id, sender and subject will be provided to you.
+    system_message="""You are an email assistant with access to the user's unread emails.
+You have been provided a list of unread emails with their IDs, senders, and subjects.
 
-1. Classify ALL the emails into:
-- "Mark as read": If you think the email can be marked as read directly.
-- "Read full email to decide": If you need to read the full email to decide.
-Confirm with the user and call corresponding functions.
+You can perform the following actions using your tools:
+- list_emails(count): list unread emails with ID, sender, subject, and date. Default count is 10.
+- mark_one_email_as_read: mark a single email as read (stays in inbox)
+- archive_one_email: remove email from inbox, keep it in All Mail (reversible)
+- trash_one_email: move email to Trash (deleted after 30 days)
+- get_email_body: fetch the body of a specific email
+- get_full_thread: fetch the full conversation thread of an email
 
-2. After full emails are retrieved, outline the key points in short, concise sentences for each email. Make it short and informative.
+Your workflow:
+1. Classify ALL provided emails into:
+   - "Mark as read": low-priority, no action needed
+   - "Archive": can be cleaned up from inbox
+   - "Read full email to decide": needs review before acting
+   Confirm your classification with the user before taking any action.
 
-3. Identify if any email requires a response. If so, ask the user if they want to draft a response to the email.
-call the function to get the full thread of the email and discuss with the user to draft a response. You should ask the user's intention and draft a response accordingly. Please put the email in ```txt``` format.
+2. After retrieving full emails, summarize key points briefly for each.
+
+3. If any email requires a response, ask the user if they want to draft one.
+   Get the full thread first, then draft a response based on user intent. Put the draft in ```txt``` format.
+
+Important: only call tools after the user confirms. Never perform bulk actions without explicit confirmation.
 """,
-    functions=[mark_one_email_as_read, get_email_body, get_full_thread],
+    functions=[
+        list_emails,
+        mark_one_email_as_read,
+        archive_one_email,
+        trash_one_email,
+        get_email_body,
+        get_full_thread,
+    ],
 )
 
 # construct input string
@@ -258,7 +312,7 @@ if email_str.strip():
         result, final_context, last_agent = initiate_group_chat(
             pattern=agent_pattern,
             messages=email_str,
-            max_rounds=10,
+            max_rounds=30,
         )
     except (AssertionError, IndexError, ValueError) as e:
         print(f"Skipping email assistant chat due to error: {e}")

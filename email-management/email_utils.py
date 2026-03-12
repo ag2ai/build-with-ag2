@@ -325,3 +325,23 @@ def mark_email_as_read(gmail_service, message_id):
         return f"Email {message_id} marked as read."
     except Exception as e:
         return f"Failed to mark email as read: {e}"
+
+
+def archive_email(gmail_service, message_id):
+    """Archives an email by removing it from the INBOX (moves to All Mail)."""
+    try:
+        gmail_service.users().messages().modify(
+            userId="me", id=message_id, body={"removeLabelIds": ["INBOX", "UNREAD"]}
+        ).execute()
+        return f"Email {message_id} archived."
+    except Exception as e:
+        return f"Failed to archive email: {e}"
+
+
+def trash_email(gmail_service, message_id):
+    """Moves an email to Trash (deleted after 30 days)."""
+    try:
+        gmail_service.users().messages().trash(userId="me", id=message_id).execute()
+        return f"Email {message_id} moved to trash."
+    except Exception as e:
+        return f"Failed to trash email: {e}"
