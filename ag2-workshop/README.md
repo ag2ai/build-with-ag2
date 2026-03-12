@@ -1,6 +1,6 @@
 # Mastering Real-World Agentic AI Applications with AG2 (AutoGen)
 
-A comprehensive tutorial series designed for the Data Hack Summit, covering the fundamentals to advanced concepts of building agentic AI applications using AG2 (AutoGen).
+A comprehensive tutorial series covering the fundamentals to advanced concepts of building agentic AI applications using AG2 (AutoGen).
 
 ## 🎯 Overview
 
@@ -51,7 +51,7 @@ This hands-on workshop series takes you through the complete journey of building
 - Data processing and analysis
 
 ### Module 7: Real-World Example
-**Directory:** `module8_real_world_example/`
+**Directory:** `module7_real_world_examples/`
 - Complete market analysis application (`marketanalysis/`)
 - Streamlit integration (`marketanalysis_streamlit/`)
 - End-to-end implementation
@@ -59,7 +59,7 @@ This hands-on workshop series takes you through the complete journey of building
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Python 3.8 or higher
+- Python 3.9 or higher (Python 3.12+ required for Module 6 MCP integration)
 - Basic understanding of Python programming
 - Familiarity with AI/ML concepts (helpful but not required)
 
@@ -68,15 +68,20 @@ This hands-on workshop series takes you through the complete journey of building
 1. Clone this repository:
 ```bash
 git clone <repository-url>
-cd data-hack-summit
+cd ag2-workshop
 ```
 
-2. Install dependencies:
+2. Install core dependencies (Modules 1–5, 7):
 ```bash
-pip install -r requirements.txt
+pip install "ag2[openai]" python-dotenv streamlit tavily-python
 ```
 
-3. Start with Module 1:
+3. For Module 6 (MCP integration) — requires Python 3.12+:
+```bash
+pip install "ag2[openai,mcp]" python-dotenv streamlit arxiv wikipedia
+```
+
+4. Start with Module 1:
 ```bash
 jupyter notebook module1_introduction/module1_introduction.ipynb
 ```
@@ -92,18 +97,18 @@ jupyter notebook module1_introduction/module1_introduction.ipynb
 
 1. **Beginner**: Start with Modules 1-3 to understand fundamentals
 2. **Intermediate**: Progress through Modules 4-6 for advanced patterns
-3. **Advanced**: Complete Modules 7-8 for production deployments
+3. **Advanced**: Complete Module 7 for real-world production deployments
 
 ## 🎨 Features
 
 - **Interactive Notebooks**: Hands-on Jupyter notebook tutorials
 - **Real-World Examples**: Practical applications you can deploy
 - **Multiple Deployment Options**: Local development to cloud production
-- **Comprehensive Patterns**: 8 different agent design patterns
+- **Comprehensive Patterns**: 8 agent design patterns across 7 modules
 
 ## 🤝 Contributing
 
-This workshop series is part of the Data Hack Summit curriculum. For questions or improvements, please refer to the main AG2 documentation and community resources.
+For questions or improvements, please refer to the main AG2 documentation and community resources.
 
 ## 📚 Additional Resources
 
@@ -112,4 +117,4 @@ This workshop series is part of the Data Hack Summit curriculum. For questions o
 
 ---
 
-*This tutorial series was created for the Data Hack Summit to provide hands-on experience with cutting-edge agentic AI development using AG2.*
+*This tutorial series provides hands-on experience with cutting-edge agentic AI development using AG2.*
