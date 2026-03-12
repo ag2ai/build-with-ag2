@@ -42,13 +42,20 @@ TAGS: due-diligence, multi-agent, web-scraping, tinyfish, parallel-agents, resea
 
 ### Setup
 
-1. Install dependencies:
+1. Clone and navigate to the folder:
+
+   ```bash
+   git clone https://github.com/ag2ai/build-with-ag2.git
+   cd build-with-ag2/due-diligence-with-tinyfish
+   ```
+
+2. Install dependencies:
 
    ```bash
    pip install -r requirements.txt
    ```
 
-2. Set environment variables:
+3. Set environment variables:
 
    ```bash
    export OPENAI_API_KEY=your-openai-key
