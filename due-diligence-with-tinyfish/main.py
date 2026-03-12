@@ -195,9 +195,9 @@ def make_agent_pair(name: str, system_message: str):
         name=f"{name}_proxy",
         human_input_mode="NEVER",
         max_consecutive_auto_reply=5,
-        is_termination_msg=lambda msg: "TASK_COMPLETE" in (msg.get("content") or "")
-        if msg
-        else False,
+        is_termination_msg=lambda msg: (
+            "TASK_COMPLETE" in (msg.get("content") or "") if msg else False
+        ),
         code_execution_config=False,
     )
 
@@ -539,14 +539,16 @@ def run_synthesis(company_name: str, output_dir: str) -> str:
 
 def run_due_diligence(company_url: str) -> str:
     """Run the full due diligence pipeline. Returns the output directory path."""
-    print(f"""
+    print(
+        f"""
 ╔══════════════════════════════════════════════════════════╗
 ║          DUE DILIGENCE AGENT SYSTEM                      ║
 ║          Powered by AG2 + TinyFish                       ║
 ╚══════════════════════════════════════════════════════════╝
 Target: {company_url}
 Started: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
-""")
+"""
+    )
 
     # Stage 1 — Seed crawl (must happen first, provides context to specialists)
     temp_dir = _init_output_dir("unknown")
