@@ -1,6 +1,6 @@
 # Due Diligence Agent System: AG2 + TinyFish
 
-- Created by [jm](https://github.com/jm)
+- Created by [John Marshall](https://github.com/jsun-m)
 - Last revision: 03/11/2026
 
 A multi-agent due diligence pipeline that automatically researches a company from a single URL. It uses AG2 to orchestrate specialist agents in parallel threads, each powered by [TinyFish](https://tinyfish.ai) for deep web scraping.
