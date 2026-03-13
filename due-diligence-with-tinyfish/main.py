@@ -687,12 +687,8 @@ def run_qa_session(output_dir: str) -> None:
             break
 
         proxy.initiate_chat(assistant, message=question, clear_history=False)
-        # Find the last non-tool-call message from the assistant
-        for msg in reversed(proxy.chat_messages[assistant]):
-            content = msg.get("content", "")
-            if content and msg.get("role") == "assistant":
-                print(f"\nA: {content}")
-                break
+        answer = assistant.last_message(proxy)["content"]
+        print(f"\nA: {answer}")
 
 
 # ---------------------------------------------------------------------------
