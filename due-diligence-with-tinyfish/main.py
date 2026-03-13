@@ -29,7 +29,7 @@ from pathlib import Path
 from typing import Any
 
 from autogen import AssistantAgent, LLMConfig, UserProxyAgent, register_function
-from tinyfish import TinyFish
+from autogen.tools.experimental import TinyFishTool
 
 from prompts import (
     FINANCIALS,
@@ -63,7 +63,7 @@ LLM_CONFIG = LLMConfig(
     }
 )
 
-tinyfish_client = TinyFish(api_key=os.environ.get("TINYFISH_API_KEY"))
+tinyfish_tool = TinyFishTool()
 
 # ---------------------------------------------------------------------------
 # Shared results store (thread-safe)
@@ -96,29 +96,6 @@ class DueDiligenceResults:
 results = DueDiligenceResults()
 results_lock = threading.Lock()
 references_lock = threading.Lock()
-
-# ---------------------------------------------------------------------------
-# TinyFish tool wrapper
-# ---------------------------------------------------------------------------
-
-
-def tinyfish_scrape(url: str, goal: str) -> str:
-    """
-    Call TinyFish to deep-scrape a URL with a natural language goal.
-    Returns the result as a JSON string, or an error message.
-    """
-    print(f"\n  🐟 TinyFish crawling: {url}")
-    print(f"     Goal: {goal}")
-    try:
-        response = tinyfish_client.agent.run(url=url, goal=goal)
-        if response.status == "COMPLETED" and response.result:
-            return json.dumps(response.result, indent=2)
-        elif response.error:
-            return f"ERROR: {response.error}"
-        else:
-            return "No result returned."
-    except Exception as e:
-        return f"EXCEPTION: {str(e)}"
 
 
 # ---------------------------------------------------------------------------
@@ -201,13 +178,8 @@ def make_agent_pair(name: str, system_message: str):
         code_execution_config=False,
     )
 
-    register_function(
-        tinyfish_scrape,
-        caller=assistant,
-        executor=proxy,
-        name="tinyfish_scrape",
-        description="Deep-scrape a URL using TinyFish. Pass the URL and a natural language goal describing what to extract.",
-    )
+    tinyfish_tool.register_for_llm(assistant)
+    tinyfish_tool.register_for_execution(proxy)
     return assistant, proxy
 
 
