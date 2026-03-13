@@ -1,17 +1,17 @@
 import os
-from autogen import LLMConfig, ConversableAgent
+
+from autogen import ConversableAgent, LLMConfig
 from autogen.agentchat import initiate_group_chat
 from autogen.agentchat.group import (
     AgentTarget,
-    ReplyResult,
     OnCondition,
+    ReplyResult,
     StringLLMCondition,
     TerminateTarget,
 )
 from autogen.agentchat.group.patterns import DefaultPattern
-from tavily import TavilyClient
-
 from dotenv import load_dotenv
+from tavily import TavilyClient
 
 load_dotenv()
 
@@ -20,7 +20,7 @@ TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 llm_config = LLMConfig(
-    {"api_type": "openai", "model": "o3-mini", "api_key": OPENAI_API_KEY}
+    {"api_type": "openai", "model": "gpt-4.1-mini", "api_key": OPENAI_API_KEY}
 )
 
 
@@ -32,17 +32,17 @@ def tavily_data(query):
 
 
 def openai_analysis(trends, competitors, technology_adoption, insights):
-    """
-    Analyze the gathered market data.
+    """Analyze the gathered market data.
+
     Args:
         trends: List of trends in the market.
         competitors: List of competitors in the market.
         technology_adoption: List of technologies adopted by the market.
         insights: Insights about the market.
+
     Returns:
         Dictionary containing the analysis of the market data.
     """
-
     return {
         "trends": trends,
         "competitors": competitors,
@@ -52,13 +52,14 @@ def openai_analysis(trends, competitors, technology_adoption, insights):
 
 
 def openai_swot(strengths, weaknesses, opportunities, threats):
-    """
-    Perform SWOT analysis based on the gathered market data.
+    """Perform SWOT analysis based on the gathered market data.
+
     Args:
         strengths: List of strengths in the market.
         weaknesses: List of weaknesses in the market.
         opportunities: List of opportunities in the market.
         threats: List of threats in the market.
+
     Returns:
         Dictionary containing the SWOT analysis of the market data.
     """
@@ -123,10 +124,11 @@ def openai_final_report(
 
 # --- Agent Functions ---
 def data_gathering_fn(query: str) -> ReplyResult:
-    """
-    Gather initial market data from Tavily.
+    """Gather initial market data from Tavily.
+
     Args:
         query: The query to search for market data.
+
     Returns:
         ReplyResult containing the initial market data.
     """
@@ -139,33 +141,35 @@ def data_gathering_fn(query: str) -> ReplyResult:
 def analysis_fn(
     trends: str, competitors: str, technology_adoption: str, insights: str
 ) -> ReplyResult:
-    """
-    Analyze the gathered market data.
+    """Analyze the gathered market data.
+
     Args:
         trends: List of trends in the market.
         competitors: List of competitors in the market.
         technology_adoption: List of technologies adopted by the market.
         insights: Insights about the market.
+
     Returns:
         ReplyResult containing the analysis of the market data.
     """
     analysis = openai_analysis(trends, competitors, technology_adoption, insights)
     return ReplyResult(
-        message=f"Market analysis completed. {str(analysis)}", result=analysis
+        message=f"Market analysis completed. {analysis!s}", result=analysis
     )
 
 
 def additional_data_fn(query: str) -> ReplyResult:
-    """
-    Gather additional market data from Tavily.
+    """Gather additional market data from Tavily.
+
     Args:
         query: The query to search for additional market data.
+
     Returns:
         ReplyResult containing the additional market data.
     """
     additional_data = tavily_data(query)
     return ReplyResult(
-        message=f"Additional market data gathered. {str(additional_data)}",
+        message=f"Additional market data gathered. {additional_data!s}",
         result=additional_data,
     )
 
@@ -173,38 +177,40 @@ def additional_data_fn(query: str) -> ReplyResult:
 def review_fn(
     trends: str, competitors: str, technology_adoption: str, insights: str, swot: str
 ) -> ReplyResult:
-    """
-    Review the analysis and provide feedback.
+    """Review the analysis and provide feedback.
+
     Args:
         trends: List of trends in the market.
         competitors: List of competitors in the market.
         technology_adoption: List of technologies adopted by the market.
         insights: Insights about the market.
         swot: SWOT analysis of the market.
+
     Returns:
         ReplyResult containing the review of the market data.
     """
     analysis = openai_analysis(trends, competitors, technology_adoption, insights)
     feedback = openai_review(analysis, swot)
     return ReplyResult(
-        message=f"Review completed. analysis: {str(analysis)} feedback: {str(feedback)}",
+        message=f"Review completed. analysis: {analysis!s} feedback: {feedback!s}",
         result=feedback,
     )
 
 
 def revision_fn(analysis: str, feedback: str, additional_data: str) -> ReplyResult:
-    """
-    Revise the analysis based on feedback and new data.
+    """Revise the analysis based on feedback and new data.
+
     Args:
         analysis: The analysis of the market data.
         feedback: Feedback on the analysis.
         additional_data: Additional market data.
+
     Returns:
         ReplyResult containing the revised analysis.
     """
     revised_analysis = openai_revision(analysis, feedback, additional_data)
     return ReplyResult(
-        message=f"Analysis revised. {str(revised_analysis)} feedback: {str(feedback)} additional_data: {str(additional_data)} revised_analysis: {str(revised_analysis)}",
+        message=f"Analysis revised. {revised_analysis!s} feedback: {feedback!s} additional_data: {additional_data!s} revised_analysis: {revised_analysis!s}",
         result=revised_analysis,
     )
 
@@ -212,18 +218,19 @@ def revision_fn(analysis: str, feedback: str, additional_data: str) -> ReplyResu
 def swot_fn(
     strengths: list, weaknesses: list, opportunities: list, threats: list
 ) -> ReplyResult:
-    """
-    Perform SWOT analysis based on the gathered market data.
+    """Perform SWOT analysis based on the gathered market data.
+
     Args:
         strengths: List of strengths in the market.
         weaknesses: List of weaknesses in the market.
         opportunities: List of opportunities in the market.
         threats: List of threats in the market.
+
     Returns:
         ReplyResult containing the SWOT analysis of the market data.
     """
     swot = openai_swot(strengths, weaknesses, opportunities, threats)
-    return ReplyResult(message=f"SWOT analysis completed. {str(swot)}", result=swot)
+    return ReplyResult(message=f"SWOT analysis completed. {swot!s}", result=swot)
 
 
 def finalization_fn(
@@ -236,8 +243,8 @@ def finalization_fn(
     opportunities: str,
     threats: str,
 ) -> ReplyResult:
-    """
-    Compile the final market analysis report.
+    """Compile the final market analysis report.
+
     Args:
         trends: List of trends in the market.
         competitors: List of competitors in the market.
@@ -247,6 +254,7 @@ def finalization_fn(
         weaknesses: List of weaknesses in the market.
         opportunities: List of opportunities in the market.
         threats: List of threats in the market.
+
     Returns:
         ReplyResult containing the final market analysis report.
     """
@@ -260,7 +268,7 @@ def finalization_fn(
         opportunities,
         threats,
     )
-    return ReplyResult(message=f"Final report generated. {str(report)}", result=report)
+    return ReplyResult(message=f"Final report generated. {report!s}", result=report)
 
 
 # Update agent registration to use new function signatures
@@ -389,10 +397,9 @@ def run_market_analysis_feedback_loop(user_query):
     )
     chat_result, final_context, last_agent = initiate_group_chat(
         pattern=agent_pattern,
-        messages=user_query + "\n and Strictly return detailed Analysis Report.",
+        messages=user_query,
         max_rounds=30,
     )
-    print("\n===== FINAL REPORT =====\n")
     return chat_result.summary
 
 
@@ -409,7 +416,3 @@ agent_pattern = DefaultPattern(
     ],
     user_agent=None,
 )
-
-
-if __name__ == "__main__":
-    run_market_analysis_feedback_loop("What are the trends in the market for AI?")
