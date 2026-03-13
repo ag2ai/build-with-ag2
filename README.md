@@ -17,7 +17,7 @@ New to AG2? Follow this progression:
 1. **Learn the patterns** → [Agent Pattern Cookbook](tutorial/agent_pattern_cookbook/) — 13 runnable examples from simple two-agent chat to hierarchical multi-agent systems.
 2. **See real apps** → Browse the [Featured Agentic Apps](#-featured-agentic-apps) section below for complete, documented projects.
 3. **Add a UI** → Explore [AG-UI Examples](#%EF%B8%8F-ag-ui-examples) to connect your agents to a browser frontend.
-4. **Deep dive** → Work through the [7-module workshop](workshop-08232025-data-hack-summit/) for a comprehensive hands-on course.
+4. **Deep dive** → Work through the [7-module workshop](ag2-workshop/) for a comprehensive hands-on course.
 5. **Go to production** → Use the [GCP Agent Starter Pack](gcp-agent-starter-pack/templates/ag2/) to deploy your agent to Google's Cloud Run with CI/CD and observability.
 
 ## 📂 Featured Agentic Apps

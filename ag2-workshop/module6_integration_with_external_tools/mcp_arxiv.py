@@ -7,6 +7,9 @@ from mcp.server.fastmcp import FastMCP
 # Initialize the MCP server
 mcp = FastMCP("ArxivServer")
 
+# Use a shared Client with reduced page_size and num_retries to avoid rate-limit hangs
+_arxiv_client = arxiv.Client(page_size=5, delay_seconds=1.0, num_retries=1)
+
 parser = argparse.ArgumentParser(description="arXiv MCP Server")
 parser.add_argument(
     "--storage-path", required=True, help="Path to store downloaded papers"
@@ -20,15 +23,15 @@ STORAGE_PATH.mkdir(parents=True, exist_ok=True)
 @mcp.tool()
 def search_arxiv(query: str, max_results: int = 3) -> list[str]:
     """Search arXiv and return IDs of top papers."""
-    results = arxiv.Search(query=query, max_results=max_results)
-    return [result.entry_id.split("/")[-1] for result in results.results()]
+    search = arxiv.Search(query=query, max_results=max_results)
+    return [result.entry_id.split("/")[-1] for result in _arxiv_client.results(search)]
 
 
 @mcp.tool()
 def download_paper(arxiv_id: str) -> str:
     """Download paper from arXiv and store it."""
     search = arxiv.Search(id_list=[arxiv_id])
-    paper = next(search.results(), None)
+    paper = next(_arxiv_client.results(search), None)
     if paper:
         file_path = STORAGE_PATH / f"{arxiv_id}.pdf"
         paper.download_pdf(dirpath=STORAGE_PATH, filename=file_path.name)
@@ -47,7 +50,7 @@ def list_papers() -> list[str]:
 def get_paper_info(arxiv_id: str) -> dict[str, str]:
     """Extract and return title and abstract of a paper from arXiv."""
     search = arxiv.Search(id_list=[arxiv_id])
-    paper = next(search.results(), None)
+    paper = next(_arxiv_client.results(search), None)
     if paper:
         return {"title": paper.title, "abstract": paper.summary}
     else:

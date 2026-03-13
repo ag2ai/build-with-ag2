@@ -1,7 +1,6 @@
 absl-py==2.3.1
 accelerate==1.9.0
 ag2>=0.11.2
-agent @ file:///Users/priyanshu/Documents/GitHub/gemini-fullstack-langgraph-quickstart/backend
 aiofiles==24.1.0
 aiohappyeyeballs==2.6.1
 aiohttp==3.12.13
@@ -242,8 +241,6 @@ Markdown==3.8.2
 markdown-it-py==3.0.0
 markdown2==2.5.3
 markdownify==0.14.1
-# Editable install with no version control (market_research_and_competative_analysis==0.1.0)
--e /Users/priyanshu/Documents/GitHub/workshop-material/module8_real_world_application/market_research_and_competative_analysis
 marko==2.1.4
 MarkupSafe==3.0.2
 marshmallow==3.26.1
@@ -279,8 +276,6 @@ msgpack==1.1.1
 multidict==6.5.0
 multiprocess==0.70.18
 multitasking==0.0.11
-# Editable install with no version control (my_app==0.1.0)
--e /Users/priyanshu/Documents/GitHub/workshop-material/module7/my_app
 mypy==1.17.1
 mypy_extensions==1.1.0
 narwhals==2.1.2
