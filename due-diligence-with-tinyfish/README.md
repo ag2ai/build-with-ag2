@@ -24,8 +24,8 @@ After the pipeline completes, an interactive Q&A mode lets you ask follow-up que
 
 ## AG2 Features
 
-- [ConversableAgent](https://docs.ag2.ai/latest/docs/user-guide/basic-concepts/conversable-agent/?h=conversable) — Each specialist is an AssistantAgent with a focused system prompt
-- [TinyFishTool](https://docs.ag2.ai/latest/docs/api-reference/autogen/tools/experimental/TinyFishTool/?h=) — AG2's built-in TinyFish integration registered as a callable tool for agents
+- [ConversableAgent](https://docs.ag2.ai/latest/docs/user-guide/basic-concepts/conversable-agent) — Each specialist is an AssistantAgent with a focused system prompt
+- [TinyFishTool](https://docs.ag2.ai/latest/docs/user-guide/reference-tools/tinyfish/) [API](https://docs.ag2.ai/latest/docs/api-reference/autogen/tools/experimental/TinyFishTool) — AG2's built-in TinyFish integration registered as a callable tool for agents
 
 ## Tags
 
