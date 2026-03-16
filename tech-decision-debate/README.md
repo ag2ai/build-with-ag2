@@ -6,7 +6,7 @@ Three agents debate any tech decision: **Architect** argues for option A, **Chal
 
 ## AG2 Features
 
-- [GroupChat](https://docs.ag2.ai/latest/docs/user-guide/advanced-concepts/orchestration/group-chat/introduction/)
+- [GroupChat](https://docs.ag2.ai/latest/docs/user-guide/advanced-concepts/orchestration/group-chat/introduction/) with **custom speaker selection**
 - [AssistantAgent](https://docs.ag2.ai/latest/docs/api-reference/autogen/AssistantAgent/)
 - [UserProxyAgent](https://docs.ag2.ai/latest/docs/api-reference/autogen/UserProxyAgent/)
 
@@ -17,6 +17,36 @@ Three agents debate any tech decision: **Architect** argues for option A, **Chal
 ## Overview
 
 The script parses your question to identify the two options, then runs a deterministic 4-round debate followed by a structured Judge verdict. All output goes to stdout — no web server, no frontend.
+
+## Custom Speaker Selection
+
+> **Note for learners:** If you're just getting started with AG2, check out the built-in patterns first (`round_robin`, `auto`, transition graphs). Custom speaker selection is an advanced escape hatch — use it when the built-ins don't fit.
+
+AG2's `GroupChat` supports several built-in speaker selection strategies: `auto` (LLM picks next speaker), `round_robin`, `random`, and `manual`. You can also pass `allowed_or_disallowed_speaker_transitions` to define a graph of permitted agent handoffs.
+
+This example uses none of those — instead it passes a **custom function** to `speaker_selection_method`. This is the right choice when you need strict round-by-round control that a transition graph alone can't express. In a debate, the Judge must appear on exactly round 5, not whenever the Challenger decides to hand off.
+
+```python
+def debate_flow(last_speaker, groupchat):
+    # messages[0] is the moderator opener, so agent turns start at index 1
+    turn = len(groupchat.messages) - 1  # 0-indexed agent turns
+
+    if turn == 0:   return architect   # Round 1: open
+    elif turn == 1: return challenger  # Round 2: counter
+    elif turn == 2: return architect   # Round 3: rebuttal
+    elif turn == 3: return challenger  # Round 4: final push
+    elif turn == 4: return judge       # Round 5: verdict
+    else:           return moderator   # end-of-debate signal
+
+groupchat = GroupChat(
+    agents=[moderator, architect, challenger, judge],
+    messages=[],
+    max_round=6,
+    speaker_selection_method=debate_flow,  # custom function instead of "auto" / "round_robin"
+)
+```
+
+The function receives `last_speaker` and the full `groupchat` object (including message history) and must return an `Agent` from the group. Returning `None` terminates the chat early.
 
 ## Debate Structure
 
