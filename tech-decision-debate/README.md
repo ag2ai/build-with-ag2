@@ -111,6 +111,6 @@ CONFIDENCE_REASON: User data integrity requirements strongly favour relational s
 
 ## Requirements
 
-- Python 3.9+
-- `ag2[openai]>=0.9.7`
+- Python 3.10+
+- `ag2[openai]>=0.11.0`
 - OpenAI API key (`gpt-4o-mini` by default)
