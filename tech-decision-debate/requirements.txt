@@ -1,0 +1,2 @@
+ag2[openai]>=0.9.7
+python-dotenv>=1.0.0
