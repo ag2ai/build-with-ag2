@@ -21,14 +21,15 @@ New to AG2? Follow this progression:
 5. **Go to production** → Use the [GCP Agent Starter Pack](gcp-agent-starter-pack/templates/ag2/) to deploy your agent to Google's Cloud Run with CI/CD and observability.
 
 ## 📂 Featured Agentic Apps
+
 - 🛍️ [E-Commerce Custom Service for Order Management](e-commerce-customer-service) (last updated and ran on 09/20/2025, ag2 version 0.9.9): A smart, agent-driven system that makes order tracking quick and easy while simplifying returns for both logged-in and guest users.
 - 📈 [Financial Analysis](financial-analysis) (last updated and ran on 09/20/2025, ag2 version 0.9.9): A AI-powered stock analysis generating market insights and recommendations.
 - 🤖 [Automated Machine Learning for Kaggle](automate-ml-for-kaggle) (last updated and ran on 09/20/2025, ag2 version 0.9.9): An agent system to automate the machine learning pipeline for Kaggle competitions.
 - 🧑‍🔬 [Deep Research Agent](deep-research-agent): Reference implementation of the deep research agent.
 - ✈️ [Travel Planner](travel-planner): A trip planning multi-agent system that creates an itinerary together with a customer.
-- 📋 [Linear Agent](linear-agent): A natural language interface for managing Linear issues — list, create, and update issues via Arcade's managed OAuth2 integration.
-- 🎮 [AI Game Design Agent Team](game-design-agent-team) ⚠️ *(currently broken — pending fix for AG2 0.9+)*: A collaborative game design system that generates comprehensive game concepts through the coordination of multiple specialized AI agents.
-
+- 📋 [Linear Agent](arcade/linear-agent): A natural language interface for managing Linear issues — list, create, and update issues via Arcade's managed OAuth2 integration.
+- 📧 [Gmail Agent](arcade/gmail-agent): A Gmail management agent that reads, searches, sends, and organizes emails through natural language, powered by AG2 and Arcade SDK.
+- 🎮 [AI Game Design Agent Team](game-design-agent-team) ⚠️ _(currently broken — pending fix for AG2 0.9+)_: A collaborative game design system that generates comprehensive game concepts through the coordination of multiple specialized AI agents.
 - ☑ [Manage Todos With Realtime Agent](manage-todos-with-realtime-agent): A voice-controlled todo assistant with real-time interaction.
 - 🔍 [Due Diligence with TinyFish](due-diligence-with-tinyfish): A multi-agent due diligence pipeline that automatically researches a company from a single URL using AG2 and TinyFish for deep web scraping.
 
