@@ -30,6 +30,7 @@ New to AG2? Follow this progression:
 - 🎮 [AI Game Design Agent Team](game-design-agent-team) ⚠️ *(currently broken — pending fix for AG2 0.9+)*: A collaborative game design system that generates comprehensive game concepts through the coordination of multiple specialized AI agents.
 
 - ☑ [Manage Todos With Realtime Agent](manage-todos-with-realtime-agent): A voice-controlled todo assistant with real-time interaction.
+- 🔍 [Due Diligence with TinyFish](due-diligence-with-tinyfish): A multi-agent due diligence pipeline that automatically researches a company from a single URL using AG2 and TinyFish for deep web scraping.
 
 ## 🖥️ AG-UI Examples
 
