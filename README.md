@@ -26,6 +26,7 @@ New to AG2? Follow this progression:
 - 🤖 [Automated Machine Learning for Kaggle](automate-ml-for-kaggle) (last updated and ran on 09/20/2025, ag2 version 0.9.9): An agent system to automate the machine learning pipeline for Kaggle competitions.
 - 🧑‍🔬 [Deep Research Agent](deep-research-agent): Reference implementation of the deep research agent.
 - ✈️ [Travel Planner](travel-planner): A trip planning multi-agent system that creates an itinerary together with a customer.
+- 📋 [Linear Agent](linear-agent): A natural language interface for managing Linear issues — list, create, and update issues via Arcade's managed OAuth2 integration.
 - 🎮 [AI Game Design Agent Team](game-design-agent-team) ⚠️ *(currently broken — pending fix for AG2 0.9+)*: A collaborative game design system that generates comprehensive game concepts through the coordination of multiple specialized AI agents.
 
 - ☑ [Manage Todos With Realtime Agent](manage-todos-with-realtime-agent): A voice-controlled todo assistant with real-time interaction.
