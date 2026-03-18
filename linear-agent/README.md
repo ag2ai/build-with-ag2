@@ -69,9 +69,8 @@ Type your request at the `You:` prompt. Type `exit` to quit.
 
 This project is built with [AG2 (Formerly AutoGen)](https://ag2.ai/) and utilizes the following features from the library:
 
-1. **[AssistantAgent](https://docs.ag2.ai/latest/docs/user-guide/basic-concepts/agents)** — LLM-powered agent that reasons over user requests and decides which tools to call
-2. **[UserProxyAgent](https://docs.ag2.ai/latest/docs/user-guide/basic-concepts/agents)** — executes tool calls on behalf of the user
-3. **[Tool use](https://docs.ag2.ai/docs/user-guide/basic-concepts/tools)** — Python functions registered on both agents for reading and writing Linear issues via Arcade SDK
+1. **[ConversableAgent](https://docs.ag2.ai/latest/docs/user-guide/basic-concepts/conversable-agent/)** — LLM-powered agent that reasons over user requests and decides which tools to call
+2. **[Tool use](https://docs.ag2.ai/latest/docs/user-guide/basic-concepts/introducing-tools/)** — Python functions registered on both agents for reading and writing Linear issues via Arcade SDK
 
 Check out more projects built with AG2 at [Build with AG2](https://github.com/ag2ai/build-with-ag2)!
 
