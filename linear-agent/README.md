@@ -63,7 +63,7 @@ source .env && uv run python main.py
 
 On the first run, Arcade will print an OAuth URL in the terminal — open it in your browser to authorize Linear. Subsequent runs skip this step (token is cached by Arcade).
 
-Type your request at the `You:` prompt. Type `exit` or `пока` to quit.
+Type your request at the `You:` prompt. Type `exit` to quit.
 
 ## Build with AG2
 
