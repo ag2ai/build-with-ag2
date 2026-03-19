@@ -21,7 +21,7 @@ import datetime
 import os
 
 from arcadepy import Arcade
-from autogen import AssistantAgent, UserProxyAgent
+from autogen import AssistantAgent, ConversableAgent
 from bs4 import BeautifulSoup
 
 
@@ -297,12 +297,11 @@ assistant = AssistantAgent(
     is_termination_msg=lambda msg: "TERMINATE" in (msg.get("content") or ""),
 )
 
-user_proxy = UserProxyAgent(
+user_proxy = ConversableAgent(
     name="User",
     human_input_mode="NEVER",
     max_consecutive_auto_reply=20,
     is_termination_msg=lambda msg: "TERMINATE" in (msg.get("content") or ""),
-    code_execution_config=False,
 )
 
 for func, description in [
@@ -341,9 +340,9 @@ if __name__ == "__main__":
         if not message or message.lower() in ("exit", "quit", "bye"):
             print("Goodbye!")
             break
-        user_proxy.initiate_chat(
+        user_proxy.run(
             recipient=assistant,
             message=message,
             clear_history=False,
-        )
+        ).process()
         print("\nAnything else? (type your next request or 'exit' to quit)")
