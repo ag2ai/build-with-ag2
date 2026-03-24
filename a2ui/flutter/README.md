@@ -26,7 +26,7 @@ A demo showcasing **AG2's A2UIAgent** generating rich, interactive UI over the *
 ## Prerequisites
 
 - **Python 3.10+**
-- **Flutter SDK 3.35+** ([install guide](https://docs.flutter.dev/get-started/install))
+- **Flutter SDK+** ([install guide](https://docs.flutter.dev/get-started/install))
 - **Gemini API key** (A2UIAgent works best with Gemini models)
 - **AG2 with A2UI support** — the `feat/a2ui-support` branch of [ag2ai/ag2](https://github.com/ag2ai/ag2)
 
@@ -93,6 +93,8 @@ You should see the A2UI v0.9 extension in `capabilities.extensions`:
 ---
 
 ## Flutter Frontend Setup
+
+Make sure you have the **Flutter SDK+** installed. If not, follow the [Flutter install guide](https://docs.flutter.dev/get-started/install).
 
 ### 1. Install Flutter dependencies
 
