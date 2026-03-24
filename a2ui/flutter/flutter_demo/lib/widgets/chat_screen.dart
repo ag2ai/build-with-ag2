@@ -6,6 +6,13 @@ import '../state/chat_state.dart';
 import 'message_bubble.dart';
 import 'surface_widget.dart';
 
+// AG2 color palette
+const _ag2Blue = Color(0xFF4B9CD6);
+const _ag2Indigo = Color(0xFF526CFE);
+const _panelBg = Color(0xEB14182C);
+const _panelBorder = Color(0xFF4B9CD6);
+const _textSecondary = Color(0xFFA0B4C8);
+
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
 
@@ -61,48 +68,68 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('A2UI Demo', style: TextStyle(fontWeight: FontWeight.w600)),
-        centerTitle: true,
-      ),
       body: Column(
         children: [
+          // Header with AG2 branding
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            decoration: const BoxDecoration(
+              color: _panelBg,
+              border: Border(bottom: BorderSide(color: _panelBorder, width: 2)),
+            ),
+            child: Row(
+              children: [
+                // Pixel robot avatar
+                Image.network(
+                  'http://localhost:9000/images/robot-blue.png',
+                  width: 48,
+                  height: 48,
+                  filterQuality: FilterQuality.none, // pixelated rendering
+                  errorBuilder: (_, __, ___) => const Icon(Icons.smart_toy, size: 48, color: _ag2Blue),
+                ),
+                const SizedBox(width: 16),
+                const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'AG2 A2UIAgent',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w700,
+                        color: _ag2Blue,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                    Text(
+                      'A2UI v0.9 \u00b7 Marketing Preview Designer',
+                      style: TextStyle(fontSize: 12, color: _textSecondary),
+                    ),
+                  ],
+                ),
+                const Spacer(),
+                // Status dot
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF4ADE80),
+                    shape: BoxShape.rectangle,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Chat area
           Expanded(
             child: Consumer<ChatState>(
               builder: (context, state, _) {
                 if (state.messages.isEmpty && !state.isLoading) {
-                  return Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Text(
-                          'A2UI Marketing Preview Demo',
-                          style: TextStyle(
-                            color: Color(0xFF94A3B8),
-                            fontSize: 18,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        ElevatedButton.icon(
-                          onPressed: _sendDemoPrompt,
-                          icon: const Icon(Icons.play_arrow),
-                          label: const Text('Try Demo'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF6366F1),
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
+                  return _buildWelcome();
                 }
                 _scrollToBottom();
                 return ListView.builder(
                   controller: _scrollController,
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(20),
                   itemCount: state.messages.length + (state.isLoading ? 1 : 0),
                   itemBuilder: (context, index) {
                     if (index == state.messages.length) {
@@ -112,7 +139,10 @@ class _ChatScreenState extends State<ChatScreen> {
                           child: SizedBox(
                             width: 24,
                             height: 24,
-                            child: CircularProgressIndicator(strokeWidth: 2),
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: _ag2Blue,
+                            ),
                           ),
                         ),
                       );
@@ -134,31 +164,83 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
+  Widget _buildWelcome() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Image.network(
+            'http://localhost:9000/images/robot-blue.png',
+            width: 100,
+            height: 100,
+            filterQuality: FilterQuality.none,
+            errorBuilder: (_, __, ___) => const Icon(Icons.smart_toy, size: 100, color: _ag2Blue),
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'AG2 A2UIAgent Demo',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w700,
+              color: _ag2Blue,
+              letterSpacing: 1,
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Generate rich marketing previews with A2UI v0.9',
+            style: TextStyle(fontSize: 14, color: _textSecondary),
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton.icon(
+            onPressed: _sendDemoPrompt,
+            icon: const Icon(Icons.play_arrow),
+            label: const Text('Try Demo'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _ag2Blue,
+              foregroundColor: const Color(0xFF0D1117),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(3)),
+              side: const BorderSide(color: _ag2Blue, width: 2),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildInputBar() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+      padding: const EdgeInsets.fromLTRB(24, 12, 24, 16),
       decoration: const BoxDecoration(
-        color: Color(0xFF1E293B),
-        border: Border(top: BorderSide(color: Color(0xFF334155))),
+        color: _panelBg,
+        border: Border(top: BorderSide(color: _panelBorder, width: 2)),
       ),
       child: Row(
         children: [
           Expanded(
             child: TextField(
               controller: _controller,
-              style: const TextStyle(color: Color(0xFFE2E8F0)),
+              style: const TextStyle(color: Color(0xFFF0F4F8), fontSize: 14),
               decoration: const InputDecoration(
                 hintText: 'Type a message...',
-                hintStyle: TextStyle(color: Color(0xFF94A3B8)),
+                hintStyle: TextStyle(color: _textSecondary, fontSize: 14),
                 contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               ),
               onSubmitted: (_) => _send(),
             ),
           ),
-          const SizedBox(width: 8),
-          IconButton(
+          const SizedBox(width: 10),
+          ElevatedButton(
             onPressed: _send,
-            icon: const Icon(Icons.send, color: Color(0xFF6366F1)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _ag2Blue,
+              foregroundColor: const Color(0xFF0D1117),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(3)),
+              side: const BorderSide(color: _ag2Blue, width: 2),
+            ),
+            child: const Text('Send', style: TextStyle(fontWeight: FontWeight.w600, letterSpacing: 1)),
           ),
         ],
       ),

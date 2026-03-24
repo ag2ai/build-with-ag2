@@ -102,30 +102,44 @@ class _A2UIDemoAppState extends State<A2UIDemoApp> {
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           brightness: Brightness.dark,
-          scaffoldBackgroundColor: const Color(0xFF0F172A),
+          scaffoldBackgroundColor: const Color(0xFF14182C),
           colorScheme: const ColorScheme.dark(
-            primary: Color(0xFF6366F1),
-            surface: Color(0xFF1E293B),
-            onSurface: Color(0xFFE2E8F0),
+            primary: Color(0xFF4B9CD6),       // AG2 blue
+            secondary: Color(0xFF526CFE),     // AG2 indigo
+            surface: Color(0xFF14182C),
+            onSurface: Color(0xFFF0F4F8),
           ),
           appBarTheme: const AppBarTheme(
-            backgroundColor: Color(0xFF1E293B),
+            backgroundColor: Color(0xFF14182C),
             elevation: 0,
+          ),
+          elevatedButtonTheme: ElevatedButtonThemeData(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF4B9CD6),
+              foregroundColor: const Color(0xFF0D1117),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(3)),
+              side: const BorderSide(color: Color(0xFF4B9CD6), width: 2),
+            ),
+          ),
+          textButtonTheme: TextButtonThemeData(
+            style: TextButton.styleFrom(
+              foregroundColor: const Color(0xFF4B9CD6),
+            ),
           ),
           inputDecorationTheme: InputDecorationTheme(
             filled: true,
-            fillColor: const Color(0xFF1E293B),
+            fillColor: const Color(0x4D000000),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: Color(0xFF334155)),
+              borderRadius: BorderRadius.circular(3),
+              borderSide: const BorderSide(color: Color(0x334B9CD6)),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: Color(0xFF334155)),
+              borderRadius: BorderRadius.circular(3),
+              borderSide: const BorderSide(color: Color(0x334B9CD6)),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: Color(0xFF6366F1)),
+              borderRadius: BorderRadius.circular(3),
+              borderSide: const BorderSide(color: Color(0xFF4B9CD6)),
             ),
           ),
         ),

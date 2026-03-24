@@ -11,19 +11,26 @@ class MessageBubble extends StatelessWidget {
     return Align(
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 4),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        margin: const EdgeInsets.symmetric(vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         constraints: BoxConstraints(
           maxWidth: MediaQuery.of(context).size.width * 0.75,
         ),
         decoration: BoxDecoration(
-          color: isUser ? const Color(0xFF6366F1) : const Color(0xFF1E293B),
-          borderRadius: BorderRadius.circular(12),
-          border: isUser ? null : Border.all(color: const Color(0xFF334155)),
+          color: isUser ? const Color(0xFF526CFE) : const Color(0x264B9CD6),
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(
+            color: isUser ? const Color(0x80526CFE) : const Color(0x404B9CD6),
+            width: 2,
+          ),
         ),
         child: Text(
           text,
-          style: const TextStyle(color: Color(0xFFE2E8F0), fontSize: 14),
+          style: const TextStyle(
+            color: Color(0xFFF0F4F8),
+            fontSize: 14,
+            height: 1.6,
+          ),
         ),
       ),
     );
