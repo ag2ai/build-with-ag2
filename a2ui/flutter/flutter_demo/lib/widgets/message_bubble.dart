@@ -17,7 +17,7 @@ class MessageBubble extends StatelessWidget {
           maxWidth: MediaQuery.of(context).size.width * 0.75,
         ),
         decoration: BoxDecoration(
-          color: isUser ? const Color(0xFF526CFE) : const Color(0x264B9CD6),
+          color: isUser ? const Color(0xFF526CFE) : const Color(0xCCD9EDF7),
           borderRadius: BorderRadius.circular(4),
           border: Border.all(
             color: isUser ? const Color(0x80526CFE) : const Color(0x404B9CD6),
@@ -26,8 +26,8 @@ class MessageBubble extends StatelessWidget {
         ),
         child: Text(
           text,
-          style: const TextStyle(
-            color: Color(0xFFF0F4F8),
+          style: TextStyle(
+            color: isUser ? const Color(0xFFF0F4F8) : const Color(0xFF0D1B3C),
             fontSize: 14,
             height: 1.6,
           ),

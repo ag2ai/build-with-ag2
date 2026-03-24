@@ -68,7 +68,39 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
+      body: Stack(
+        children: [
+          // Sky gradient background
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Color(0xFFB5E8D5), // AG2 sky top
+                  Color(0xFFD4F0E0),
+                  Color(0xFFEEE8B0),
+                  Color(0xFFF5E6A3), // AG2 sky bottom
+                ],
+                stops: [0.0, 0.3, 0.6, 1.0],
+              ),
+            ),
+          ),
+          // Pixel roadscape pinned to bottom
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Image.network(
+              'http://localhost:9000/images/roadscape.png',
+              fit: BoxFit.fitWidth,
+              filterQuality: FilterQuality.none, // pixelated
+              alignment: Alignment.bottomCenter,
+              errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+            ),
+          ),
+          // Chat content on top
+          Column(
         children: [
           // Header with AG2 branding
           Container(
@@ -107,14 +139,13 @@ class _ChatScreenState extends State<ChatScreen> {
                   ],
                 ),
                 const Spacer(),
-                // Status dot
-                Container(
-                  width: 8,
-                  height: 8,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF4ADE80),
-                    shape: BoxShape.rectangle,
-                  ),
+                // AG2 logo
+                Image.network(
+                  'http://localhost:9000/images/AG2-square.png',
+                  width: 36,
+                  height: 36,
+                  filterQuality: FilterQuality.none,
+                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
                 ),
               ],
             ),
@@ -126,7 +157,6 @@ class _ChatScreenState extends State<ChatScreen> {
                 if (state.messages.isEmpty && !state.isLoading) {
                   return _buildWelcome();
                 }
-                _scrollToBottom();
                 return ListView.builder(
                   controller: _scrollController,
                   padding: const EdgeInsets.all(20),
@@ -161,11 +191,14 @@ class _ChatScreenState extends State<ChatScreen> {
           _buildInputBar(),
         ],
       ),
+        ], // Stack children
+      ), // Stack
     );
   }
 
   Widget _buildWelcome() {
-    return Center(
+    return Align(
+      alignment: const Alignment(0, -0.4), // push content above center
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -189,7 +222,7 @@ class _ChatScreenState extends State<ChatScreen> {
           const SizedBox(height: 8),
           const Text(
             'Generate rich marketing previews with A2UI v0.9',
-            style: TextStyle(fontSize: 14, color: _textSecondary),
+            style: TextStyle(fontSize: 14, color: Color(0xFF2D3748)),
           ),
           const SizedBox(height: 24),
           ElevatedButton.icon(

@@ -109,9 +109,22 @@ class _A2UIDemoAppState extends State<A2UIDemoApp> {
             surface: Color(0xFF14182C),
             onSurface: Color(0xFFF0F4F8),
           ),
+          textTheme: const TextTheme(
+            headlineLarge: TextStyle(color: Color(0xFF0D1B3C)),  // h1
+            headlineMedium: TextStyle(color: Color(0xFF0D1B3C)), // h2
+            headlineSmall: TextStyle(color: Color(0xFF0D1B3C)),  // h3
+            titleLarge: TextStyle(color: Color(0xFF0D1B3C)),     // h4
+            titleMedium: TextStyle(color: Color(0xFF0D1B3C)),    // h5
+          ),
           appBarTheme: const AppBarTheme(
             backgroundColor: Color(0xFF14182C),
             elevation: 0,
+          ),
+          radioTheme: RadioThemeData(
+            fillColor: WidgetStateProperty.all(const Color(0xFF0D1B3C)),
+          ),
+          listTileTheme: const ListTileThemeData(
+            textColor: Color(0xFF0D1B3C),
           ),
           elevatedButtonTheme: ElevatedButtonThemeData(
             style: ElevatedButton.styleFrom(

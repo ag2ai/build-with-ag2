@@ -17,6 +17,12 @@ class SurfaceWidget extends StatelessWidget {
 
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xF2F0F6FB), // light blue-white, ~95% opaque
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: const Color(0x404B9CD6), width: 2),
+      ),
       child: Surface(
         surfaceContext: surfaceContext,
       ),
