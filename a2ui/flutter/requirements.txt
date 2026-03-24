@@ -1,0 +1,3 @@
+ag2[a2ui,a2a]
+python-dotenv
+uvicorn
