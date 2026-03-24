@@ -9,7 +9,8 @@ from typing import Annotated
 
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
-from starlette.staticfiles import StaticFiles
+from starlette.responses import FileResponse
+from starlette.routing import Route
 
 from autogen.a2a import A2aAgentServer, CardSettings
 from autogen import LLMConfig
@@ -98,6 +99,7 @@ a2ui_agent = A2UIAgent(
         "IMPORTANT: For ALL avatar Image components, use this avatar image URL: "
         "http://localhost:9000/images/AG2-square.png\n"
         "Do NOT invent or guess image URLs. Always use the URL above.\n\n"
+        "For links to the product/shop page use the URL: https://ag2.ai\n\n"
         "First write a short text summary, then the A2UI JSON."
     ),
     llm_config=llm_config,
@@ -165,18 +167,28 @@ server = A2aAgentServer(
 
 app = server.build()
 
-# Serve static images, like the water bottle image and AG2 avatar
-IMAGES_DIR = Path(__file__).parent / "images"
-if IMAGES_DIR.exists():
-    app.mount("/images", StaticFiles(directory=str(IMAGES_DIR)), name="images")
-
-# Add CORS middleware for Flutter web development
+# Add CORS middleware for Flutter web development (must be added before mount)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Serve static images via routes (not mount) so CORS middleware applies
+IMAGES_DIR = Path(__file__).parent / "images"
+
+
+async def serve_image(request):
+    filename = request.path_params["filename"]
+    filepath = IMAGES_DIR / filename
+    if filepath.exists() and filepath.is_file():
+        return FileResponse(filepath)
+    return FileResponse(status_code=404)
+
+
+if IMAGES_DIR.exists():
+    app.routes.append(Route("/images/{filename}", serve_image))
 
 if __name__ == "__main__":
     import uvicorn
