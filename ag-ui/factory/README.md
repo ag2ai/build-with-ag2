@@ -13,6 +13,11 @@ This project demonstrates the following AG2 features:
 - [Tool Use / Function Calling](https://docs.ag2.ai/latest/docs/user-guide/agentchat-user-guide/basics/tools/) — stage-specific tools (`submit_plan`, `submit_draft`, `submit_review`, `submit_revision`, `submit_final`)
 - [Context Variables](https://docs.ag2.ai/latest/docs/user-guide/advanced-concepts/orchestration/group-chat/context-variables/) — shared state tracking pipeline stage, active agent, document content, and feedback
 
+## Workshop
+
+This project is referenced in the [AG2 Workshop](../../ag2-workshop/):
+- [Episode 14: Give Your Agent a UI](../../ag2-workshop/episodes/ep14_agent_ui.ipynb)
+
 ## TAGS
 
 TAGS: ag-ui, multi-agent, document-pipeline, streaming, tool-use, context-variables, sse, fastapi

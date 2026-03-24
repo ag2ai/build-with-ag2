@@ -10,6 +10,11 @@ Three agents debate any tech decision: **Architect** argues for option A, **Chal
 - [AssistantAgent](https://docs.ag2.ai/latest/docs/api-reference/autogen/AssistantAgent/)
 - [UserProxyAgent](https://docs.ag2.ai/latest/docs/api-reference/autogen/UserProxyAgent/)
 
+## Workshop
+
+This project is referenced in the [AG2 Workshop](../ag2-workshop/):
+- [Episode 5: Team of Agents: Taking Turns](../ag2-workshop/episodes/ep05_round_robin.ipynb)
+
 ## Tags
 
 `groupchat` `debate` `decision-making` `multi-agent` `terminal`
