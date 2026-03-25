@@ -27,6 +27,11 @@ After the pipeline completes, an interactive Q&A mode lets you ask follow-up que
 - [ConversableAgent](https://docs.ag2.ai/latest/docs/user-guide/basic-concepts/conversable-agent) — Each specialist is an AssistantAgent with a focused system prompt
 - [TinyFishTool](https://docs.ag2.ai/latest/docs/user-guide/reference-tools/tinyfish/) [API](https://docs.ag2.ai/latest/docs/api-reference/autogen/tools/experimental/TinyFishTool) — AG2's built-in TinyFish integration registered as a callable tool for agents
 
+## Workshop
+
+This project is referenced in the [AG2 Workshop](../ag2-workshop/):
+- [Episode 13: Web Browsing Agents](../ag2-workshop/episodes/ep13_web_browsing.ipynb)
+
 ## Tags
 
 TAGS: due-diligence, multi-agent, web-scraping, tinyfish, parallel-agents, research-assistant, company-research, automation

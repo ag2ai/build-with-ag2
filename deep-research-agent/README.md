@@ -17,6 +17,11 @@ Learn more: https://openai.com/index/introducing-deep-research/
 
 - [DeepResearchAgent](https://docs.ag2.ai/docs/blog/2025-02-13-DeepResearchAgent/index)
 
+## Workshop
+
+This project is referenced in the [AG2 Workshop](../ag2-workshop/):
+- [Episode 11: Build a Research Assistant](../ag2-workshop/episodes/ep11_research.ipynb)
+
 ## Tags
 
 deep-research, data-retrieval, automation, research-assistant, streamlit, uvicorn, web-scraping

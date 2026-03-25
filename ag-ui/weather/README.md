@@ -12,6 +12,12 @@ This project demonstrates the following AG2 features:
 - [ConversableAgent](https://docs.ag2.ai/latest/docs/user-guide/agentchat-user-guide/basics/conversable-agent/) — single-agent setup
 - [Tool Use / Function Calling](https://docs.ag2.ai/latest/docs/user-guide/agentchat-user-guide/basics/tools/) — async weather tool with type annotations
 
+## Workshop
+
+This project is referenced in the [AG2 Workshop](../../ag2-workshop/):
+- [Episode 3: Give Your Agent Tools](../../ag2-workshop/episodes/ep03_tools.ipynb)
+- [Episode 14: Give Your Agent a UI](../../ag2-workshop/episodes/ep14_agent_ui.ipynb)
+
 ## TAGS
 
 TAGS: ag-ui, weather, streaming, tool-use, sse, fastapi, single-agent

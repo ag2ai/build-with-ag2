@@ -23,6 +23,11 @@ The following diagram outlines the key components of the Swarm, with highlights 
 - [GraphRAG](https://github.com/ag2ai/ag2/blob/main/notebook/agentchat_graph_rag_falkordb.ipynb)
 - [Structured Output](https://docs.ag2.ai/docs/use-cases/notebooks/notebooks/agentchat_structured_outputs#structured-output)
 
+## Workshop
+
+This project is referenced in the [AG2 Workshop](../ag2-workshop/):
+- [Episode 12: Give Your Agents a Knowledge Base](../ag2-workshop/episodes/ep12_knowledge_base.ipynb)
+
 ## TAGS
 
 TAGS: trip planning, swarm, graphrag, structured output, itinerary planning, travel automation, routing agent, falkordb, google maps integration
