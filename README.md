@@ -10,9 +10,9 @@ A curated collection of awesome agentic applications built with [AG2](https://gi
 
 - 🎓 Production-ready, extensively documented agentic projects that help you contribute to the thriving AI agent ecosystem
 
-## 🗺️ Learning Path
+## 🎓 AG2 Workshop: 23-Episode Course
 
-New to AG2? Follow this progression:
+New to AG2? The [AG2 Workshop](ag2-workshop/) takes you from first agent to production deployment in 23 hands-on episodes.
 
 1. **Learn the patterns** → [Agent Pattern Cookbook](tutorial/agent_pattern_cookbook/) — 13 runnable examples from simple two-agent chat to hierarchical multi-agent systems.
 2. **See real apps** → Browse the [Featured Agentic Apps](#-featured-agentic-apps) section below for complete, documented projects.
@@ -20,6 +20,21 @@ New to AG2? Follow this progression:
 4. **Add a UI** → Explore [AG-UI Examples](#%EF%B8%8F-ag-ui-examples) to connect your agents to a browser frontend.
 5. **Deep dive** → Work through the [7-module workshop](ag2-workshop/) for a comprehensive hands-on course.
 6. **Go to production** → Use the [GCP Agent Starter Pack](gcp-agent-starter-pack/templates/ag2/) to deploy your agent to Google's Cloud Run with CI/CD and observability.
+| Section | Episodes | What You Build |
+|---------|----------|---------------|
+| **Basics** | 1-4 | Your first agent, tools, two-agent collaboration |
+| **Patterns** | 5-9 | Round-robin, auto, handoffs, pipelines, decision framework |
+| **Applications** | 10-15 | Customer service, research, RAG, web browsing, UI, MCP |
+| **Production** | 16-20 | Observability, security, testing, costs, deployment |
+| **Advanced** | 21-23 | Redundancy, reasoning, what's next |
+
+**[Start Episode 1 →](ag2-workshop/episodes/ep01_why_agents.ipynb)** | **[Try the Playground (no setup) →](https://playground.ag2.ai)**
+
+## 🗺️ More Ways to Learn
+
+- **See real apps** → Browse the [Featured Agentic Apps](#-featured-agentic-apps) below for complete, documented projects.
+- **Add a UI** → Explore [AG-UI Examples](#%EF%B8%8F-ag-ui-examples) to connect your agents to a browser frontend.
+- **Go to production** → Use the [GCP Agent Starter Pack](gcp-agent-starter-pack/templates/ag2/) to deploy your agent to Google Cloud Run with CI/CD and observability.
 
 ## 📂 Featured Agentic Apps
 

@@ -54,6 +54,11 @@ flowchart TD
     class G,H groupchat
 ```
 
+## Workshop
+
+This project is referenced in the [AG2 Workshop](../ag2-workshop/):
+- [Episode 10: Build a Customer Service System](../ag2-workshop/episodes/ep10_real_app.ipynb)
+
 ## 🏷️ Tags
 
 `groupchat` `e-commerce` `order-management` `customer-service` `order-tracking` `returns-processing` `authentication` `workflow-automation` `agent-orchestration`

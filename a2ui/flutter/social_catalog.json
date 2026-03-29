@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ag2.ai/a2ui/social_catalog.json",
+  "title": "AG2 Social Media Catalog",
+  "description": "Custom A2UI catalog with LinkedIn and X/Twitter post components, extending the basic catalog.",
+  "$defs": {
+    "anyComponent": {
+      "oneOf": [
+        { "$ref": "#/components/LinkedInPost" },
+        { "$ref": "#/components/XPost" },
+        { "$ref": "basic_catalog.json#/$defs/anyComponent" }
+      ]
+    },
+    "anyFunction": {
+      "$ref": "basic_catalog.json#/$defs/anyFunction"
+    },
+    "theme": {
+      "$ref": "basic_catalog.json#/$defs/theme"
+    }
+  },
+  "components": {
+    "LinkedInPost": {
+      "type": "object",
+      "description": "A LinkedIn-style social media post card with author info, body text, optional media, hashtags, and engagement metrics.",
+      "allOf": [
+        { "$ref": "common_types.json#/$defs/ComponentCommon" },
+        {
+          "type": "object",
+          "properties": {
+            "component": { "const": "LinkedInPost" },
+            "authorName": {
+              "$ref": "common_types.json#/$defs/DynamicString",
+              "description": "Display name of the post author."
+            },
+            "authorHeadline": {
+              "$ref": "common_types.json#/$defs/DynamicString",
+              "description": "Author's headline/title (e.g., 'CEO at AG2')."
+            },
+            "authorAvatarUrl": {
+              "$ref": "common_types.json#/$defs/DynamicString",
+              "description": "URL of the author's profile avatar image."
+            },
+            "body": {
+              "$ref": "common_types.json#/$defs/DynamicString",
+              "description": "The main post text content. Supports newlines."
+            },
+            "hashtags": {
+              "$ref": "common_types.json#/$defs/DynamicString",
+              "description": "Hashtag string (e.g., '#AI #AG2 #OpenSource')."
+            },
+            "mediaChild": {
+              "$ref": "common_types.json#/$defs/ComponentId",
+              "description": "ID of a child component to render as embedded media (e.g., an Image or Video)."
+            },
+            "likes": {
+              "type": "integer",
+              "description": "Number of likes/reactions."
+            },
+            "comments": {
+              "type": "integer",
+              "description": "Number of comments."
+            },
+            "reposts": {
+              "type": "integer",
+              "description": "Number of reposts."
+            }
+          },
+          "required": ["component", "authorName", "body"]
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "XPost": {
+      "type": "object",
+      "description": "An X/Twitter-style post card with author info, handle, body text, optional media, and engagement metrics.",
+      "allOf": [
+        { "$ref": "common_types.json#/$defs/ComponentCommon" },
+        {
+          "type": "object",
+          "properties": {
+            "component": { "const": "XPost" },
+            "authorName": {
+              "$ref": "common_types.json#/$defs/DynamicString",
+              "description": "Display name of the post author."
+            },
+            "authorHandle": {
+              "$ref": "common_types.json#/$defs/DynamicString",
+              "description": "Author's handle (e.g., '@ag2oss')."
+            },
+            "authorAvatarUrl": {
+              "$ref": "common_types.json#/$defs/DynamicString",
+              "description": "URL of the author's profile avatar image."
+            },
+            "verified": {
+              "type": "boolean",
+              "description": "Whether the author has a verified badge.",
+              "default": false
+            },
+            "body": {
+              "$ref": "common_types.json#/$defs/DynamicString",
+              "description": "The post text content (max 280 chars recommended)."
+            },
+            "mediaChild": {
+              "$ref": "common_types.json#/$defs/ComponentId",
+              "description": "ID of a child component to render as embedded media."
+            },
+            "replies": {
+              "type": "integer",
+              "description": "Number of replies."
+            },
+            "reposts": {
+              "type": "integer",
+              "description": "Number of reposts/retweets."
+            },
+            "likes": {
+              "type": "integer",
+              "description": "Number of likes."
+            },
+            "views": {
+              "type": "integer",
+              "description": "Number of views."
+            },
+            "bookmarks": {
+              "type": "integer",
+              "description": "Number of bookmarks."
+            }
+          },
+          "required": ["component", "authorName", "authorHandle", "body"]
+        }
+      ],
+      "unevaluatedProperties": false
+    }
+  }
+}

@@ -16,6 +16,11 @@ The frontend is a single HTML file (no React, no build step) that reads `STATE_S
 - [Tool Use / Function Calling](https://docs.ag2.ai/latest/docs/user-guide/agentchat-user-guide/basics/tools/) — `run_research` wraps `GPTResearcher.conduct_research()` and `write_report()`
 - [Context Variables](https://docs.ag2.ai/latest/docs/user-guide/advanced-concepts/orchestration/group-chat/context-variables/) — `stage` and `active_agent` updated between phases; `AGUIStream` emits `STATE_SNAPSHOT` events automatically
 
+## Workshop
+
+This project is referenced in the [AG2 Workshop](../../ag2-workshop/):
+- [Episode 11: Build a Research Assistant](../../ag2-workshop/episodes/ep11_research.ipynb)
+
 ## TAGS
 
 TAGS: ag-ui, gpt-researcher, research, streaming, tool-use, context-variables, sse, fastapi

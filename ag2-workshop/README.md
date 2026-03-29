@@ -1,139 +1,118 @@
-# Mastering Real-World Agentic AI Applications with AG2 (AutoGen)
+# AG2 Workshop: Building Multi-Agent Systems
 
-A comprehensive tutorial series covering the fundamentals to advanced concepts of building agentic AI applications using AG2 (AutoGen).
+A hands-on workshop teaching you to build, orchestrate, test, and deploy multi-agent AI systems using AG2.
 
-## 🎯 Overview
+23 episodes covering fundamentals through production deployment. Designed for YouTube (3-4 min per episode) and university programs (5 lectures).
 
-This hands-on workshop series takes you through the complete journey of building intelligent AI agents that can work together, solve complex problems, and integrate with real-world applications. Whether you're new to agentic AI or looking to deepen your expertise, these modules provide practical examples and industry best practices.
+## Prerequisites
 
-## 📚 Course Modules
+- Python 3.12+ recommended (3.12+ required for Episode 15 MCP)
+- Basic Python proficiency
+- An OpenAI API key ([get one here](https://platform.openai.com/api-keys))
+- Estimated API cost for all 23 episodes: **$3-5** (using gpt-4o-mini)
 
-### Module 1: Introduction and Foundation of AI Agents
-
-**File:** `module1_introduction/module1_introduction.ipynb`
-
-- Understanding the agent paradigm
-- Evolution from rule-based to AI-driven agents
-- Value of agents in modern applications
-- Multi-agent system architecture
-
-### Module 2: Setup and Environment Configuration
-
-**Directory:** `module2_setup/`
-
-- Setting up AG2 development environment
-- Configuration and dependencies
-- First agent creation
-
-### Module 3: Core Concepts and Architectures
-
-**Directory:** `module3_core_concepts_and_architectures/`
-
-- Agent communication patterns
-- Message passing and protocols
-- System design principles
-
-### Module 4: Advanced Agent Design Patterns
-
-**Directory:** `module4_advanced_agent_design_patterns/`
-
-- Context-aware routing (`4.1_context_aware_routing.ipynb`)
-- Escalation mechanisms (`4.2_escalation.ipynb`)
-- Feedback loops (`4.3_feedback_loop.ipynb`)
-- Hierarchical structures (`4.4_hirarchical.ipynb`)
-- Organic agent interactions (`4.5_organic.ipynb`)
-- Sequential processing (`4.6_sequential.ipynb`)
-- Redundant systems (`4.7_redundent.ipynb`)
-- Reasoning agents (`reasoning_agent.ipynb`)
-
-### Module 5: Building Custom Agents
-
-**Directory:** `module5_building_custom_agents/`
-
-- Custom agent development
-- Specialized agent behaviors
-- Agent personality and capabilities
-
-### Module 6: Integration with External Tools
-
-**Directory:** `module6_integration_with_external_tools/`
-
-- Tool calling and API integration
-- External system connectivity
-- Data processing and analysis
-
-### Module 7: Real-World Example
-
-**Directory:** `module7_real_world_examples/`
-
-- Complete market analysis application (`marketanalysis/`)
-- Streamlit integration (`marketanalysis_streamlit/`)
-- End-to-end implementation
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-- Python 3.9 or higher (Python 3.12+ required for Module 6 MCP integration)
-- Basic understanding of Python programming
-- Familiarity with AI/ML concepts (helpful but not required)
-
-### Installation
-
-1. Clone this repository:
+## Getting Started
 
 ```bash
-git clone <repository-url>
-cd ag2-workshop
+# Clone the repository
+git clone https://github.com/ag2ai/build-with-ag2.git
+cd build-with-ag2/ag2-workshop
+
+# Set up your environment
+cp .env.example .env
+# Edit .env and add your OPENAI_API_KEY
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Start with Episode 1
+jupyter notebook episodes/ep01_why_agents.ipynb
 ```
 
-2. Install core dependencies (Modules 1–5, 7):
+> **Note:** The `.env` file lives in `ag2-workshop/` (one level above `episodes/`). Python-dotenv searches parent directories automatically, so `load_dotenv()` in notebooks will find it.
 
-```bash
-pip install "ag2[openai]" python-dotenv streamlit tavily-python
-```
+## Episodes
 
-3. For Module 6 (MCP integration) — requires Python 3.12+:
+### Basics (Episodes 1-4)
 
-```bash
-pip install "ag2[openai,mcp]" python-dotenv streamlit arxiv wikipedia
-```
+| # | Title | What You Build |
+|---|-------|---------------|
+| 1 | [Why Multi-Agent Systems?](episodes/ep01_why_agents.ipynb) | See agents in action (demo) |
+| 2 | [Your First Agent](episodes/ep02_first_agent.ipynb) | A single AI agent that chats |
+| 3 | [Give Your Agent Tools](episodes/ep03_tools.ipynb) | An agent that checks the weather |
+| 4 | [Two Agents Working Together](episodes/ep04_two_agents.ipynb) | Researcher + reviewer collaboration |
 
-4. Start with Module 1:
+### Patterns (Episodes 5-9)
 
-```bash
-jupyter notebook module1_introduction/module1_introduction.ipynb
-```
+| # | Title | What You Build |
+|---|-------|---------------|
+| 5 | [Team of Agents: Taking Turns](episodes/ep05_round_robin.ipynb) | 3-agent debate with round-robin |
+| 6 | [Team of Agents: Smart Speaker Selection](episodes/ep06_auto_pattern.ipynb) | LLM-driven speaker selection |
+| 7 | [Routing Agents: Conditions, Handoffs & Escalation](episodes/ep07_handoffs.ipynb) | Customer support triage system |
+| 8 | [Pipelines & Hierarchies](episodes/ep08_pipelines.ipynb) | Document pipeline + research hierarchy |
+| 9 | [Choosing the Right Pattern](episodes/ep09_choosing_patterns.ipynb) | Decision framework (theory) |
 
-## 🔧 Key Technologies
+### Applications (Episodes 10-15)
 
-- **AG2 (AutoGen)**: Multi-agent conversation framework
-- **Streamlit**: Web application framework
-- **Mesop**: Modern UI framework
-- **Azure**: Cloud deployment platform
+| # | Title | What You Build |
+|---|-------|---------------|
+| 10 | [Build a Customer Service System](episodes/ep10_real_app.ipynb) | Complete multi-agent app (guided) |
+| 11 | [Build a Research Assistant](episodes/ep11_research.ipynb) | 3-agent research pipeline |
+| 12 | [Give Your Agents a Knowledge Base](episodes/ep12_knowledge_base.ipynb) | RAG-powered document Q&A |
+| 13 | [Web Browsing Agents](episodes/ep13_web_browsing.ipynb) | Agent that fetches web content |
+| 14 | [Give Your Agent a UI](episodes/ep14_agent_ui.ipynb) | Streamlit + AG-UI frontend |
+| 15 | [Connect to External Tools (MCP)](episodes/ep15_mcp.ipynb) | MCP server integration |
 
-## 📖 Learning Path
+### Production (Episodes 16-20)
 
-1. **Beginner**: Start with Modules 1-3 to understand fundamentals
-2. **Intermediate**: Progress through Modules 4-6 for advanced patterns
-3. **Advanced**: Complete Module 7 for real-world production deployments
+| # | Title | What You Build |
+|---|-------|---------------|
+| 16 | [See What Your Agents Are Doing](episodes/ep16_observability.ipynb) | Logging + OpenTelemetry tracing |
+| 17 | [Security & Safe Code Execution](episodes/ep17_security.ipynb) | Input validation + approval gates |
+| 18 | [Testing Agents](episodes/ep18_testing.ipynb) | Unit tests + evaluation framework |
+| 19 | [Control Your Agent Costs](episodes/ep19_cost_optimization.ipynb) | Token tracking + model tiering |
+| 20 | [Deploy to Production (GCP)](episodes/ep20_deploy.ipynb) | Docker + Cloud Run deployment |
 
-## 🎨 Features
+### Specialized Patterns (Episodes 21-22)
 
-- **Interactive Notebooks**: Hands-on Jupyter notebook tutorials
-- **Real-World Examples**: Practical applications you can deploy
-- **Multiple Deployment Options**: Local development to cloud production
-- **Comprehensive Patterns**: 8 agent design patterns across 7 modules
+| # | Title | What You Build |
+|---|-------|---------------|
+| 21 | [Multiple Agents, One Task: Redundancy & Nested Chats](episodes/ep21_redundant.ipynb) | Parallel agents + evaluator |
+| 22 | [Make Agents Think Harder: Tree of Thoughts](episodes/ep22_reasoning.ipynb) | ReasoningAgent with search strategies |
 
-## 🤝 Contributing
+### Closing
 
-For questions or improvements, please refer to the main AG2 documentation and community resources.
+| # | Title | What You Learn |
+|---|-------|---------------|
+| 23 | [What's Next](episodes/ep23_whats_next.ipynb) | AG2 Beta, ecosystem, future directions |
 
-## 📚 Additional Resources
+## Notebook Structure
 
-- [AG2 Documentation](https://ag2ai.github.io/ag2/)
-- [AG2/AutoGen Repository](https://github.com/ag2ai/ag2)
+Each episode notebook has two sections:
 
----
+- **Core content** — Essential concepts + one hands-on build. This is what YouTube episodes cover.
+- **Additional content** — Deeper dives, alternative approaches, design rationale. For university lectures and self-study.
 
-_This tutorial series provides hands-on experience with cutting-edge agentic AI development using AG2._
+## For Instructors
+
+This workshop maps to 5 university lectures:
+
+| Lecture | Episodes | Focus |
+|---------|----------|-------|
+| 1. Foundations | 1-4 | Agent basics, tools, two-agent systems |
+| 2. Orchestration | 5-9 | Patterns, handoffs, decision framework |
+| 3. Applications | 10-15 | Real apps, RAG, web, UI, MCP |
+| 4. Production | 16-20 | Observability, security, testing, costs, deployment |
+| 5. Advanced | 21-23 | Specialized patterns, reasoning, future |
+
+## Troubleshooting
+
+See [episodes/troubleshooting.md](episodes/troubleshooting.md) for common issues and fixes.
+
+## Resources
+
+- [AG2 Documentation](https://docs.ag2.ai)
+- [AG2 Playground](https://playground.ag2.ai) — try patterns interactively, no setup needed
+- [AG2 GitHub](https://github.com/ag2ai/ag2)
+- [AG2 Discord](https://discord.gg/sNGSwQME3x)
+- [More Examples](https://github.com/ag2ai/build-with-ag2)
