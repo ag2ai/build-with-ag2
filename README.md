@@ -14,6 +14,12 @@ A curated collection of awesome agentic applications built with [AG2](https://gi
 
 New to AG2? The [AG2 Workshop](ag2-workshop/) takes you from first agent to production deployment in 23 hands-on episodes.
 
+1. **Learn the patterns** → [Agent Pattern Cookbook](tutorial/agent_pattern_cookbook/) — 13 runnable examples from simple two-agent chat to hierarchical multi-agent systems.
+2. **See real apps** → Browse the [Featured Agentic Apps](#-featured-agentic-apps) section below for complete, documented projects.
+3. **Connect external services** → Explore [Arcade SDK Examples](#-arcade-sdk-examples) to integrate OAuth-protected APIs like Gmail and Linear.
+4. **Add a UI** → Explore [AG-UI Examples](#%EF%B8%8F-ag-ui-examples) to connect your agents to a browser frontend.
+5. **Deep dive** → Work through the [7-module workshop](ag2-workshop/) for a comprehensive hands-on course.
+6. **Go to production** → Use the [GCP Agent Starter Pack](gcp-agent-starter-pack/templates/ag2/) to deploy your agent to Google's Cloud Run with CI/CD and observability.
 | Section | Episodes | What You Build |
 |---------|----------|---------------|
 | **Basics** | 1-4 | Your first agent, tools, two-agent collaboration |
@@ -31,16 +37,22 @@ New to AG2? The [AG2 Workshop](ag2-workshop/) takes you from first agent to prod
 - **Go to production** → Use the [GCP Agent Starter Pack](gcp-agent-starter-pack/templates/ag2/) to deploy your agent to Google Cloud Run with CI/CD and observability.
 
 ## 📂 Featured Agentic Apps
+
 - 🛍️ [E-Commerce Custom Service for Order Management](e-commerce-customer-service) (last updated and ran on 09/20/2025, ag2 version 0.9.9): A smart, agent-driven system that makes order tracking quick and easy while simplifying returns for both logged-in and guest users.
 - 📈 [Financial Analysis](financial-analysis) (last updated and ran on 09/20/2025, ag2 version 0.9.9): A AI-powered stock analysis generating market insights and recommendations.
 - 🤖 [Automated Machine Learning for Kaggle](automate-ml-for-kaggle) (last updated and ran on 09/20/2025, ag2 version 0.9.9): An agent system to automate the machine learning pipeline for Kaggle competitions.
 - 🧑‍🔬 [Deep Research Agent](deep-research-agent): Reference implementation of the deep research agent.
 - ✈️ [Travel Planner](travel-planner): A trip planning multi-agent system that creates an itinerary together with a customer.
-- 📋 [Linear Agent](linear-agent): A natural language interface for managing Linear issues — list, create, and update issues via Arcade's managed OAuth2 integration.
-- 🎮 [AI Game Design Agent Team](game-design-agent-team) ⚠️ *(currently broken — pending fix for AG2 0.9+)*: A collaborative game design system that generates comprehensive game concepts through the coordination of multiple specialized AI agents.
-
+- 🎮 [AI Game Design Agent Team](game-design-agent-team) ⚠️ _(currently broken — pending fix for AG2 0.9+)_: A collaborative game design system that generates comprehensive game concepts through the coordination of multiple specialized AI agents.
 - ☑ [Manage Todos With Realtime Agent](manage-todos-with-realtime-agent): A voice-controlled todo assistant with real-time interaction.
 - 🔍 [Due Diligence with TinyFish](due-diligence-with-tinyfish): A multi-agent due diligence pipeline that automatically researches a company from a single URL using AG2 and TinyFish for deep web scraping.
+
+## 🔌 Arcade SDK Examples
+
+Examples of connecting AG2 agents to external services via [Arcade](https://arcade.dev) — a managed OAuth2 platform that handles authorization and tool execution, so there's no token storage or manual API setup required.
+
+- 📋 [Linear Agent](arcade/linear-agent): A natural language interface for managing Linear issues — list, create, and update issues via Arcade's managed OAuth2 integration.
+- 📧 [Gmail Agent](arcade/gmail-agent): A Gmail management agent that reads, searches, sends, and organizes emails through natural language.
 
 ## 🖥️ AG-UI Examples
 

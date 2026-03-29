@@ -82,4 +82,4 @@ Check out more projects built with AG2 at [Build with AG2](https://github.com/ag
 
 ## License
 
-This project is licensed under the Apache License 2.0. See the [LICENSE](../LICENSE) for details.
+This project is licensed under the Apache License 2.0. See the [LICENSE](../../LICENSE) for details.
