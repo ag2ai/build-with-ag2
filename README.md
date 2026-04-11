@@ -104,6 +104,7 @@ Examples of connecting AG2 agents to browser frontends using the [AG-UI protocol
 - 🔍 [Prompt Leakage Probing](https://github.com/airtai/prompt-leakage-probing): Framework for testing LLM agents for system prompt leaks
 - 💌 [AI-Powered Event Invitation Workflow](https://github.com/neosantara-xyz/examples/tree/main/ag2/event_invitation): Multi-agent event invitation system using Neosantara AI's Grok 4 for personalized multilingual content generation
 - ⚡ [L402 Lightning Payments for AG2](https://github.com/refined-element/l402-requests): Gives AG2 agents the ability to access L402-protected APIs with automatic Bitcoin Lightning micropayments using `register_function()`
+- 💧 [AquaInsightAI](https://github.com/jk10001/aquainsightai): AI-powered multi-agent water analytics platform to analyse datasets, create visualisations, and produce technical reports.
 
 ## 🤝 Contributing to AG2 Open Source
 
