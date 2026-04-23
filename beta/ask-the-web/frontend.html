@@ -1,0 +1,888 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Ask the Web — AG2 Beta</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Jersey+10&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      :root {
+        --ag2-blue: #4b9cd6;
+        --ag2-indigo: #526cfe;
+        --ag2-sky-top: #b5e8d5;
+        --ag2-sky-bottom: #f5e6a3;
+        --ag2-grass: #6abf69;
+        --ag2-dirt: #c49a6c;
+        --panel-bg: rgba(20, 24, 44, 0.92);
+        --panel-border: #4b9cd6;
+        --text-primary: #f0f4f8;
+        --text-secondary: #a0b4c8;
+        --msg-user-bg: #526cfe;
+        --msg-bot-bg: rgba(75, 156, 214, 0.15);
+        --mark: #f5e6a3;
+      }
+
+      html, body { height: 100%; overflow: hidden; }
+      body {
+        font-family: 'Inter', -apple-system, sans-serif;
+        color: var(--text-primary);
+        background: linear-gradient(
+          180deg,
+          var(--ag2-sky-top) 0%,
+          #d4f0e0 25%,
+          #eee8b0 55%,
+          var(--ag2-sky-bottom) 75%,
+          var(--ag2-grass) 85%,
+          var(--ag2-dirt) 95%
+        );
+      }
+
+      /* Pixel-art background elements ---------------------------------- */
+      .ground-layer {
+        position: fixed;
+        bottom: 0; left: 0; right: 0;
+        height: 120px;
+        background: url('/assets/roadscape.png') repeat-x bottom;
+        background-size: auto 120px;
+        image-rendering: pixelated;
+        z-index: 0;
+        opacity: 0.7;
+        pointer-events: none;
+      }
+      .cloud {
+        position: fixed;
+        image-rendering: pixelated;
+        opacity: 0.6;
+        z-index: 0;
+        pointer-events: none;
+        animation: float 20s ease-in-out infinite;
+      }
+      .cloud-1 { top: 5%;  left: 5%;  width: 100px; animation-delay: 0s; }
+      .cloud-2 { top: 12%; right: 10%; width: 80px; animation-delay: -7s; }
+      .cloud-3 { top: 3%;  left: 45%; width: 60px; animation-delay: -13s; }
+      @keyframes float {
+        0%, 100% { transform: translateX(0) translateY(0); }
+        25%      { transform: translateX(15px) translateY(-5px); }
+        50%      { transform: translateX(30px) translateY(0); }
+        75%      { transform: translateX(15px) translateY(5px); }
+      }
+      .sun {
+        position: fixed;
+        top: 20px; right: 40px;
+        width: 80px; height: 80px;
+        image-rendering: pixelated;
+        z-index: 0;
+        pointer-events: none;
+        animation: sun-pulse 4s ease-in-out infinite;
+      }
+      @keyframes sun-pulse {
+        0%, 100% { transform: scale(1); }
+        50%      { transform: scale(1.06); }
+      }
+
+      /* App layout ----------------------------------------------------- */
+      .app {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 380px;
+        gap: 20px;
+        height: 100vh;
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 24px 24px 140px;
+      }
+      @media (max-width: 900px) {
+        .app { grid-template-columns: 1fr; }
+        .sources { display: none; }
+      }
+
+      /* Panels share the same dark-glass look as ag-ui/weather + factory */
+      .chat, .sources {
+        background: var(--panel-bg);
+        border: 3px solid var(--panel-border);
+        border-radius: 12px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* Header --------------------------------------------------------- */
+      .chat-head {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 14px 18px;
+        border-bottom: 2px solid rgba(75, 156, 214, 0.35);
+      }
+      .chat-head img {
+        width: 44px; height: 44px;
+        image-rendering: pixelated;
+      }
+      .chat-head .title h1 {
+        font-family: 'Jersey 10', cursive;
+        font-size: 28px;
+        font-weight: 400;
+        color: var(--ag2-blue);
+        line-height: 1;
+      }
+      .chat-head .title .sub {
+        font-size: 12px;
+        color: var(--text-secondary);
+      }
+      .chat-head .spacer { flex: 1; }
+      .chat-head .model-tag {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 11px;
+        color: var(--text-secondary);
+        padding: 4px 8px;
+        border: 1px solid rgba(75, 156, 214, 0.35);
+        border-radius: 4px;
+      }
+
+      /* Messages ------------------------------------------------------- */
+      .chat-body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      .turn {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+      }
+      .turn.user { justify-content: flex-end; }
+      .avatar {
+        width: 32px; height: 32px;
+        image-rendering: pixelated;
+        flex-shrink: 0;
+      }
+      .bubble {
+        max-width: 85%;
+        padding: 12px 14px;
+        border-radius: 10px;
+        font-size: 14.5px;
+        line-height: 1.55;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+      }
+      .turn.user .bubble {
+        background: var(--msg-user-bg);
+        color: #fff;
+      }
+      .turn.assistant .bubble {
+        background: var(--msg-bot-bg);
+        color: var(--text-primary);
+        border: 1px solid rgba(75, 156, 214, 0.3);
+      }
+      .bubble .status {
+        display: inline-block;
+        margin-right: 8px;
+        padding: 2px 8px;
+        border-radius: 999px;
+        background: rgba(75, 156, 214, 0.25);
+        color: var(--ag2-blue);
+        font-size: 11px;
+        font-family: 'JetBrains Mono', monospace;
+        vertical-align: middle;
+      }
+      .bubble .status.err { background: rgba(255, 100, 100, 0.25); color: #ff9090; }
+      .bubble cite.ref {
+        display: inline-block;
+        vertical-align: super;
+        font-size: 10px;
+        font-family: 'JetBrains Mono', monospace;
+        font-style: normal;
+        color: #0b1020;
+        background: var(--ag2-blue);
+        padding: 1px 5px;
+        margin: 0 1px;
+        border-radius: 3px;
+        cursor: pointer;
+      }
+      .bubble cite.ref.hot { background: var(--mark); color: #3a2a00; }
+
+      /* Input bar ------------------------------------------------------ */
+      .input-row {
+        padding: 12px 14px 14px;
+        border-top: 2px solid rgba(75, 156, 214, 0.35);
+      }
+      .input-wrap {
+        display: flex;
+        gap: 8px;
+        align-items: flex-end;
+      }
+      textarea#q {
+        flex: 1;
+        resize: none;
+        min-height: 44px;
+        max-height: 160px;
+        padding: 11px 13px;
+        border: 2px solid rgba(75, 156, 214, 0.5);
+        border-radius: 6px;
+        font-size: 14px;
+        font-family: 'JetBrains Mono', monospace;
+        background: rgba(11, 16, 32, 0.6);
+        color: var(--text-primary);
+        outline: none;
+      }
+      textarea#q::placeholder { color: rgba(160, 180, 200, 0.6); }
+      textarea#q:focus { border-color: var(--ag2-blue); }
+      button#go {
+        padding: 11px 18px;
+        background: var(--ag2-blue);
+        color: #0b1020;
+        font-family: 'Jersey 10', cursive;
+        font-size: 20px;
+        font-weight: 400;
+        letter-spacing: 0.04em;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.2);
+      }
+      button#go:hover { background: #6fb5e8; }
+      button#go:disabled { opacity: 0.45; cursor: not-allowed; }
+
+      /* Sources panel -------------------------------------------------- */
+      .sources-head {
+        padding: 14px 18px;
+        border-bottom: 2px solid rgba(75, 156, 214, 0.35);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .sources-head h2 {
+        font-family: 'Jersey 10', cursive;
+        font-size: 22px;
+        font-weight: 400;
+        color: var(--ag2-blue);
+        letter-spacing: 0.02em;
+      }
+      .sources-head .count {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 11px;
+        color: var(--text-secondary);
+      }
+      .cards {
+        flex: 1;
+        overflow-y: auto;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .card {
+        background: rgba(11, 16, 32, 0.55);
+        border: 1.5px solid rgba(75, 156, 214, 0.35);
+        border-radius: 8px;
+        padding: 10px 12px;
+        cursor: pointer;
+        transition: border-color 0.15s, transform 0.08s;
+      }
+      .card:hover { border-color: var(--ag2-blue); transform: translateY(-1px); }
+      .card.hot {
+        border-color: var(--mark);
+        background: rgba(245, 230, 163, 0.12);
+      }
+      .card .idx {
+        display: inline-block;
+        min-width: 22px;
+        height: 18px;
+        line-height: 18px;
+        border-radius: 3px;
+        background: var(--ag2-blue);
+        color: #0b1020;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 10px;
+        font-weight: 600;
+        text-align: center;
+        margin-right: 6px;
+      }
+      .card .title {
+        display: inline;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-primary);
+      }
+      .card .url {
+        margin-top: 4px;
+        font-size: 11px;
+        font-family: 'JetBrains Mono', monospace;
+        color: var(--text-secondary);
+        overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      }
+      .card .snippet {
+        margin-top: 6px;
+        font-size: 12px;
+        color: var(--text-secondary);
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      .card .state {
+        margin-top: 6px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 10px;
+        color: var(--text-secondary);
+      }
+      .card .state.fetched { color: var(--ag2-grass); }
+
+      /* Empty & welcome states ----------------------------------------- */
+      .empty {
+        color: var(--text-secondary);
+        font-size: 13px;
+        text-align: center;
+        padding: 40px 16px;
+      }
+      .welcome {
+        text-align: center;
+        padding: 40px 20px;
+      }
+      .welcome img {
+        width: 90px; height: 90px;
+        image-rendering: pixelated;
+        margin-bottom: 14px;
+      }
+      .welcome h2 {
+        font-family: 'Jersey 10', cursive;
+        font-weight: 400;
+        font-size: 34px;
+        color: var(--ag2-blue);
+        margin-bottom: 6px;
+      }
+      .welcome p {
+        color: var(--text-secondary);
+        font-size: 13.5px;
+        margin-bottom: 18px;
+      }
+      .sample-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: center;
+      }
+      .sample {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 11.5px;
+        color: var(--ag2-blue);
+        background: rgba(75, 156, 214, 0.1);
+        border: 1px solid rgba(75, 156, 214, 0.4);
+        border-radius: 999px;
+        padding: 5px 12px;
+        cursor: pointer;
+      }
+      .sample:hover { background: rgba(75, 156, 214, 0.25); color: var(--text-primary); }
+
+      .footer {
+        position: fixed;
+        bottom: 10px;
+        left: 0; right: 0;
+        text-align: center;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 11px;
+        color: rgba(20, 24, 44, 0.7);
+        z-index: 1;
+      }
+      .footer a { color: var(--ag2-indigo); text-decoration: none; }
+      .footer a:hover { text-decoration: underline; }
+    </style>
+  </head>
+  <body>
+    <!-- Pixel-art decorations, matching ag-ui/weather + ag-ui/factory -->
+    <img src="/assets/sun.png" class="sun" alt="" />
+    <img src="/assets/cloud.png" class="cloud cloud-1" alt="" />
+    <img src="/assets/cloud.png" class="cloud cloud-2" alt="" />
+    <img src="/assets/cloud.png" class="cloud cloud-3" alt="" />
+    <div class="ground-layer"></div>
+
+    <div class="app">
+      <section class="chat">
+        <div class="chat-head">
+          <img src="/assets/Robot-MS-Blue.png" alt="AG2 Robot" />
+          <div class="title">
+            <h1>Ask the Web</h1>
+            <div class="sub">Cited answers · AG2 Beta × Tavily</div>
+          </div>
+          <div class="spacer"></div>
+          <div class="model-tag" id="model-tag">…</div>
+        </div>
+
+        <div class="chat-body" id="body">
+          <div class="welcome">
+            <img src="/assets/Robot-MS-Aqua.png" alt="AG2 Robot" />
+            <h2>Hello! Ask me anything.</h2>
+            <p>I'll search the web, read the best sources, and answer with citations.</p>
+            <div class="sample-row">
+              <span class="sample">What is Model Context Protocol?</span>
+              <span class="sample">Supabase vs Firebase in 2026</span>
+              <span class="sample">What's new in Claude Sonnet 4.6?</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="input-row">
+          <div class="input-wrap">
+            <textarea id="q" placeholder="Ask anything… (⌘/Ctrl + Enter to send)" rows="1"
+              data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false"></textarea>
+            <button id="go">SEND</button>
+          </div>
+        </div>
+      </section>
+
+      <aside class="sources">
+        <div class="sources-head">
+          <h2>SOURCES</h2>
+          <div class="count" id="count">0</div>
+        </div>
+        <div id="cards" class="cards">
+          <div class="empty">Source cards appear here as the agent searches &amp; reads the web.</div>
+        </div>
+      </aside>
+    </div>
+
+    <div class="footer">
+      AG2 &mdash; Open-Source Multi-Agent Framework &bull;
+      <a href="https://docs.ag2.ai/docs/beta/motivation" target="_blank">AG2 Beta docs</a>
+    </div>
+
+    <script>
+      // ---------- config ----------
+      const CHAT_URL = "/chat/";
+
+      // ---------- state ----------
+      /** Conversation state that is sent on every turn. */
+      const conversation = []; // [{id, role, content}]
+
+      /** Per-turn source index. Reset on RUN_STARTED so [n] in each answer
+       *  lines up 1:1 with the cards visible on screen. Only urls the agent
+       *  actually fetches become cards (in fetch order). */
+      let sourceIndex = new Map(); // url -> number (1-based, within this turn)
+      let sourceMeta = new Map();  // url -> {title, snippet, fetched}
+      let searchResultMeta = new Map(); // url -> {title, snippet} from tavily_search, awaiting fetch
+
+      // Track in-flight tool calls by tool_call_id so we can associate args/results.
+      const toolCalls = new Map(); // id -> {name, args: string, url?: string}
+
+      // ---------- DOM ----------
+      const body = document.getElementById("body");
+      const cardsEl = document.getElementById("cards");
+      const qEl = document.getElementById("q");
+      const goBtn = document.getElementById("go");
+      const modelTag = document.getElementById("model-tag");
+
+      // ---------- helpers ----------
+      // Works in older browsers / non-secure contexts where crypto.randomUUID is missing.
+      function uuid() {
+        if (globalThis.crypto && typeof globalThis.crypto.randomUUID === "function") {
+          return globalThis.crypto.randomUUID();
+        }
+        // RFC4122 v4-ish, seeded with Math.random (fine for client-side message IDs).
+        return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+          const r = (Math.random() * 16) | 0;
+          const v = c === "x" ? r : (r & 0x3) | 0x8;
+          return v.toString(16);
+        });
+      }
+
+      const autosize = (el) => {
+        el.style.height = "auto";
+        el.style.height = Math.min(el.scrollHeight, 180) + "px";
+      };
+
+      let inFlight = false;
+      qEl.addEventListener("input", () => autosize(qEl));
+      // Explicit initial state — Grammarly and similar extensions can wedge the button.
+      goBtn.disabled = false;
+
+      qEl.addEventListener("keydown", (e) => {
+        if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+          e.preventDefault();
+          submit();
+        }
+      });
+
+      goBtn.addEventListener("click", submit);
+
+      document.querySelectorAll(".sample").forEach((el) =>
+        el.addEventListener("click", () => {
+          qEl.value = el.textContent.trim();
+          autosize(qEl);
+          qEl.focus();
+        }),
+      );
+
+      fetch("/healthz")
+        .then((r) => r.json())
+        .then((d) => {
+          if (d.model) modelTag.textContent = `${d.provider} · ${d.model}`;
+        })
+        .catch(() => {});
+
+      function clearEmpty() {
+        body.querySelectorAll(".empty, .welcome").forEach((e) => e.remove());
+        cardsEl.querySelectorAll(".empty").forEach((e) => e.remove());
+      }
+
+      const countEl = document.getElementById("count");
+      function updateCount() {
+        if (countEl) countEl.textContent = String(sourceIndex.size);
+      }
+
+      function renderCitations(text) {
+        // Replace [1], [2], ... with clickable <cite> spans.
+        // Only numbers we already have in sourceIndex get linked; others render literally.
+        return text.replace(/\[(\d+)\]/g, (full, n) => {
+          const hasSource = [...sourceIndex.values()].includes(+n);
+          if (!hasSource) return full;
+          return `<cite class="ref" data-n="${n}">[${n}]</cite>`;
+        });
+      }
+
+      function wireCitationHovers(bubble) {
+        bubble.querySelectorAll("cite.ref").forEach((el) => {
+          const n = el.dataset.n;
+          el.addEventListener("mouseenter", () => setHot(n, true));
+          el.addEventListener("mouseleave", () => setHot(n, false));
+          el.addEventListener("click", () => {
+            const card = cardsEl.querySelector(`.card[data-n="${n}"]`);
+            if (card) card.scrollIntoView({ behavior: "smooth", block: "nearest" });
+          });
+        });
+      }
+
+      function setHot(n, on) {
+        document.querySelectorAll(`.card[data-n="${n}"]`).forEach((c) =>
+          c.classList.toggle("hot", on),
+        );
+        document.querySelectorAll(`cite.ref[data-n="${n}"]`).forEach((c) =>
+          c.classList.toggle("hot", on),
+        );
+      }
+
+      function upsertCard(url, patch) {
+        const existing = sourceMeta.get(url) || {};
+        const merged = { ...existing, ...patch };
+        sourceMeta.set(url, merged);
+
+        let n = sourceIndex.get(url);
+        if (!n) {
+          n = sourceIndex.size + 1;
+          sourceIndex.set(url, n);
+        }
+
+        clearEmpty();
+
+        let card = cardsEl.querySelector(`.card[data-url="${CSS.escape(url)}"]`);
+        if (!card) {
+          card = document.createElement("div");
+          card.className = "card";
+          card.dataset.url = url;
+          card.dataset.n = n;
+          card.innerHTML = `
+            <div><span class="idx">[${n}]</span><span class="title"></span></div>
+            <div class="url"></div>
+            <div class="snippet"></div>
+            <div class="state">fetching…</div>`;
+          card.addEventListener("mouseenter", () => setHot(n, true));
+          card.addEventListener("mouseleave", () => setHot(n, false));
+          card.addEventListener("click", () => window.open(url, "_blank"));
+          cardsEl.appendChild(card);
+        }
+
+        card.querySelector(".title").textContent = merged.title || url;
+        card.querySelector(".url").textContent = urlHost(url);
+        card.querySelector(".snippet").textContent = merged.snippet || "";
+        const stateEl = card.querySelector(".state");
+        if (merged.fetched) {
+          stateEl.textContent = "✓ fetched";
+          stateEl.classList.add("fetched");
+        }
+        updateCount();
+        return n;
+      }
+
+      function urlHost(u) {
+        try {
+          return new URL(u).hostname.replace(/^www\./, "");
+        } catch {
+          return u;
+        }
+      }
+
+      // ---------- chat UI ----------
+
+      let currentAssistant = null; // {id, role: "assistant", content: ""}
+      let currentBubble = null;
+      let statusPrefix = "";
+
+      function appendTurn(role, content = "") {
+        clearEmpty();
+        const wrap = document.createElement("div");
+        wrap.className = `turn ${role}`;
+        if (role === "assistant") {
+          wrap.innerHTML = `<img class="avatar" src="/assets/Robot-MS-Blue.png" alt="AG2"/><div class="bubble"></div>`;
+        } else {
+          wrap.innerHTML = `<div class="bubble"></div>`;
+        }
+        const bubble = wrap.querySelector(".bubble");
+        bubble.textContent = content;
+        body.appendChild(wrap);
+        body.scrollTop = body.scrollHeight;
+        return { wrap, bubble };
+      }
+
+      function updateAssistantBubble() {
+        if (!currentBubble) return;
+        const status = statusPrefix
+          ? `<span class="status">${escapeHtml(statusPrefix)}</span> `
+          : "";
+        const textHtml = renderCitations(escapeHtml(currentAssistant.content));
+        currentBubble.innerHTML = status + textHtml;
+        wireCitationHovers(currentBubble);
+        body.scrollTop = body.scrollHeight;
+      }
+
+      function escapeHtml(s) {
+        return s
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+
+      // ---------- network: POST + parse SSE ----------
+
+      async function streamRequest(messages) {
+        const body = {
+          threadId: "t-" + uuid(),
+          runId: "r-" + uuid(),
+          state: {},
+          messages,
+          tools: [],
+          context: [],
+          forwardedProps: {},
+        };
+        const resp = await fetch(CHAT_URL, {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            accept: "text/event-stream",
+          },
+          body: JSON.stringify(body),
+        });
+        if (!resp.ok) {
+          throw new Error(`HTTP ${resp.status}: ${await resp.text()}`);
+        }
+        return resp;
+      }
+
+      async function consumeStream(resp, onEvent) {
+        const reader = resp.body.getReader();
+        const decoder = new TextDecoder();
+        let buf = "";
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buf += decoder.decode(value, { stream: true });
+          // SSE: frames separated by blank lines; each frame is one or more "field: value" lines.
+          let idx;
+          while ((idx = buf.indexOf("\n\n")) >= 0) {
+            const frame = buf.slice(0, idx);
+            buf = buf.slice(idx + 2);
+            handleFrame(frame, onEvent);
+          }
+        }
+      }
+
+      function handleFrame(frame, onEvent) {
+        const lines = frame.split("\n");
+        const dataLines = [];
+        for (const line of lines) {
+          if (line.startsWith("data:")) dataLines.push(line.slice(5).trimStart());
+        }
+        if (!dataLines.length) return;
+        const raw = dataLines.join("\n");
+        try {
+          const evt = JSON.parse(raw);
+          onEvent(evt);
+        } catch (e) {
+          console.warn("bad SSE frame", raw, e);
+        }
+      }
+
+      // ---------- event handling ----------
+
+      function onEvent(evt) {
+        switch (evt.type) {
+          case "RUN_STARTED":
+            toolCalls.clear();
+            // Freeze citation chips in prior turns into plain-text (they point to cards
+            // we're about to replace). Prevents misleading hover-highlights.
+            document.querySelectorAll(".turn.assistant cite.ref").forEach((el) => {
+              const span = document.createElement("span");
+              span.textContent = el.textContent;
+              span.style.cssText = "display:inline-block;vertical-align:super;font-size:10px;color:var(--text-secondary);font-family:'JetBrains Mono',monospace;margin:0 1px;";
+              el.replaceWith(span);
+            });
+            // Reset the sources panel so [n] in the new answer matches the cards shown.
+            sourceIndex = new Map();
+            sourceMeta = new Map();
+            searchResultMeta = new Map();
+            cardsEl.innerHTML = '<div class="empty">Searching…</div>';
+            updateCount();
+            statusPrefix = "searching…";
+            currentAssistant = { id: uuid(), role: "assistant", content: "" };
+            ({ bubble: currentBubble } = appendTurn("assistant", ""));
+            updateAssistantBubble();
+            break;
+
+          case "TEXT_MESSAGE_START":
+            statusPrefix = "writing…";
+            updateAssistantBubble();
+            break;
+
+          case "TEXT_MESSAGE_CHUNK":
+          case "TEXT_MESSAGE_CONTENT":
+            if (evt.delta) {
+              currentAssistant.content += evt.delta;
+              updateAssistantBubble();
+            }
+            break;
+
+          case "TEXT_MESSAGE_END":
+            statusPrefix = "";
+            updateAssistantBubble();
+            break;
+
+          case "TOOL_CALL_START":
+            toolCalls.set(evt.toolCallId, {
+              name: evt.toolCallName,
+              args: "",
+            });
+            if (evt.toolCallName === "tavily_search") {
+              statusPrefix = "searching…";
+            } else if (evt.toolCallName === "fetch_url") {
+              statusPrefix = "reading…";
+            }
+            updateAssistantBubble();
+            break;
+
+          case "TOOL_CALL_ARGS":
+            {
+              const c = toolCalls.get(evt.toolCallId);
+              if (c && evt.delta) c.args += evt.delta;
+            }
+            break;
+
+          case "TOOL_CALL_RESULT": {
+            const c = toolCalls.get(evt.toolCallId);
+            if (!c) break;
+            const args = safeJson(c.args);
+            if (c.name === "tavily_search") {
+              // Cache search result metadata by URL; we'll use it when fetch_url
+              // actually selects a source. Avoids polluting the Sources panel
+              // with candidates the LLM never reads or cites.
+              const results = safeJson(evt.content);
+              if (Array.isArray(results)) {
+                for (const r of results) {
+                  if (!r.url) continue;
+                  searchResultMeta.set(r.url, { title: r.title, snippet: r.content });
+                }
+              }
+            } else if (c.name === "fetch_url") {
+              const url = args?.url;
+              if (url) {
+                const meta = searchResultMeta.get(url) || {};
+                // The card index assigned here (in fetch order) matches the
+                // citation numbers the LLM will emit as [1], [2], ...
+                upsertCard(url, { ...meta, fetched: true });
+              }
+            }
+            updateAssistantBubble();
+            break;
+          }
+
+          case "TOOL_CALL_END":
+            // no-op; we use TOOL_CALL_RESULT above
+            break;
+
+          case "RUN_FINISHED":
+            statusPrefix = "";
+            updateAssistantBubble();
+            // Freeze the assistant turn in the conversation log.
+            if (currentAssistant && currentAssistant.content) {
+              conversation.push({
+                id: currentAssistant.id,
+                role: "assistant",
+                content: currentAssistant.content,
+              });
+            }
+            currentAssistant = null;
+            currentBubble = null;
+            break;
+
+          case "RUN_ERROR":
+            statusPrefix = "";
+            if (currentBubble) {
+              currentBubble.innerHTML =
+                `<span class="status err">error</span> ` +
+                escapeHtml(evt.message || "run failed");
+            }
+            break;
+
+          default:
+            // Ignore state snapshots and other protocol events for now.
+            break;
+        }
+      }
+
+      function safeJson(s) {
+        if (s == null) return null;
+        if (typeof s !== "string") return s;
+        try { return JSON.parse(s); } catch { return null; }
+      }
+
+      // ---------- submit ----------
+
+      async function submit() {
+        const q = qEl.value.trim();
+        if (!q || inFlight) return;
+
+        inFlight = true;
+        goBtn.disabled = true;
+        qEl.value = "";
+        autosize(qEl);
+
+        const userMsg = { id: uuid(), role: "user", content: q };
+        conversation.push(userMsg);
+        appendTurn("user", q);
+
+        try {
+          const resp = await streamRequest(conversation);
+          await consumeStream(resp, onEvent);
+        } catch (e) {
+          console.error(e);
+          appendTurn("assistant", `[error] ${e.message}`);
+        } finally {
+          inFlight = false;
+          goBtn.disabled = false;
+          qEl.focus();
+        }
+      }
+    </script>
+  </body>
+</html>
