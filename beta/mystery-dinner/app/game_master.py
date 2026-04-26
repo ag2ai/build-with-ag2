@@ -245,9 +245,12 @@ def _sufficient(
             missing.append(p.display_name)
 
     if missing:
-        return False, "Not yet accounted for during the murder window: " + ", ".join(
-            missing
-        ) + "."
+        return (
+            False,
+            "Not yet accounted for during the murder window: "
+            + ", ".join(missing)
+            + ".",
+        )
     return True, "All other suspects are accounted for during the murder window."
 
 
