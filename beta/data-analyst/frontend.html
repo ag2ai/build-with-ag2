@@ -1,0 +1,949 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Data Analyst — AG2 Beta × Daytona</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Jersey+10&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      :root {
+        --ag2-blue: #4b9cd6;
+        --ag2-indigo: #526cfe;
+        --ag2-sky-top: #b5e8d5;
+        --ag2-sky-bottom: #f5e6a3;
+        --ag2-grass: #6abf69;
+        --ag2-dirt: #c49a6c;
+        --panel-bg: rgba(20, 24, 44, 0.92);
+        --panel-border: #4b9cd6;
+        --text-primary: #f0f4f8;
+        --text-secondary: #a0b4c8;
+        --msg-user-bg: #526cfe;
+        --msg-bot-bg: rgba(75, 156, 214, 0.15);
+        --code-bg: rgba(8, 12, 24, 0.85);
+        --stdout-bg: rgba(11, 20, 14, 0.75);
+        --mark: #f5e6a3;
+      }
+
+      html, body { height: 100%; overflow: hidden; }
+      body {
+        font-family: 'Inter', -apple-system, sans-serif;
+        color: var(--text-primary);
+        background: linear-gradient(
+          180deg,
+          var(--ag2-sky-top) 0%,
+          #d4f0e0 25%,
+          #eee8b0 55%,
+          var(--ag2-sky-bottom) 75%,
+          var(--ag2-grass) 85%,
+          var(--ag2-dirt) 95%
+        );
+      }
+
+      /* Pixel-art background ---------------------------------- */
+      .ground-layer {
+        position: fixed; bottom: 0; left: 0; right: 0;
+        height: 120px;
+        background: url('/assets/roadscape.png') repeat-x bottom;
+        background-size: auto 120px;
+        image-rendering: pixelated;
+        z-index: 0; opacity: 0.7; pointer-events: none;
+      }
+      .cloud {
+        position: fixed; image-rendering: pixelated;
+        opacity: 0.6; z-index: 0; pointer-events: none;
+        animation: float 20s ease-in-out infinite;
+      }
+      .cloud-1 { top: 5%;  left: 5%;  width: 100px; animation-delay: 0s; }
+      .cloud-2 { top: 12%; right: 10%; width: 80px; animation-delay: -7s; }
+      .cloud-3 { top: 3%;  left: 45%; width: 60px; animation-delay: -13s; }
+      @keyframes float {
+        0%, 100% { transform: translateX(0) translateY(0); }
+        25%      { transform: translateX(15px) translateY(-5px); }
+        50%      { transform: translateX(30px) translateY(0); }
+        75%      { transform: translateX(15px) translateY(5px); }
+      }
+      .sun {
+        position: fixed; top: 20px; right: 40px;
+        width: 80px; height: 80px;
+        image-rendering: pixelated;
+        z-index: 0; pointer-events: none;
+        animation: sun-pulse 4s ease-in-out infinite;
+      }
+      @keyframes sun-pulse {
+        0%, 100% { transform: scale(1); }
+        50%      { transform: scale(1.06); }
+      }
+
+      /* App layout ---------------------------------------------- */
+      .app {
+        position: relative; z-index: 1;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 440px;
+        grid-template-rows: minmax(0, 1fr);
+        gap: 20px;
+        height: 100vh;
+        max-height: 100vh;
+        max-width: 1380px;
+        margin: 0 auto;
+        padding: 24px 24px 40px;
+        overflow: hidden;
+      }
+      .chat, .artifacts {
+        height: 100%;
+        max-height: 100%;
+        overflow: hidden;
+      }
+      @media (max-width: 980px) {
+        .app { grid-template-columns: 1fr; }
+        .artifacts { display: none; }
+      }
+
+      .chat, .artifacts {
+        background: var(--panel-bg);
+        border: 3px solid var(--panel-border);
+        border-radius: 12px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;        /* critical: lets flex children with overflow:auto actually scroll */
+      }
+
+      /* Header -------------------------------------------------- */
+      .chat-head {
+        display: flex; align-items: center; gap: 14px;
+        padding: 14px 18px;
+        border-bottom: 2px solid rgba(75, 156, 214, 0.35);
+      }
+      .chat-head img {
+        width: 44px; height: 44px;
+        image-rendering: pixelated;
+      }
+      .chat-head .title h1 {
+        font-family: 'Jersey 10', cursive;
+        font-size: 28px; font-weight: 400;
+        color: var(--ag2-blue); line-height: 1;
+      }
+      .chat-head .title .sub {
+        font-size: 12px; color: var(--text-secondary);
+      }
+      .chat-head .spacer { flex: 1; }
+      .model-tag, .dataset-tag {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 11px; color: var(--text-secondary);
+        padding: 4px 8px;
+        border: 1px solid rgba(75, 156, 214, 0.35);
+        border-radius: 4px;
+        margin-left: 6px;
+      }
+      .dataset-tag.active {
+        color: var(--ag2-grass);
+        border-color: rgba(106, 191, 105, 0.6);
+      }
+
+      /* Dataset strip ------------------------------------------ */
+      .dataset-bar {
+        display: flex; gap: 8px; align-items: center;
+        padding: 10px 18px;
+        border-bottom: 2px solid rgba(75, 156, 214, 0.25);
+        font-size: 12.5px;
+        color: var(--text-secondary);
+      }
+      .btn {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 11.5px;
+        color: var(--ag2-blue);
+        background: rgba(75, 156, 214, 0.12);
+        border: 1px solid rgba(75, 156, 214, 0.5);
+        border-radius: 4px;
+        padding: 5px 10px;
+        cursor: pointer;
+      }
+      .btn:hover { background: rgba(75, 156, 214, 0.25); color: var(--text-primary); }
+      .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+      input[type="file"] { display: none; }
+
+      /* Messages ------------------------------------------------ */
+      .chat-body {
+        flex: 1 1 0;
+        min-height: 0;
+        overflow-y: auto;
+        padding: 20px;
+        display: flex; flex-direction: column; gap: 16px;
+      }
+      .turn { display: flex; gap: 12px; align-items: flex-start; }
+      .turn.user { justify-content: flex-end; }
+      .avatar {
+        width: 32px; height: 32px;
+        image-rendering: pixelated;
+        flex-shrink: 0;
+      }
+      .bubble {
+        max-width: 85%;
+        padding: 12px 14px;
+        border-radius: 10px;
+        font-size: 14.5px;
+        line-height: 1.55;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+      }
+      .turn.user .bubble { background: var(--msg-user-bg); color: #fff; }
+      .turn.assistant .bubble {
+        background: var(--msg-bot-bg);
+        color: var(--text-primary);
+        border: 1px solid rgba(75, 156, 214, 0.3);
+      }
+      .bubble h2, .bubble h3 {
+        font-family: 'Inter', sans-serif;
+        color: var(--ag2-blue);
+        margin: 10px 0 4px;
+      }
+      .bubble h2 { font-size: 17px; }
+      .bubble h3 { font-size: 15px; }
+      .bubble ul { margin: 4px 0 8px 18px; }
+      .bubble code {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 12.5px;
+        background: rgba(8, 12, 24, 0.6);
+        padding: 1px 5px;
+        border-radius: 3px;
+      }
+      .bubble .status {
+        display: inline-block;
+        margin-right: 8px;
+        padding: 2px 8px;
+        border-radius: 999px;
+        background: rgba(75, 156, 214, 0.25);
+        color: var(--ag2-blue);
+        font-size: 11px;
+        font-family: 'JetBrains Mono', monospace;
+        vertical-align: middle;
+      }
+      .bubble .status.err { background: rgba(255, 100, 100, 0.25); color: #ff9090; }
+
+      /* Input bar ----------------------------------------------- */
+      .input-row {
+        padding: 12px 14px 14px;
+        border-top: 2px solid rgba(75, 156, 214, 0.35);
+      }
+      .input-wrap { display: flex; gap: 8px; align-items: flex-end; }
+      textarea#q {
+        flex: 1; resize: none;
+        min-height: 44px; max-height: 160px;
+        padding: 11px 13px;
+        border: 2px solid rgba(75, 156, 214, 0.5);
+        border-radius: 6px;
+        font-size: 14px;
+        font-family: 'JetBrains Mono', monospace;
+        background: rgba(11, 16, 32, 0.6);
+        color: var(--text-primary);
+        outline: none;
+      }
+      textarea#q::placeholder { color: rgba(160, 180, 200, 0.6); }
+      textarea#q:focus { border-color: var(--ag2-blue); }
+      button#go {
+        padding: 11px 18px;
+        background: var(--ag2-blue);
+        color: #0b1020;
+        font-family: 'Jersey 10', cursive;
+        font-size: 20px; font-weight: 400;
+        letter-spacing: 0.04em;
+        border: none; border-radius: 6px;
+        cursor: pointer;
+        box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.2);
+      }
+      button#go:hover { background: #6fb5e8; }
+      button#go:disabled { opacity: 0.45; cursor: not-allowed; }
+
+      /* Artifacts panel ---------------------------------------- */
+      .artifacts-head {
+        padding: 14px 18px;
+        border-bottom: 2px solid rgba(75, 156, 214, 0.35);
+        display: flex; align-items: center; gap: 10px;
+      }
+      .artifacts-head h2 {
+        font-family: 'Jersey 10', cursive;
+        font-size: 22px; font-weight: 400;
+        color: var(--ag2-blue); letter-spacing: 0.02em;
+      }
+      .artifacts-head .count {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 11px; color: var(--text-secondary);
+      }
+      .timeline {
+        flex: 1 1 0;
+        min-height: 0;
+        overflow-y: auto;
+        padding: 14px;
+        display: flex; flex-direction: column; gap: 10px;
+      }
+      .item {
+        border: 1.5px solid rgba(75, 156, 214, 0.3);
+        border-radius: 8px;
+        background: rgba(11, 16, 32, 0.55);
+      }
+      .item-head {
+        padding: 8px 12px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 11.5px;
+        color: var(--text-secondary);
+        background: rgba(0, 0, 0, 0.3);
+        border-bottom: 1px solid rgba(75, 156, 214, 0.25);
+        display: flex; align-items: center; gap: 8px;
+        cursor: pointer;
+        user-select: none;
+      }
+      .item-head:hover { background: rgba(0, 0, 0, 0.45); }
+      .item-head .tag {
+        padding: 2px 7px;
+        border-radius: 3px;
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        flex-shrink: 0;
+      }
+      .item-head .summary {
+        flex: 1;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        color: var(--text-primary);
+      }
+      .item-head .chev {
+        color: var(--text-secondary);
+        font-size: 10px;
+        transition: transform 0.15s;
+      }
+      .item.collapsed .chev { transform: rotate(-90deg); }
+      .item.collapsed .body-wrap { display: none; }
+      .tag.code   { background: rgba(82, 108, 254, 0.2);  color: #a7b4fe; }
+      .tag.stdout { background: rgba(106, 191, 105, 0.2); color: #b0e5a5; }
+      .tag.plot   { background: rgba(245, 230, 163, 0.2); color: var(--mark); }
+      .tag.error  { background: rgba(255, 100, 100, 0.25); color: #ff9090; }
+      .code-body, .stdout-body {
+        padding: 12px 14px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 12px;
+        line-height: 1.55;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        min-height: 40px;
+        max-height: 320px;
+        overflow-y: auto;
+      }
+      .code-body   { background: var(--code-bg);   color: #e6e6f0; }
+      .stdout-body { background: var(--stdout-bg); color: #d4e8d0; }
+      .error-body  {
+        background: rgba(40, 10, 10, 0.75);
+        color: #ffb0b0;
+        padding: 12px 14px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 12px;
+        line-height: 1.55;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        max-height: 320px;
+        overflow-y: auto;
+      }
+      .plot-body {
+        padding: 10px;
+        background: #ffffff;
+        text-align: center;
+        min-height: 120px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .plot-body img { max-width: 100%; max-height: 500px; border-radius: 4px; display: block; margin: 0 auto; }
+
+      .empty {
+        color: var(--text-secondary);
+        font-size: 13px; text-align: center;
+        padding: 40px 16px;
+      }
+
+      /* Welcome ------------------------------------------------- */
+      .welcome { text-align: center; padding: 40px 20px; }
+      .welcome img {
+        width: 90px; height: 90px;
+        image-rendering: pixelated;
+        margin-bottom: 14px;
+      }
+      .welcome h2 {
+        font-family: 'Jersey 10', cursive; font-weight: 400;
+        font-size: 34px; color: var(--ag2-blue);
+        margin-bottom: 6px;
+      }
+      .welcome p {
+        color: var(--text-secondary);
+        font-size: 13.5px; margin-bottom: 18px;
+      }
+      .sample-row {
+        display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
+      }
+      .sample {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 11.5px;
+        color: var(--ag2-blue);
+        background: rgba(75, 156, 214, 0.1);
+        border: 1px solid rgba(75, 156, 214, 0.4);
+        border-radius: 999px;
+        padding: 5px 12px;
+        cursor: pointer;
+      }
+      .sample:hover { background: rgba(75, 156, 214, 0.25); color: var(--text-primary); }
+
+      .footer {
+        position: fixed; bottom: 10px; left: 0; right: 0;
+        text-align: center;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 11px;
+        color: rgba(20, 24, 44, 0.7);
+        z-index: 1;
+      }
+      .footer a { color: var(--ag2-indigo); text-decoration: none; }
+      .footer a:hover { text-decoration: underline; }
+    </style>
+  </head>
+  <body>
+    <img src="/assets/sun.png" class="sun" alt="" />
+    <img src="/assets/cloud.png" class="cloud cloud-1" alt="" />
+    <img src="/assets/cloud.png" class="cloud cloud-2" alt="" />
+    <img src="/assets/cloud.png" class="cloud cloud-3" alt="" />
+    <div class="ground-layer"></div>
+
+    <div class="app">
+      <section class="chat">
+        <div class="chat-head">
+          <img src="/assets/Robot-MS-Green.png" alt="AG2 Robot" />
+          <div class="title">
+            <h1>Data Analyst</h1>
+            <div class="sub">Sandboxed Python · AG2 Beta × Daytona</div>
+          </div>
+          <div class="spacer"></div>
+          <div class="model-tag" id="model-tag">…</div>
+          <div class="dataset-tag" id="dataset-tag">no dataset</div>
+        </div>
+
+        <div class="dataset-bar">
+          <span>Load data:</span>
+          <label class="btn" for="file-input">📂 upload CSV</label>
+          <input id="file-input" type="file" accept=".csv,.tsv,.json,.parquet" />
+          <button class="btn" id="sample-btn">🚢 sample (Titanic)</button>
+          <span class="spacer" style="flex:1"></span>
+          <span id="upload-status" style="color: var(--text-secondary)"></span>
+        </div>
+
+        <div class="chat-body" id="body">
+          <div class="welcome">
+            <img src="/assets/Robot-MS-Green.png" alt="AG2 Robot" />
+            <h2>Ask me to analyse your data.</h2>
+            <p>Upload a CSV (or click sample), then ask a question.
+              I'll write Python, run it in a sandbox, and show the plots.</p>
+            <div class="sample-row">
+              <span class="sample">What factors predicted survival on the Titanic?</span>
+              <span class="sample">Show me a chart of fare by passenger class.</span>
+              <span class="sample">Is there a gender gap in survival rates?</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="input-row">
+          <div class="input-wrap">
+            <textarea id="q" placeholder="Ask about your data… (⌘/Ctrl + Enter to send)" rows="1"
+              data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false"></textarea>
+            <button id="go">RUN</button>
+          </div>
+        </div>
+      </section>
+
+      <aside class="artifacts">
+        <div class="artifacts-head">
+          <h2>SANDBOX TIMELINE</h2>
+          <div class="count" id="count">0</div>
+        </div>
+        <div id="timeline" class="timeline">
+          <div class="empty">Code, stdout, and plots appear here as the agent works.</div>
+        </div>
+      </aside>
+    </div>
+
+    <div class="footer">
+      AG2 &mdash; Open-Source Multi-Agent Framework &bull;
+      <a href="https://docs.ag2.ai/docs/beta/motivation" target="_blank">AG2 Beta docs</a> &bull;
+      <a href="https://daytona.io" target="_blank">Daytona sandbox</a>
+    </div>
+
+    <script>
+      // ---------- config ----------
+      const CHAT_URL = "/chat/";
+
+      // ---------- state ----------
+      const conversation = [];
+      const toolCalls = new Map(); // id -> {name, args: string}
+      let itemCount = 0;
+
+      // ---------- DOM ----------
+      const body = document.getElementById("body");
+      const timeline = document.getElementById("timeline");
+      const countEl = document.getElementById("count");
+      const qEl = document.getElementById("q");
+      const goBtn = document.getElementById("go");
+      const modelTag = document.getElementById("model-tag");
+      const datasetTag = document.getElementById("dataset-tag");
+      const fileInput = document.getElementById("file-input");
+      const sampleBtn = document.getElementById("sample-btn");
+      const uploadStatus = document.getElementById("upload-status");
+
+      // ---------- helpers ----------
+      function uuid() {
+        if (globalThis.crypto && typeof globalThis.crypto.randomUUID === "function") {
+          return globalThis.crypto.randomUUID();
+        }
+        return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+          const r = (Math.random() * 16) | 0;
+          const v = c === "x" ? r : (r & 0x3) | 0x8;
+          return v.toString(16);
+        });
+      }
+
+      const autosize = (el) => {
+        el.style.height = "auto";
+        el.style.height = Math.min(el.scrollHeight, 180) + "px";
+      };
+
+      let inFlight = false;
+      qEl.addEventListener("input", () => autosize(qEl));
+      goBtn.disabled = false;
+
+      qEl.addEventListener("keydown", (e) => {
+        if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+          e.preventDefault();
+          submit();
+        }
+      });
+      goBtn.addEventListener("click", submit);
+
+      document.querySelectorAll(".sample").forEach((el) =>
+        el.addEventListener("click", () => {
+          qEl.value = el.textContent.trim();
+          autosize(qEl);
+          qEl.focus();
+        }),
+      );
+
+      function escapeHtml(s) {
+        return String(s)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+
+      // A pragmatic just-enough markdown renderer: headings, bullets, bold,
+      // inline code, and paragraphs. Keeps reports readable without pulling
+      // in a real markdown library.
+      function renderMarkdown(src) {
+        const lines = src.split("\n");
+        const out = [];
+        let inList = false;
+        for (let raw of lines) {
+          const line = raw.replace(/\r$/, "");
+          if (/^\s*[-*]\s+/.test(line)) {
+            if (!inList) { out.push("<ul>"); inList = true; }
+            out.push("<li>" + inline(line.replace(/^\s*[-*]\s+/, "")) + "</li>");
+          } else {
+            if (inList) { out.push("</ul>"); inList = false; }
+            if (/^###\s+/.test(line))      out.push("<h3>" + inline(line.replace(/^###\s+/, "")) + "</h3>");
+            else if (/^##\s+/.test(line))  out.push("<h2>" + inline(line.replace(/^##\s+/, "")) + "</h2>");
+            else if (line.trim() === "")   out.push("");
+            else                           out.push("<p>" + inline(line) + "</p>");
+          }
+        }
+        if (inList) out.push("</ul>");
+        return out.join("\n");
+      }
+      function inline(s) {
+        return escapeHtml(s)
+          .replace(/`([^`]+)`/g, "<code>$1</code>")
+          .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+      }
+
+      // ---------- dataset controls ----------
+
+      async function loadSample() {
+        uploadStatus.textContent = "loading sample…";
+        try {
+          const r = await fetch("/sample", { method: "POST" });
+          const d = await r.json();
+          markDatasetLoaded(d.filename);
+        } catch (e) {
+          uploadStatus.textContent = "sample failed: " + e.message;
+        }
+      }
+
+      async function uploadFile(f) {
+        const form = new FormData();
+        form.append("file", f);
+        uploadStatus.textContent = `uploading ${f.name}…`;
+        try {
+          const r = await fetch("/upload", { method: "POST", body: form });
+          const d = await r.json();
+          markDatasetLoaded(d.filename);
+        } catch (e) {
+          uploadStatus.textContent = "upload failed: " + e.message;
+        }
+      }
+
+      function markDatasetLoaded(name) {
+        datasetTag.textContent = name;
+        datasetTag.classList.add("active");
+        uploadStatus.textContent = "✓ loaded into sandbox";
+        setTimeout(() => (uploadStatus.textContent = ""), 2500);
+      }
+
+      sampleBtn.addEventListener("click", loadSample);
+      fileInput.addEventListener("change", (e) => {
+        const f = e.target.files?.[0];
+        if (f) uploadFile(f);
+      });
+
+      fetch("/healthz")
+        .then((r) => r.json())
+        .then((d) => {
+          if (d.model) modelTag.textContent = `${d.provider} · ${d.model}`;
+          if (d.dataset) markDatasetLoaded(d.dataset.split("/").pop());
+        })
+        .catch(() => {});
+
+      // ---------- timeline ----------
+
+      function clearEmpty() {
+        body.querySelectorAll(".empty, .welcome").forEach((e) => e.remove());
+        timeline.querySelectorAll(".empty").forEach((e) => e.remove());
+      }
+
+      function pushItem(kind, summary, bodyHtml, { collapsed = false } = {}) {
+        clearEmpty();
+        const el = document.createElement("div");
+        el.className = "item" + (collapsed ? " collapsed" : "");
+        const bodyClass =
+          kind === "plot"   ? "plot-body"
+          : kind === "code"   ? "code-body"
+          : kind === "error"  ? "error-body"
+          : "stdout-body";
+        el.innerHTML = `
+          <div class="item-head">
+            <span class="tag ${kind}">${kind.toUpperCase()}</span>
+            <span class="summary">${escapeHtml(summary)}</span>
+            <span class="chev">▾</span>
+          </div>
+          <div class="body-wrap"><div class="${bodyClass}">${bodyHtml}</div></div>`;
+        el.querySelector(".item-head").addEventListener("click", () => {
+          el.classList.toggle("collapsed");
+        });
+        timeline.appendChild(el);
+        timeline.scrollTop = timeline.scrollHeight;
+        itemCount += 1;
+        countEl.textContent = String(itemCount);
+        return el;
+      }
+
+      function firstNonEmptyLine(text) {
+        for (const line of String(text || "").split("\n")) {
+          const t = line.trim();
+          if (t) return t;
+        }
+        return "";
+      }
+
+      // For code cards: skip imports, comments, and matplotlib boilerplate
+      // so the summary surfaces the line that actually describes intent
+      // (e.g. `df = pd.read_csv(...)` or `sns.barplot(...)`).
+      function summariseCode(code) {
+        const boring = /^\s*(#|import |from |plt\.|matplotlib\.use|os\.makedirs|sns\.set|warnings\.)/;
+        for (const line of String(code || "").split("\n")) {
+          const t = line.trim();
+          if (!t) continue;
+          if (boring.test(t)) continue;
+          return t.length > 80 ? t.slice(0, 77) + "…" : t;
+        }
+        return firstNonEmptyLine(code) || "(no code)";
+      }
+
+      // For stdout cards: skip `df.info()` chatter and find the signal line.
+      function summariseStdout(text) {
+        const boring = /^\s*(<class|RangeIndex|Data columns|Int64Index|#|-+|\d+\s+\w+)/;
+        for (const line of String(text || "").split("\n")) {
+          const t = line.trim();
+          if (!t) continue;
+          if (boring.test(t)) continue;
+          if (t.startsWith("dtypes:") || t.startsWith("memory usage:")) continue;
+          return t.length > 80 ? t.slice(0, 77) + "…" : t;
+        }
+        return (firstNonEmptyLine(text) || "(no output)").slice(0, 80);
+      }
+
+      // ---------- chat UI ----------
+
+      let currentAssistant = null;
+      let currentBubble = null;
+      let statusPrefix = "";
+
+      function appendTurn(role, content = "") {
+        clearEmpty();
+        const wrap = document.createElement("div");
+        wrap.className = `turn ${role}`;
+        if (role === "assistant") {
+          wrap.innerHTML = `<img class="avatar" src="/assets/Robot-MS-Green.png" alt="AG2"/><div class="bubble"></div>`;
+        } else {
+          wrap.innerHTML = `<div class="bubble"></div>`;
+        }
+        const bubble = wrap.querySelector(".bubble");
+        bubble.textContent = content;
+        body.appendChild(wrap);
+        body.scrollTop = body.scrollHeight;
+        return { wrap, bubble };
+      }
+
+      function updateAssistantBubble() {
+        if (!currentBubble) return;
+        const status = statusPrefix
+          ? `<span class="status">${escapeHtml(statusPrefix)}</span> `
+          : "";
+        currentBubble.innerHTML = status + renderMarkdown(currentAssistant.content);
+        body.scrollTop = body.scrollHeight;
+      }
+
+      // ---------- network ----------
+
+      async function streamRequest(messages) {
+        const payload = {
+          threadId: "t-" + uuid(),
+          runId: "r-" + uuid(),
+          state: {},
+          messages,
+          tools: [],
+          context: [],
+          forwardedProps: {},
+        };
+        const resp = await fetch(CHAT_URL, {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            accept: "text/event-stream",
+          },
+          body: JSON.stringify(payload),
+        });
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${await resp.text()}`);
+        return resp;
+      }
+
+      async function consumeStream(resp, onEvent) {
+        const reader = resp.body.getReader();
+        const decoder = new TextDecoder();
+        let buf = "";
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buf += decoder.decode(value, { stream: true });
+          let idx;
+          while ((idx = buf.indexOf("\n\n")) >= 0) {
+            const frame = buf.slice(0, idx);
+            buf = buf.slice(idx + 2);
+            handleFrame(frame, onEvent);
+          }
+        }
+      }
+
+      function handleFrame(frame, onEvent) {
+        const lines = frame.split("\n");
+        const dataLines = [];
+        for (const line of lines) {
+          if (line.startsWith("data:")) dataLines.push(line.slice(5).trimStart());
+        }
+        if (!dataLines.length) return;
+        const raw = dataLines.join("\n");
+        try {
+          onEvent(JSON.parse(raw));
+        } catch (e) {
+          console.warn("bad SSE frame", raw, e);
+        }
+      }
+
+      function safeJson(s) {
+        if (s == null) return null;
+        if (typeof s !== "string") return s;
+        try { return JSON.parse(s); } catch { return null; }
+      }
+
+      // ---------- event handling ----------
+
+      function onEvent(evt) {
+        switch (evt.type) {
+          case "RUN_STARTED":
+            toolCalls.clear();
+            statusPrefix = "thinking…";
+            currentAssistant = { id: uuid(), role: "assistant", content: "" };
+            ({ bubble: currentBubble } = appendTurn("assistant", ""));
+            updateAssistantBubble();
+            break;
+
+          case "TEXT_MESSAGE_START":
+            statusPrefix = "writing…";
+            updateAssistantBubble();
+            break;
+
+          case "TEXT_MESSAGE_CHUNK":
+          case "TEXT_MESSAGE_CONTENT":
+            if (evt.delta) {
+              currentAssistant.content += evt.delta;
+              updateAssistantBubble();
+            }
+            break;
+
+          case "TEXT_MESSAGE_END":
+            statusPrefix = "";
+            updateAssistantBubble();
+            break;
+
+          case "TOOL_CALL_START":
+            toolCalls.set(evt.toolCallId, { name: evt.toolCallName, args: "" });
+            statusPrefix = toolLabel(evt.toolCallName);
+            updateAssistantBubble();
+            break;
+
+          case "TOOL_CALL_ARGS": {
+            const c = toolCalls.get(evt.toolCallId);
+            if (c && evt.delta) c.args += evt.delta;
+            break;
+          }
+
+          case "TOOL_CALL_RESULT": {
+            const c = toolCalls.get(evt.toolCallId);
+            if (!c) break;
+            const args = safeJson(c.args) || {};
+            const result = safeJson(evt.content);
+
+            if (c.name === "run_python") {
+              const code = typeof args.code === "string" ? args.code : c.args || "(args unavailable)";
+              pushItem("code", summariseCode(code), escapeHtml(code));
+              if (result && typeof result === "object") {
+                const ok = (result.exit_code ?? 0) === 0;
+                const text = result.stdout || "(no output)";
+                const newArts = (result.new_artifacts || []).length;
+                if (ok) {
+                  const sum = summariseStdout(text);
+                  const summary = newArts
+                    ? `📊 ${newArts} new artifact${newArts > 1 ? "s" : ""} · ${sum}`
+                    : sum;
+                  pushItem("stdout", summary, escapeHtml(text));
+                } else {
+                  const summary = summariseStdout(text);
+                  pushItem("error", `exit ${result.exit_code} · ${summary}`, escapeHtml(text));
+                }
+              }
+            } else if (c.name === "get_artifact") {
+              if (result && result.base64) {
+                const src = `data:${result.mime};base64,${result.base64}`;
+                const fname = escapeHtml(result.filename || "");
+                const size = atob(result.base64).length;
+                pushItem(
+                  "plot",
+                  `${result.filename || "artifact"} (${(size / 1024).toFixed(1)} KB)`,
+                  `<img src="${src}" alt="${fname}" onerror="this.replaceWith(Object.assign(document.createElement('div'), {textContent: '[could not render ${fname}]', style: 'color:#888'}))" />`,
+                );
+              } else {
+                pushItem("error", `get_artifact returned no data`, escapeHtml(JSON.stringify(result || {})));
+              }
+            } else if (c.name === "get_loaded_dataset") {
+              if (typeof result === "string" && !result.startsWith("[no dataset")) {
+                pushItem("stdout", `dataset: ${result.split("/").pop()}`, escapeHtml(result), { collapsed: true });
+              }
+            } else if (c.name === "list_files") {
+              const lines = Array.isArray(result) ? result.join("\n") : String(result ?? "");
+              const path = args.path || "/home/daytona";
+              pushItem("stdout", `ls ${path}`, escapeHtml(lines), { collapsed: true });
+            } else if (c.name === "read_text_file") {
+              pushItem("stdout", `read ${args.path || "?"}`, escapeHtml(String(result ?? "")), { collapsed: true });
+            }
+            updateAssistantBubble();
+            break;
+          }
+
+          case "TOOL_CALL_END":
+            break;
+
+          case "RUN_FINISHED":
+            statusPrefix = "";
+            updateAssistantBubble();
+            if (currentAssistant && currentAssistant.content) {
+              conversation.push({
+                id: currentAssistant.id,
+                role: "assistant",
+                content: currentAssistant.content,
+              });
+            }
+            currentAssistant = null;
+            currentBubble = null;
+            break;
+
+          case "RUN_ERROR":
+            statusPrefix = "";
+            if (currentBubble) {
+              currentBubble.innerHTML =
+                `<span class="status err">error</span> ` +
+                escapeHtml(evt.message || "run failed");
+            }
+            break;
+        }
+      }
+
+      function toolLabel(name) {
+        return {
+          run_python: "running code…",
+          get_artifact: "rendering plot…",
+          get_loaded_dataset: "loading dataset…",
+          list_files: "listing files…",
+          read_text_file: "reading file…",
+        }[name] || `calling ${name}…`;
+      }
+
+      // ---------- submit ----------
+
+      async function submit() {
+        const q = qEl.value.trim();
+        if (!q || inFlight) return;
+
+        inFlight = true;
+        goBtn.disabled = true;
+        qEl.value = "";
+        autosize(qEl);
+
+        const userMsg = { id: uuid(), role: "user", content: q };
+        conversation.push(userMsg);
+        appendTurn("user", q);
+
+        try {
+          const resp = await streamRequest(conversation);
+          await consumeStream(resp, onEvent);
+        } catch (e) {
+          console.error(e);
+          appendTurn("assistant", `[error] ${e.message}`);
+        } finally {
+          inFlight = false;
+          goBtn.disabled = false;
+          qEl.focus();
+        }
+      }
+    </script>
+  </body>
+</html>

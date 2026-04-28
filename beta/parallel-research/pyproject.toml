@@ -1,0 +1,10 @@
+[project]
+name = "parallel-research"
+version = "0.1.0"
+description = "Parallel web research with live fan-out on AG2 Beta"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "ag2[gemini,openai,tavily] @ git+https://github.com/ag2ai/ag2.git@pr3/actor-merge",
+    "python-dotenv>=1.0.0",
+]
