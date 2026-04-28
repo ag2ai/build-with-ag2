@@ -58,7 +58,9 @@ class SandboxState:
             self._client = AsyncDaytona(DaytonaConfig(api_key=api_key))
             self._sandbox = await self._client.create()
             # Pre-create a data dir and an artifacts dir — keeps paths predictable.
-            await self._sandbox.process.exec("mkdir -p /home/daytona/data /home/daytona/artifacts")
+            await self._sandbox.process.exec(
+                "mkdir -p /home/daytona/data /home/daytona/artifacts"
+            )
             return self._sandbox
 
     async def shutdown(self) -> None:

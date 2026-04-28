@@ -38,7 +38,9 @@ async def tavily_search(query: str, max_results: int = 5) -> list[dict]:
     Use this first to discover candidate sources for a question.
     """
     client = TavilyClient(api_key=os.environ["TAVILY_API_KEY"])
-    response = await asyncio.to_thread(client.search, query=query, max_results=max_results)
+    response = await asyncio.to_thread(
+        client.search, query=query, max_results=max_results
+    )
     return [
         {"title": r.get("title"), "url": r.get("url"), "content": r.get("content")}
         for r in response.get("results", [])
@@ -92,7 +94,9 @@ def build_config() -> ModelConfig:
 
 def _require_tavily() -> None:
     if not os.environ.get("TAVILY_API_KEY"):
-        raise SystemExit("TAVILY_API_KEY is required. Copy .env.example to .env and add your key.")
+        raise SystemExit(
+            "TAVILY_API_KEY is required. Copy .env.example to .env and add your key."
+        )
 
 
 # ---------------------------------------------------------------------------

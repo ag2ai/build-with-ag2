@@ -40,7 +40,11 @@ NUM_RESEARCHERS = 3
 # Defaults tuned for each provider. Lead uses a stronger model for decomposition
 # and synthesis; researchers use a cheaper/faster model for bulk fetching work.
 _PROVIDER_DEFAULTS = {
-    "gemini": {"lead": "gemini-2.5-pro", "researcher": "gemini-2.5-flash", "env": "GEMINI_API_KEY"},
+    "gemini": {
+        "lead": "gemini-2.5-pro",
+        "researcher": "gemini-2.5-flash",
+        "env": "GEMINI_API_KEY",
+    },
     "openai": {"lead": "gpt-4o", "researcher": "gpt-4o-mini", "env": "OPENAI_API_KEY"},
 }
 
@@ -53,7 +57,9 @@ def build_config(role: str) -> ModelConfig:
     """
     provider = os.environ.get("LLM_PROVIDER", "gemini").lower()
     if provider not in _PROVIDER_DEFAULTS:
-        raise SystemExit(f"LLM_PROVIDER must be one of {list(_PROVIDER_DEFAULTS)}; got {provider!r}")
+        raise SystemExit(
+            f"LLM_PROVIDER must be one of {list(_PROVIDER_DEFAULTS)}; got {provider!r}"
+        )
     defaults = _PROVIDER_DEFAULTS[provider]
     override_var = f"{role.upper()}_MODEL"
     model = os.environ.get(override_var, defaults[role])
@@ -72,7 +78,9 @@ def build_config(role: str) -> ModelConfig:
 async def tavily_search(query: str, max_results: int = 5) -> list[dict]:
     """Search the web. Returns a list of {title, url, content} dicts ranked by relevance."""
     client = TavilyClient(api_key=os.environ["TAVILY_API_KEY"])
-    response = await asyncio.to_thread(client.search, query=query, max_results=max_results)
+    response = await asyncio.to_thread(
+        client.search, query=query, max_results=max_results
+    )
     return [
         {"title": r.get("title"), "url": r.get("url"), "content": r.get("content")}
         for r in response.get("results", [])
@@ -121,7 +129,9 @@ class LaneRouter:
                 self._print(label, f"📄 fetch({u})")
             elif name.startswith("task_"):
                 objective = args.get("objective", "")
-                self._print(label, f"🧭 delegate → {name.removeprefix('task_')}: {objective}")
+                self._print(
+                    label, f"🧭 delegate → {name.removeprefix('task_')}: {objective}"
+                )
             else:
                 self._print(label, f"🛠  {name}({event.arguments[:80]})")
 
@@ -253,7 +263,9 @@ async def main() -> None:
         flush=True,
     )
 
-    print("Parallel research agent on AG2 Beta. Ctrl-D or 'exit' to quit.\n", flush=True)
+    print(
+        "Parallel research agent on AG2 Beta. Ctrl-D or 'exit' to quit.\n", flush=True
+    )
     try:
         first = input("Research question: ").strip()
     except EOFError:
