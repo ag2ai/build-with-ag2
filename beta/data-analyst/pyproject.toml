@@ -5,7 +5,7 @@ description = "Data-analysis agent on AG2 Beta with a Daytona sandbox for safe c
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "ag2[ag-ui,openai,gemini]>=0.12.1",
+    "ag2[ag-ui,openai,gemini] @ git+https://github.com/ag2ai/ag2.git@pr3/actor-merge",
     "daytona>=0.100.0",
     "fastapi>=0.115.0",
     "python-dotenv>=1.0.0",

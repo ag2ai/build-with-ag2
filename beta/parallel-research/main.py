@@ -16,7 +16,7 @@ from dotenv import load_dotenv
 from tavily import TavilyClient
 
 from autogen.beta import Agent, MemoryStream, tool
-from autogen.beta.config import GeminiConfig, OpenAIConfig, VertexAIConfig
+from autogen.beta.config import GeminiConfig, OpenAIConfig
 from autogen.beta.config.config import ModelConfig
 from autogen.beta.events import (
     TaskCompleted,
@@ -40,7 +40,6 @@ NUM_RESEARCHERS = 3
 # Defaults tuned for each provider. Lead uses a stronger model for decomposition
 # and synthesis; researchers use a cheaper/faster model for bulk fetching work.
 _PROVIDER_DEFAULTS = {
-    "vertexai": {"lead": "gemini-3.1-pro-preview", "researcher": "gemini-3.1-pro-preview"},
     "gemini": {"lead": "gemini-2.5-pro", "researcher": "gemini-2.5-flash", "env": "GEMINI_API_KEY"},
     "openai": {"lead": "gpt-4o", "researcher": "gpt-4o-mini", "env": "OPENAI_API_KEY"},
 }
@@ -49,30 +48,16 @@ _PROVIDER_DEFAULTS = {
 def build_config(role: str) -> ModelConfig:
     """Return a ModelConfig for the given role ('lead' or 'researcher').
 
-    Provider is selected by LLM_PROVIDER env var (default: vertexai). Model names
+    Provider is selected by LLM_PROVIDER env var (default: gemini). Model names
     can be overridden per-role via LEAD_MODEL and RESEARCHER_MODEL.
     """
-    provider = os.environ.get("LLM_PROVIDER", "vertexai").lower()
+    provider = os.environ.get("LLM_PROVIDER", "gemini").lower()
     if provider not in _PROVIDER_DEFAULTS:
         raise SystemExit(f"LLM_PROVIDER must be one of {list(_PROVIDER_DEFAULTS)}; got {provider!r}")
     defaults = _PROVIDER_DEFAULTS[provider]
     override_var = f"{role.upper()}_MODEL"
     model = os.environ.get(override_var, defaults[role])
 
-    if provider == "vertexai":
-        project = os.environ.get("GOOGLE_CLOUD_PROJECT")
-        location = os.environ.get("GOOGLE_CLOUD_LOCATION", "global")
-        if not project:
-            raise SystemExit(
-                "GOOGLE_CLOUD_PROJECT is required for LLM_PROVIDER=vertexai. "
-                "Run `gcloud auth application-default login` and set GOOGLE_CLOUD_PROJECT."
-            )
-        return VertexAIConfig(
-            model=model,
-            project=project,
-            location=location,
-            credentials=os.environ.get("GOOGLE_APPLICATION_CREDENTIALS") or None,
-        )
     if provider == "openai":
         return OpenAIConfig(model=model)
     return GeminiConfig(model=model)
@@ -248,13 +233,10 @@ def build_lead(
 async def main() -> None:
     load_dotenv()
 
-    provider = os.environ.get("LLM_PROVIDER", "vertexai").lower()
+    provider = os.environ.get("LLM_PROVIDER", "gemini").lower()
     if provider not in _PROVIDER_DEFAULTS:
         raise SystemExit(f"LLM_PROVIDER must be one of {list(_PROVIDER_DEFAULTS)}")
-    if provider == "vertexai":
-        _require_env("GOOGLE_CLOUD_PROJECT")
-    else:
-        _require_env(_PROVIDER_DEFAULTS[provider]["env"])
+    _require_env(_PROVIDER_DEFAULTS[provider]["env"])
     _require_env("TAVILY_API_KEY")
 
     router = LaneRouter()

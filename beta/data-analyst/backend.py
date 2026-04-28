@@ -23,7 +23,7 @@ from fastapi.staticfiles import StaticFiles
 
 from autogen.beta import Agent, tool
 from autogen.beta.ag_ui import AGUIStream
-from autogen.beta.config import GeminiConfig, OpenAIConfig, VertexAIConfig
+from autogen.beta.config import GeminiConfig, OpenAIConfig
 from autogen.beta.config.config import ModelConfig
 
 load_dotenv()
@@ -188,34 +188,17 @@ async def get_artifact(filename: str) -> dict:
 
 
 _PROVIDER_DEFAULTS = {
-    "vertexai": {"model": "gemini-3.1-pro-preview"},
     "gemini": {"model": "gemini-2.5-pro", "env": "GEMINI_API_KEY"},
     "openai": {"model": "gpt-4o", "env": "OPENAI_API_KEY"},
 }
 
 
 def build_config() -> ModelConfig:
-    provider = os.environ.get("LLM_PROVIDER", "vertexai").lower()
+    provider = os.environ.get("LLM_PROVIDER", "gemini").lower()
     if provider not in _PROVIDER_DEFAULTS:
         raise SystemExit(f"LLM_PROVIDER must be one of {list(_PROVIDER_DEFAULTS)}")
 
     model = os.environ.get("MODEL", _PROVIDER_DEFAULTS[provider]["model"])
-
-    if provider == "vertexai":
-        project = os.environ.get("GOOGLE_CLOUD_PROJECT")
-        location = os.environ.get("GOOGLE_CLOUD_LOCATION", "global")
-        if not project:
-            raise SystemExit(
-                "GOOGLE_CLOUD_PROJECT is required for LLM_PROVIDER=vertexai. "
-                "Run `gcloud auth application-default login` and set GOOGLE_CLOUD_PROJECT."
-            )
-        return VertexAIConfig(
-            model=model,
-            project=project,
-            location=location,
-            credentials=os.environ.get("GOOGLE_APPLICATION_CREDENTIALS") or None,
-            streaming=True,
-        )
 
     env = _PROVIDER_DEFAULTS[provider]["env"]
     if not os.environ.get(env):
@@ -310,7 +293,7 @@ async def serve_frontend() -> FileResponse:
 
 @app.get("/healthz")
 async def healthz() -> dict:
-    provider = os.environ.get("LLM_PROVIDER", "vertexai").lower()
+    provider = os.environ.get("LLM_PROVIDER", "gemini").lower()
     return {
         "ok": True,
         "provider": provider,
