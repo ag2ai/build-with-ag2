@@ -1,0 +1,642 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mystery Dinner — Slice 5 · Full Game</title>
+  <link rel="stylesheet" href="/mystery_dinner.css" />
+  <link rel="icon" type="image/png" href="/images/favicon.png" />
+</head>
+<body data-view="splash">
+  <!-- Splash / home view -->
+  <section class="splash" id="splash">
+    <div class="splash-slideshow" aria-hidden="true">
+      <div class="splash-bg" style="background-image:url('/images/loc_estate.png')"></div>
+      <div class="splash-bg" style="background-image:url('/images/loc_country_manor.png')"></div>
+      <div class="splash-bg" style="background-image:url('/images/loc_penthouse.png')"></div>
+      <div class="splash-bg" style="background-image:url('/images/loc_ski_chalet.png')"></div>
+      <div class="splash-bg" style="background-image:url('/images/loc_yacht.png')"></div>
+      <div class="splash-bg" style="background-image:url('/images/map_background.png')"></div>
+    </div>
+    <div class="splash-vignette" aria-hidden="true"></div>
+
+    <div class="splash-content">
+      <img class="splash-logo" src="/images/ag2_white.svg" alt="AG2" />
+      <h1 class="splash-title">Mystery Dinner</h1>
+      <p class="splash-tagline">Six suspects. Ten minutes. One killer.</p>
+
+      <div class="splash-grid">
+        <button type="button" class="directive-card" data-directive="Investigate the whole house and find the killer. Question every suspect.">
+          <div class="directive-title">Full Sweep</div>
+          <div class="directive-sub">Question every suspect. Surface the contradictions.</div>
+        </button>
+        <button type="button" class="directive-card" data-directive="Start with Julian Blackwood. He inherits everything — push him on his patio alibi and his keycard log.">
+          <div class="directive-title">Follow the Heir</div>
+          <div class="directive-sub">Julian gains the most from this death. Lean on him first.</div>
+        </button>
+        <button type="button" class="directive-card" data-directive="Pull every available data source for the murder window 21:30–22:00. Let the records do the talking, then accuse.">
+          <div class="directive-title">Trust the Records</div>
+          <div class="directive-sub">GPS, keycard, phone logs, smart-home. Force the truth.</div>
+        </button>
+        <button type="button" class="directive-card" data-directive="Question the staff first — chef Marco, gardener Rhea, and driver Tomás — then check their alibis against the family's.">
+          <div class="directive-title">Question the Staff</div>
+          <div class="directive-sub">Chef, gardener, driver. Cross-check before pressing the family.</div>
+        </button>
+      </div>
+
+      <button type="button" id="tour-enter" class="splash-tour-link">
+        AG2 — Behind the Scenes →
+      </button>
+
+      <p class="splash-foot">Click a directive to begin. The clock starts on the first tool call.</p>
+    </div>
+  </section>
+
+  <!-- Behind-the-scenes tour view -->
+  <section class="tour" id="tour">
+    <div class="splash-slideshow" aria-hidden="true">
+      <div class="splash-bg" style="background-image:url('/images/loc_estate.png')"></div>
+      <div class="splash-bg" style="background-image:url('/images/loc_country_manor.png')"></div>
+      <div class="splash-bg" style="background-image:url('/images/loc_penthouse.png')"></div>
+      <div class="splash-bg" style="background-image:url('/images/loc_ski_chalet.png')"></div>
+      <div class="splash-bg" style="background-image:url('/images/loc_yacht.png')"></div>
+      <div class="splash-bg" style="background-image:url('/images/map_background.png')"></div>
+    </div>
+    <div class="splash-vignette" aria-hidden="true"></div>
+
+    <div class="tour-frame">
+      <header class="tour-header">
+        <span class="tour-eyebrow">AG2 · Behind the Scenes</span>
+        <span class="tour-progress" id="tour-progress">1 / 6</span>
+      </header>
+
+      <div class="tour-pages" id="tour-pages">
+        <!-- Page 1 — Suspects -->
+        <article class="tour-page" data-page="1">
+          <h2 class="tour-title">The Suspects · Six Actors in Character</h2>
+          <p class="tour-lede">
+            Each of the six suspects is an independent <code>autogen.beta.Actor</code>
+            with its own LLM config, system prompt, and a <code>@tool</code> for
+            looking up its private dossier. They never see the detective's
+            prompt — only their own — so they stay in character.
+          </p>
+
+          <div class="tour-body">
+            <div class="tour-text">
+              <p>
+                The <strong>Actor</strong> is AG2's atomic unit: a
+                self-contained agent with a config, a system prompt, and zero
+                or more tools. We build one per suspect inside
+                <code>build_suspect()</code>.
+              </p>
+              <p>
+                The <code>@tool</code> decorator turns a Python function
+                into something the LLM can invoke. Here, each suspect's
+                <code>query_dossier</code> closes over their own dossier
+                — the suspect cannot reach another suspect's records.
+              </p>
+              <p>
+                The system prompt teaches each suspect a "compliance
+                ladder": vague answers are free, specific lies are risky,
+                but if the detective <em>names</em> a data source they
+                <strong>must call the tool and report the truth</strong>.
+              </p>
+            </div>
+            <pre class="tour-code"><code>from autogen.beta import Actor
+from autogen.beta.tools import tool
+
+def build_suspect(profile):
+    dossier = profile.dossier
+
+    @tool(name="query_dossier",
+          description=f"Query {profile.display_name}'s "
+                      f"private records.")
+    def query_dossier(source, start_time, end_time):
+        rows = dossier.get(source, [])
+        return [r for r in rows
+                if start_time &lt;= r[0] &lt;= end_time]
+
+    return Actor(
+        name=profile.name,
+        config=suspect_llm_config(),
+        prompt=_render_prompt(profile),
+        tools=[query_dossier],
+    )</code></pre>
+          </div>
+
+          <div class="tour-callout">
+            <span class="callout-tag">Why it matters</span>
+            Six identical Actor scaffolds, six different personalities.
+            Swap the model in <code>suspect_llm_config()</code> and every
+            suspect upgrades at once.
+          </div>
+        </article>
+
+        <!-- Page 2 — Detective -->
+        <article class="tour-page" data-page="2">
+          <h2 class="tour-title">The Detective · An Actor That Calls Other Actors</h2>
+          <p class="tour-lede">
+            The detective is also an Actor — but its tools <em>orchestrate</em>
+            the rest of the cast. <code>ask_suspect</code> is just a Python
+            function that calls another Actor's <code>.ask()</code>, then
+            harvests the events into verified facts.
+          </p>
+
+          <div class="tour-body">
+            <div class="tour-text">
+              <p>
+                AG2 makes Actor-to-Actor delegation a one-liner:
+                <code>await suspect.ask(question)</code>. The detective's
+                tool wraps that call, then walks the suspect's
+                <code>ToolCallEvent</code> / <code>ToolResultEvent</code>
+                history to record every <em>forced truth</em> as a
+                <code>VerifiedFact</code>.
+              </p>
+              <p>
+                The detective has four tools:
+                <code>list_suspects</code>, <code>ask_suspect</code>,
+                <code>list_verified_facts</code>, and the terminal
+                <code>accuse</code>. A tight system prompt keeps it
+                looping until it has enough evidence to accuse.
+              </p>
+            </div>
+            <pre class="tour-code"><code>@tool
+async def ask_suspect(name: str, question: str) -> str:
+    """Interrogate a suspect; record forced truths."""
+    suspect = suspects[name.lower().strip()]
+    reply = await suspect.ask(question)   # Actor → Actor
+
+    for ev in await reply.history.get_events():
+        if isinstance(ev, ToolResultEvent):
+            CASE_MEMORY.add_fact(VerifiedFact(...))
+
+    CASE_MEMORY.add_turn(InterrogationTurn(...))
+    return reply.body
+
+return Actor(
+    name="detective",
+    config=detective_llm_config(),
+    prompt=DETECTIVE_PROMPT,
+    tools=[list_suspects, ask_suspect,
+           list_verified_facts, accuse],
+)</code></pre>
+          </div>
+
+          <h3 class="tour-subhead">CASE_MEMORY · The Shared Notebook</h3>
+
+          <div class="tour-body">
+            <div class="tour-text">
+              <p>
+                Every fact the detective forces out of a suspect lands
+                in <code>CASE_MEMORY</code> — a tiny process-level
+                singleton with two lists and a pub/sub hook. It is the
+                only place that long-term state lives.
+              </p>
+              <p>
+                Two record types fill those lists.
+                <code>InterrogationTurn</code> captures the raw Q&amp;A
+                from <code>ask_suspect</code>, while
+                <code>VerifiedFact</code> records a row the suspect's
+                <code>query_dossier</code> tool actually returned —
+                that's the cross-checkable evidence the
+                <code>accuse</code> tool reasons over.
+              </p>
+              <p>
+                <code>add_turn</code> and <code>add_fact</code> notify
+                subscribers, so the notebook SSE route and the
+                commentator both react in real time without polling.
+                When the detective later calls
+                <code>list_verified_facts</code>, it is reading from
+                this same store.
+              </p>
+            </div>
+            <pre class="tour-code"><code>@dataclass
+class VerifiedFact:
+    suspect: str
+    data_source: str   # "gps", "keycard", "phone_log"…
+    query: dict        # {"start_time": "21:30", …}
+    result: Any        # rows the suspect's tool returned
+    timestamp: float
+
+@dataclass
+class CaseMemory:
+    interrogation_log: list[InterrogationTurn]
+    verified_facts:    list[VerifiedFact]
+
+    def add_fact(self, fact):
+        self.verified_facts.append(fact)
+        self._notify("fact", fact)   # → notebook SSE
+                                     # → commentator
+
+    def subscribe(self, cb):  ...    # pub/sub hook
+
+CASE_MEMORY = CaseMemory()           # module-level singleton</code></pre>
+          </div>
+
+          <div class="tour-callout">
+            <span class="callout-tag">The pattern</span>
+            One Actor's tool is another Actor's <code>.ask()</code>,
+            and a shared in-memory store is the bus that lets the
+            detective, the notebook UI, and the commentator stay in
+            sync without an external broker.
+          </div>
+        </article>
+
+        <!-- Page 3 — Commentator -->
+        <article class="tour-page" data-page="3">
+          <h2 class="tour-title">The Commentator · A Side-Channel Actor</h2>
+          <p class="tour-lede">
+            The commentator never blocks the investigation. It runs as a
+            background Actor that wakes up whenever <code>CASE_MEMORY</code>
+            records a new fact, then publishes a one-liner to a
+            Server-Sent-Events stream.
+          </p>
+
+          <div class="tour-body">
+            <div class="tour-text">
+              <p>
+                It's the same <code>Actor</code> primitive, just wired
+                differently. The commentator subscribes to memory
+                changes; for each new <code>VerifiedFact</code>, the
+                <code>CommentaryEngine</code> seeds a one-shot
+                <code>commentator.ask(seed)</code>.
+              </p>
+              <p>
+                Two read-only <code>@tool</code>s let it peek at recent
+                memory. The prompt locks it to one or two punchy
+                sentences — sports-announcer style — so the live feed
+                stays snappy.
+              </p>
+            </div>
+            <pre class="tour-code"><code>COMMENTATOR_PROMPT = """
+  You are the live commentator for a
+  murder-mystery interrogation. 1-2 sentences,
+  vivid, never repeating what already played out.
+"""
+
+@tool
+def peek_recent_facts(n: int = 3) -> list[dict]:
+    return [...]  # last N verified facts
+
+return Actor(
+    name="commentator",
+    config=commentator_llm_config(),
+    prompt=COMMENTATOR_PROMPT,
+    tools=[peek_recent_facts, peek_recent_turns],
+)
+
+# Triggered every time a new fact lands:
+async def on_new_fact(fact):
+    reply = await commentator.ask(seed_for(fact))
+    broadcast(reply.body)</code></pre>
+          </div>
+
+          <div class="tour-callout">
+            <span class="callout-tag">Composition</span>
+            Three roles, three Actors, three different LLM configs —
+            but one shared protocol. Adding a fourth (a "judge", a
+            "newspaper headline writer") is one more file.
+          </div>
+        </article>
+
+        <!-- Page 4 — The Rest: AGUIStream + memory + clock -->
+        <article class="tour-page" data-page="4">
+          <h2 class="tour-title">The Stage · Streaming, Memory &amp; Time</h2>
+          <p class="tour-lede">
+            Three small pieces hold everything together: AG2's
+            <code>AGUIStream</code> (one ASGI route per Actor),
+            our own <code>CASE_MEMORY</code> (the shared notebook), and a
+            game clock that the <code>GameMaster</code> freezes when the
+            verdict lands.
+          </p>
+
+          <div class="tour-body">
+            <div class="tour-text">
+              <p>
+                <strong>AGUIStream</strong> is the AG-UI bridge — wrap
+                an Actor in <code>AGUIStream(actor).build_asgi()</code>
+                and you get a streaming HTTP endpoint emitting
+                <code>TOOL_CALL_START</code>, <code>TOOL_CALL_ARGS</code>,
+                <code>TEXT_MESSAGE_*</code> events the browser renders
+                live.
+              </p>
+              <p>
+                <strong>CASE_MEMORY</strong> is a plain Python
+                singleton with an observer hook. The detective writes;
+                the commentator reads; the notebook UI subscribes via
+                SSE. No framework magic — just functions and queues.
+              </p>
+              <p>
+                <strong>GameMaster + GameClock</strong> own the rules.
+                <code>accuse()</code> calls
+                <code>GAME_MASTER.finalize()</code>, which freezes the
+                clock and stamps an elapsed time onto the verdict.
+              </p>
+            </div>
+            <pre class="tour-code"><code>from autogen.beta.ag_ui.stream import AGUIStream
+
+# One ASGI route per Actor — streams AG-UI events
+# straight to the browser.
+routes.append(Route("/agent/detective",
+                    AGUIStream(detective).build_asgi()))
+routes.append(Route("/agent/commentator",
+                    AGUIStream(commentator).build_asgi()))
+for name, actor in suspects.items():
+    routes.append(
+        Route(f"/agent/{name}",
+              AGUIStream(actor).build_asgi()))
+
+# Notebook + clock + commentary stream to the UI:
+routes.append(Route("/notebook/stream", notebook_stream))
+routes.append(Route("/clock/stream",    clock_stream))
+routes.append(Route("/commentary/stream",
+                    commentary_stream))</code></pre>
+          </div>
+
+          <div class="tour-callout">
+            <span class="callout-tag">One protocol, many surfaces</span>
+            The AG-UI events that drive the live transcript also power
+            the lineup counters, the verified-facts notebook, and the
+            commentary feed.
+          </div>
+        </article>
+
+        <!-- Page 5 — Putting it together -->
+        <article class="tour-page" data-page="5">
+          <h2 class="tour-title">One Turn · End to End</h2>
+          <p class="tour-lede">
+            Here is the full path from a click on a directive card to a
+            verified fact landing in the notebook.
+          </p>
+
+          <div class="tour-body tour-flow">
+            <ol class="tour-steps">
+              <li><span class="step-num">1</span>
+                The user clicks a directive. The browser POSTs it to
+                <code>/agent/detective</code>.
+              </li>
+              <li><span class="step-num">2</span>
+                <code>AGUIStream</code> runs the detective Actor; the
+                LLM picks <code>ask_suspect("eleanor", "...")</code> as
+                its first tool call.
+              </li>
+              <li><span class="step-num">3</span>
+                Inside that tool, <code>await suspect.ask(question)</code>
+                spins up Eleanor's Actor. Her LLM sees an
+                <em>invoked</em> question and calls
+                <code>query_dossier</code>.
+              </li>
+              <li><span class="step-num">4</span>
+                Eleanor returns. The detective's tool walks her event
+                history and writes a <code>VerifiedFact</code> into
+                <code>CASE_MEMORY</code>.
+              </li>
+              <li><span class="step-num">5</span>
+                The memory observer wakes the
+                <code>CommentaryEngine</code>; the commentator Actor
+                emits a one-liner to the SSE feed.
+              </li>
+              <li><span class="step-num">6</span>
+                Three browser streams — AG-UI events, notebook SSE,
+                commentary SSE — update the UI live.
+              </li>
+              <li><span class="step-num">7</span>
+                Eventually the detective calls <code>accuse(...)</code>.
+                <code>GameMaster.finalize()</code> freezes the clock,
+                stamps the elapsed time, and the run ends.
+              </li>
+            </ol>
+          </div>
+
+          <div class="tour-callout">
+            <span class="callout-tag">Try it yourself</span>
+            All of this is in <code>app/agents/</code> and
+            <code>app/server.py</code>. Swap a config, add an Actor, or
+            invent a new tool — the rest of the system follows.
+          </div>
+        </article>
+
+        <!-- Page 6 — Architecture diagram -->
+        <article class="tour-page" data-page="6">
+          <h2 class="tour-title">The System · One Diagram</h2>
+          <p class="tour-lede">
+            Three Actors, one shared notebook, one ASGI bridge, one
+            referee. Every box below is a few dozen lines of plain
+            Python — the rest is AG2.
+          </p>
+
+          <div class="tour-diagram-wrap">
+            <svg class="tour-diagram"
+                 viewBox="0 0 880 600"
+                 xmlns="http://www.w3.org/2000/svg"
+                 role="img"
+                 aria-label="AG2 Mystery Dinner architecture diagram">
+              <defs>
+                <marker id="arr-g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+                  <path d="M0,0 L10,5 L0,10 z" fill="#f3d27a"/>
+                </marker>
+                <marker id="arr-p" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+                  <path d="M0,0 L10,5 L0,10 z" fill="#a78bfa"/>
+                </marker>
+                <marker id="arr-t" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+                  <path d="M0,0 L10,5 L0,10 z" fill="#65a30d"/>
+                </marker>
+                <marker id="arr-r" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+                  <path d="M0,0 L10,5 L0,10 z" fill="#ef4444"/>
+                </marker>
+              </defs>
+
+              <style>
+                .d-n      { fill: #1a1420; stroke: #f3d27a; stroke-width: 1.5; }
+                .d-n-act  { fill: #241a2e; stroke: #f3d27a; stroke-width: 1.5; }
+                .d-n-mem  { fill: #14241a; stroke: #65a30d; stroke-width: 1.5; }
+                .d-n-gm   { fill: #2a1212; stroke: #ef4444; stroke-width: 1.5; }
+                .d-n-stk  { fill: #241a2e; stroke: #3a2a42; stroke-width: 1; }
+                .d-ttl    { font-family: 'Cinzel Decorative', serif; font-weight: 700; font-size: 14px; fill: #f3d27a; letter-spacing: 0.06em; }
+                .d-ttl-m  { fill: #bef264; }
+                .d-ttl-r  { fill: #fca5a5; }
+                .d-sub    { font-family: 'Special Elite', monospace; font-size: 11px; fill: #d6c8a3; }
+                .d-edge   { font-family: 'Special Elite', monospace; font-size: 11px; }
+                .d-e-g    { fill: #f3d27a; }
+                .d-e-p    { fill: #a78bfa; }
+                .d-e-t    { fill: #bef264; }
+                .d-e-r    { fill: #fca5a5; }
+                .d-line-g { fill: none; stroke: #f3d27a; stroke-width: 1.5; }
+                .d-line-p { fill: none; stroke: #a78bfa; stroke-width: 1.4; stroke-dasharray: 5 4; }
+                .d-line-t { fill: none; stroke: #65a30d; stroke-width: 1.5; }
+                .d-line-r { fill: none; stroke: #ef4444; stroke-width: 1.5; }
+              </style>
+
+              <!-- Browser -->
+              <rect class="d-n" x="240" y="20" width="400" height="56" rx="10"/>
+              <text x="440" y="46" text-anchor="middle" class="d-ttl">BROWSER</text>
+              <text x="440" y="64" text-anchor="middle" class="d-sub">splash · live transcript · notebook · commentary</text>
+
+              <!-- Browser ↕ AGUIStream -->
+              <path class="d-line-g" d="M 430 76 L 430 116" marker-end="url(#arr-g)"/>
+              <path class="d-line-g" d="M 450 116 L 450 76" marker-end="url(#arr-g)"/>
+              <text x="498" y="100" class="d-edge d-e-g">AG-UI · SSE</text>
+
+              <!-- AGUIStream -->
+              <rect class="d-n" x="240" y="116" width="400" height="56" rx="10"/>
+              <text x="440" y="142" text-anchor="middle" class="d-ttl">AGUIStream</text>
+              <text x="440" y="160" text-anchor="middle" class="d-sub">one ASGI route per Actor</text>
+
+              <!-- AGUIStream → 3 Actors -->
+              <path class="d-line-g" d="M 340 172 Q 280 200 160 230" marker-end="url(#arr-g)"/>
+              <path class="d-line-g" d="M 440 172 L 440 230" marker-end="url(#arr-g)"/>
+              <path class="d-line-g" d="M 540 172 Q 600 200 720 230" marker-end="url(#arr-g)"/>
+
+              <!-- Detective -->
+              <rect class="d-n-act" x="40" y="230" width="240" height="100" rx="10"/>
+              <text x="160" y="258" text-anchor="middle" class="d-ttl">DETECTIVE</text>
+              <text x="160" y="278" text-anchor="middle" class="d-sub">Actor · OpenAI / Gemini</text>
+              <text x="160" y="298" text-anchor="middle" class="d-sub">list · ask · facts · accuse</text>
+
+              <!-- Suspects (stack effect) -->
+              <rect class="d-n-stk" x="350" y="240" width="220" height="90" rx="10"/>
+              <rect class="d-n-stk" x="345" y="235" width="220" height="90" rx="10"/>
+              <rect class="d-n-act" x="340" y="230" width="220" height="90" rx="10"/>
+              <text x="450" y="258" text-anchor="middle" class="d-ttl">6 SUSPECTS</text>
+              <text x="450" y="278" text-anchor="middle" class="d-sub">Actors · query_dossier()</text>
+              <text x="450" y="298" text-anchor="middle" class="d-sub">forced truth on invoke</text>
+
+              <!-- Commentator -->
+              <rect class="d-n-act" x="620" y="230" width="220" height="100" rx="10"/>
+              <text x="730" y="258" text-anchor="middle" class="d-ttl">COMMENTATOR</text>
+              <text x="730" y="278" text-anchor="middle" class="d-sub">Actor · live one-liners</text>
+              <text x="730" y="298" text-anchor="middle" class="d-sub">side-channel</text>
+
+              <!-- Detective ↔ Suspects -->
+              <path class="d-line-g" d="M 280 268 L 340 268" marker-end="url(#arr-g)"/>
+              <path class="d-line-g" d="M 340 296 L 280 296" marker-end="url(#arr-g)"/>
+              <text x="310" y="260" text-anchor="middle" class="d-edge d-e-g">ask</text>
+              <text x="310" y="316" text-anchor="middle" class="d-edge d-e-g">reply</text>
+
+              <!-- Detective → CASE_MEMORY (add_fact) -->
+              <path class="d-line-t" d="M 220 330 L 270 400" marker-end="url(#arr-t)"/>
+              <text x="232" y="372" class="d-edge d-e-t">add_fact / add_turn</text>
+
+              <!-- CASE_MEMORY -->
+              <rect class="d-n-mem" x="140" y="400" width="600" height="62" rx="10"/>
+              <text x="440" y="426" text-anchor="middle" class="d-ttl d-ttl-m">CASE_MEMORY</text>
+              <text x="440" y="446" text-anchor="middle" class="d-sub">interrogation_log · verified_facts · pub/sub</text>
+
+              <!-- CASE_MEMORY → Commentator (notify) -->
+              <path class="d-line-p" d="M 700 400 L 700 330" marker-end="url(#arr-p)"/>
+              <text x="708" y="370" class="d-edge d-e-p">notify</text>
+
+              <!-- Detective → GameMaster (accuse) -->
+              <path class="d-line-r" d="M 80 330 L 80 530 L 140 530" marker-end="url(#arr-r)"/>
+              <text x="20" y="430" class="d-edge d-e-r">accuse</text>
+
+              <!-- GameMaster -->
+              <rect class="d-n-gm" x="140" y="500" width="600" height="58" rx="10"/>
+              <text x="440" y="524" text-anchor="middle" class="d-ttl d-ttl-r">GAMEMASTER · GAMECLOCK</text>
+              <text x="440" y="542" text-anchor="middle" class="d-sub">finalize() · freeze() · elapsed_seconds</text>
+            </svg>
+
+            <ul class="tour-legend">
+              <li><span class="legend-swatch swatch-gold"></span>control · data flow</li>
+              <li><span class="legend-swatch swatch-truth"></span>memory write</li>
+              <li><span class="legend-swatch swatch-accent"></span>notify (pub/sub)</li>
+              <li><span class="legend-swatch swatch-evidence"></span>terminal · accuse</li>
+            </ul>
+          </div>
+
+          <div class="tour-callout">
+            <span class="callout-tag">The point</span>
+            Three Actors carrying their own configs and prompts, a
+            shared in-memory notebook with a tiny pub/sub, and an
+            AG-UI bridge to the browser. That's the whole game.
+          </div>
+        </article>
+      </div>
+
+      <footer class="tour-footer">
+        <button type="button" class="tour-btn tour-home" id="tour-home">← Home</button>
+        <div class="tour-nav">
+          <button type="button" class="tour-btn" id="tour-prev" disabled>‹ Prev</button>
+          <button type="button" class="tour-btn primary" id="tour-next">Next ›</button>
+        </div>
+      </footer>
+    </div>
+  </section>
+
+  <!-- Game view -->
+  <div class="game-view" id="game-view">
+    <header class="topbar" id="topbar">
+      <div class="topbar-row">
+        <h1>
+          <img class="topbar-logo" src="/images/ag2_white.svg" alt="AG2" />
+          <span class="topbar-title">🕵️ Mystery Dinner</span>
+          <span class="slice">Slice 5 · The Blackwood Estate</span>
+        </h1>
+        <div class="topbar-right">
+          <button type="button" id="new-game" class="new-game-btn">↻ New game</button>
+          <div class="clock" id="clock">⏱ 10:00</div>
+        </div>
+      </div>
+      <div class="case-info" id="case-info">Loading case…</div>
+    </header>
+
+    <main class="stage stage-three">
+      <!-- LEFT: Suspect lineup -->
+      <aside class="lineup" id="lineup">
+        <h3>Lineup</h3>
+        <ol id="suspects" class="suspects-list">
+          <li class="muted">Loading suspects…</li>
+        </ol>
+      </aside>
+
+      <!-- CENTER: Detective panel -->
+      <section class="suspect-card detective-card">
+        <div class="suspect-header">
+          <img class="avatar avatar-img" src="/images/avatar_detective.png" alt="Detective" />
+          <div class="meta">
+            <div class="name">The Detective</div>
+            <div class="role">list_suspects · ask_suspect · list_verified_facts · accuse</div>
+          </div>
+        </div>
+
+        <div class="stream" id="stream" aria-live="polite"></div>
+
+        <!-- Commentary feed -->
+        <section class="commentary-feed" id="commentary">
+          <header class="commentary-header">
+            <img class="commentary-avatar" src="/images/avatar_commentator.png" alt="Commentator" />
+            <div>
+              <div class="commentary-title">Live Commentary</div>
+              <div class="commentary-sub">One-line reactions as evidence lands</div>
+            </div>
+          </header>
+          <ol class="commentary-list" id="commentary-list">
+            <li class="muted">Awaiting first forced-truth…</li>
+          </ol>
+        </section>
+      </section>
+
+      <!-- RIGHT: Notebook -->
+      <aside class="notebook">
+        <h3>🗒 Notebook</h3>
+
+        <section class="notebook-section">
+          <h4>Verified facts</h4>
+          <ol id="facts" class="facts-list">
+            <li class="muted">Nothing verified yet.</li>
+          </ol>
+        </section>
+
+        <section class="notebook-section">
+          <h4>Interrogation log</h4>
+          <ol id="turns" class="turns-list">
+            <li class="muted">No turns yet.</li>
+          </ol>
+        </section>
+      </aside>
+    </main>
+  </div>
+
+  <script type="module" src="/mystery_dinner.js"></script>
+</body>
+</html>

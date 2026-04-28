@@ -1,0 +1,6 @@
+starlette
+uvicorn
+google-genai
+google-auth
+fast-depends
+ag2[ag-ui,openai] @ git+https://github.com/ag2ai/ag2.git@pr3/actor-merge
