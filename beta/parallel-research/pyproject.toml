@@ -5,6 +5,6 @@ description = "Parallel web research with live fan-out on AG2 Beta"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "ag2[gemini,openai,tavily] @ git+https://github.com/ag2ai/ag2.git@pr3/actor-merge",
+    "ag2[gemini,openai,tavily] @ git+https://github.com/ag2ai/ag2.git@main",
     "python-dotenv>=1.0.0",
 ]

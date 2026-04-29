@@ -1,6 +1,6 @@
 import textwrap
 
-from autogen.beta import Actor
+from autogen.beta import Agent
 from autogen.beta.tools import tool
 
 from ..config import commentator_llm_config
@@ -49,8 +49,8 @@ def peek_recent_turns(n: int = 2) -> list[dict]:
     ]
 
 
-def build_commentator() -> Actor:
-    return Actor(
+def build_commentator() -> Agent:
+    return Agent(
         name="commentator",
         config=commentator_llm_config(),
         prompt=COMMENTATOR_PROMPT,

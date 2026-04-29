@@ -3,7 +3,7 @@
 Tweak the values in this file to point the agents at different LLMs or
 change the game's pacing. Everything else in the app reads from here.
 
-LLM configs are exposed as factory functions because each Actor needs
+LLM configs are exposed as factory functions because each Agent needs
 its own config instance.
 """
 

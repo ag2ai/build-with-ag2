@@ -1,6 +1,6 @@
 """Commentary engine.
 
-Listens to CaseMemory deltas and asks the commentator Actor for a
+Listens to CaseMemory deltas and asks the commentator Agent for a
 one-liner each time something dramatic happens. The generated lines are
 published on an in-process queue that the frontend subscribes to via
 /commentary/stream.
@@ -11,7 +11,7 @@ import time
 from dataclasses import dataclass
 from typing import Any
 
-from autogen.beta import Actor
+from autogen.beta import Agent
 
 from .memory import CASE_MEMORY
 
@@ -24,7 +24,7 @@ class CommentaryLine:
 
 
 class CommentaryEngine:
-    def __init__(self, commentator: Actor, *, cadence_seconds: float = 8.0) -> None:
+    def __init__(self, commentator: Agent, *, cadence_seconds: float = 8.0) -> None:
         self._commentator = commentator
         self._cadence = cadence_seconds
         self._queue: asyncio.Queue = asyncio.Queue()
