@@ -1,20 +1,20 @@
 # Mystery Dinner — a multi-agent demo for AG2
 
 A live, browser-rendered murder-mystery game built on
-[`autogen.beta`](https://github.com/ag2ai/ag2). A **detective** Actor
-interrogates six **suspect** Actors while a **commentator** Actor
+[`autogen.beta`](https://github.com/ag2ai/ag2). A **detective** Agent
+interrogates six **suspect** Agents while a **commentator** Agent
 narrates the action, all streamed to the browser through the AG-UI
 event protocol.
 
 It's a working example of:
 
-- Three roles, three independent `Actor`s with their own LLM configs
+- Three roles, three independent `Agent`s with their own LLM configs
   and prompts.
-- One Actor calling another via a `@tool` that wraps
+- One Agent calling another via a `@tool` that wraps
   `await suspect.ask(...)`.
 - A shared `CASE_MEMORY` with a tiny pub/sub hook driving the live
   notebook and the commentary feed.
-- `AGUIStream` exposing every Actor as an ASGI route the browser can
+- `AGUIStream` exposing every Agent as an ASGI route the browser can
   consume directly.
 - `GameMaster` + `GameClock` wrapping the rules and the 10-minute
   timer.
@@ -59,7 +59,7 @@ def commentator_llm_config():  return GeminiConfig(model="…", streaming=True)
 ```
 
 Swap any factory for `OpenAIConfig`, `VertexAIConfig`, etc. — every
-Actor that uses it picks up the change on the next server restart.
+Agent that uses it picks up the change on the next server restart.
 
 ## Project layout
 
@@ -70,11 +70,11 @@ app/
 ├── game_master.py         # Verdict logic, withdrawals, end of game
 ├── clock.py               # 10-minute game clock with freeze-on-verdict
 ├── memory.py              # CASE_MEMORY — pub/sub fact + turn store
-├── commentary.py          # CommentaryEngine (memory observer → Actor)
+├── commentary.py          # CommentaryEngine (memory observer → Agent)
 ├── agents/
-│   ├── detective.py       # Detective Actor + 4 tools
-│   ├── suspect.py         # Suspect Actor builder (one per profile)
-│   ├── commentator.py     # Commentator Actor + 2 read-only peek tools
+│   ├── detective.py       # Detective Agent + 4 tools
+│   ├── suspect.py         # Suspect Agent builder (one per profile)
+│   ├── commentator.py     # Commentator Agent + 2 read-only peek tools
 │   └── eleanor.py         # Tiny example of a single suspect builder
 ├── cases/
 │   └── blackwood_estate.py  # Case data: profiles, dossiers, killer, window
@@ -90,15 +90,15 @@ The Behind-the-Scenes tour shows a diagram of this, but in short:
 
 1. The user clicks a directive. The browser POSTs it to
    `/agent/detective`.
-2. `AGUIStream` runs the detective Actor; its first tool call is
+2. `AGUIStream` runs the detective Agent; its first tool call is
    `ask_suspect("eleanor", "...")`.
 3. Inside that tool, `await suspect.ask(question)` runs Eleanor's
-   Actor. Her LLM sees an *invoked* question and calls
+   Agent. Her LLM sees an *invoked* question and calls
    `query_dossier`.
 4. The detective's tool walks Eleanor's event history and writes a
    `VerifiedFact` into `CASE_MEMORY`.
 5. The memory pub/sub wakes the `CommentaryEngine`; the commentator
-   Actor emits a one-liner to the SSE feed.
+   Agent emits a one-liner to the SSE feed.
 6. Three browser streams — AG-UI events, notebook SSE, commentary
    SSE — update the UI live.
 7. Eventually the detective calls `accuse(...)`.
@@ -107,15 +107,15 @@ The Behind-the-Scenes tour shows a diagram of this, but in short:
 
 ## Where to start reading
 
-- **`app/agents/detective.py`** — the orchestrating Actor. Shows how a
-  tool can wrap `await other_actor.ask(...)` and harvest events.
-- **`app/agents/suspect.py`** — the per-character Actor builder, plus
+- **`app/agents/detective.py`** — the orchestrating Agent. Shows how a
+  tool can wrap `await other_agent.ask(...)` and harvest events.
+- **`app/agents/suspect.py`** — the per-character Agent builder, plus
   the `query_dossier` `@tool` that closes over each suspect's private
   records.
 - **`app/memory.py`** — the shared notebook. Two dataclasses + a
   10-line pub/sub.
 - **`app/server.py`** — Starlette wiring; one
-  `AGUIStream(actor).build_asgi()` per Actor route.
+  `AGUIStream(agent).build_asgi()` per Agent route.
 
 ## Notes on auth
 

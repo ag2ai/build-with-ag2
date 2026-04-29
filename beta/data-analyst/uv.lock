@@ -22,7 +22,7 @@ wheels = [
 [[package]]
 name = "ag2"
 version = "0.12.1"
-source = { git = "https://github.com/ag2ai/ag2.git?rev=pr3%2Factor-merge#ae8b4e8dfb9436ae2cec0a3604e3cae6352c3ab7" }
+source = { git = "https://github.com/ag2ai/ag2.git?rev=main#4717fe4c1c722bd2f485658de076be6330945103" }
 dependencies = [
     { name = "anyio" },
     { name = "fast-depends", extra = ["pydantic"] },
@@ -499,7 +499,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "ag2", extras = ["ag-ui", "openai", "gemini"], git = "https://github.com/ag2ai/ag2.git?rev=pr3%2Factor-merge" },
+    { name = "ag2", extras = ["ag-ui", "openai", "gemini"], git = "https://github.com/ag2ai/ag2.git?rev=main" },
     { name = "daytona", specifier = ">=0.100.0" },
     { name = "fastapi", specifier = ">=0.115.0" },
     { name = "python-dotenv", specifier = ">=1.0.0" },

@@ -1,7 +1,7 @@
 import textwrap
 from typing import Any
 
-from autogen.beta import Actor
+from autogen.beta import Agent
 from autogen.beta.events.tool_events import ToolCallEvent, ToolResultEvent
 from autogen.beta.tools import tool
 
@@ -100,7 +100,7 @@ def _render_prompt() -> str:
     ).strip()
 
 
-def build_detective(suspects: dict[str, Actor]) -> Actor:
+def build_detective(suspects: dict[str, Agent]) -> Agent:
     @tool
     def list_suspects() -> list[dict]:
         """Return public information about every suspect + their available data sources."""
@@ -221,7 +221,7 @@ def build_detective(suspects: dict[str, Actor]) -> Actor:
             in ("win", "wrong_killer", "no_withdrawal_left"),
         }
 
-    return Actor(
+    return Agent(
         name="detective",
         config=detective_llm_config(),
         prompt=_render_prompt(),

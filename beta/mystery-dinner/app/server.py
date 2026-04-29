@@ -53,8 +53,8 @@ def create_app() -> Starlette:
     GAME_CLOCK.reset(GAME_DURATION_SECONDS)
 
     routes: list = []
-    for name, actor in suspects.items():
-        routes.append(Route(f"/agent/{name}", AGUIStream(actor).build_asgi()))
+    for name, agent in suspects.items():
+        routes.append(Route(f"/agent/{name}", AGUIStream(agent).build_asgi()))
 
     routes.append(Route("/agent/detective", AGUIStream(detective).build_asgi()))
     routes.append(Route("/agent/commentator", AGUIStream(commentator).build_asgi()))

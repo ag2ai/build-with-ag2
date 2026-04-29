@@ -1,6 +1,6 @@
 import textwrap
 
-from autogen.beta import Actor
+from autogen.beta import Agent
 from autogen.beta.tools import tool
 
 from ..cases.blackwood_estate import SuspectProfile
@@ -64,10 +64,10 @@ def _render_prompt(profile: SuspectProfile) -> str:
     ).strip()
 
 
-def build_suspect(profile: SuspectProfile) -> Actor:
+def build_suspect(profile: SuspectProfile) -> Agent:
     dossier = profile.dossier
 
-    # Capture dossier in a per-suspect closure so each Actor gets its own tool
+    # Capture dossier in a per-suspect closure so each Agent gets its own tool
     @tool(
         name="query_dossier",
         description=(
@@ -87,7 +87,7 @@ def build_suspect(profile: SuspectProfile) -> Actor:
             row for row in rows if str(row[0]) >= start_time and str(row[0]) <= end_time
         ]
 
-    return Actor(
+    return Agent(
         name=profile.name,
         config=suspect_llm_config(),
         prompt=_render_prompt(profile),

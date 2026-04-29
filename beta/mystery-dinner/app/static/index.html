@@ -73,9 +73,9 @@
       <div class="tour-pages" id="tour-pages">
         <!-- Page 1 — Suspects -->
         <article class="tour-page" data-page="1">
-          <h2 class="tour-title">The Suspects · Six Actors in Character</h2>
+          <h2 class="tour-title">The Suspects · Six Agents in Character</h2>
           <p class="tour-lede">
-            Each of the six suspects is an independent <code>autogen.beta.Actor</code>
+            Each of the six suspects is an independent <code>autogen.beta.Agent</code>
             with its own LLM config, system prompt, and a <code>@tool</code> for
             looking up its private dossier. They never see the detective's
             prompt — only their own — so they stay in character.
@@ -84,7 +84,7 @@
           <div class="tour-body">
             <div class="tour-text">
               <p>
-                The <strong>Actor</strong> is AG2's atomic unit: a
+                The <strong>Agent</strong> is AG2's atomic unit: a
                 self-contained agent with a config, a system prompt, and zero
                 or more tools. We build one per suspect inside
                 <code>build_suspect()</code>.
@@ -102,7 +102,7 @@
                 <strong>must call the tool and report the truth</strong>.
               </p>
             </div>
-            <pre class="tour-code"><code>from autogen.beta import Actor
+            <pre class="tour-code"><code>from autogen.beta import Agent
 from autogen.beta.tools import tool
 
 def build_suspect(profile):
@@ -116,7 +116,7 @@ def build_suspect(profile):
         return [r for r in rows
                 if start_time &lt;= r[0] &lt;= end_time]
 
-    return Actor(
+    return Agent(
         name=profile.name,
         config=suspect_llm_config(),
         prompt=_render_prompt(profile),
@@ -126,7 +126,7 @@ def build_suspect(profile):
 
           <div class="tour-callout">
             <span class="callout-tag">Why it matters</span>
-            Six identical Actor scaffolds, six different personalities.
+            Six identical Agent scaffolds, six different personalities.
             Swap the model in <code>suspect_llm_config()</code> and every
             suspect upgrades at once.
           </div>
@@ -134,18 +134,18 @@ def build_suspect(profile):
 
         <!-- Page 2 — Detective -->
         <article class="tour-page" data-page="2">
-          <h2 class="tour-title">The Detective · An Actor That Calls Other Actors</h2>
+          <h2 class="tour-title">The Detective · An Agent That Calls Other Agents</h2>
           <p class="tour-lede">
-            The detective is also an Actor — but its tools <em>orchestrate</em>
+            The detective is also an Agent — but its tools <em>orchestrate</em>
             the rest of the cast. <code>ask_suspect</code> is just a Python
-            function that calls another Actor's <code>.ask()</code>, then
+            function that calls another Agent's <code>.ask()</code>, then
             harvests the events into verified facts.
           </p>
 
           <div class="tour-body">
             <div class="tour-text">
               <p>
-                AG2 makes Actor-to-Actor delegation a one-liner:
+                AG2 makes Agent-to-Agent delegation a one-liner:
                 <code>await suspect.ask(question)</code>. The detective's
                 tool wraps that call, then walks the suspect's
                 <code>ToolCallEvent</code> / <code>ToolResultEvent</code>
@@ -164,7 +164,7 @@ def build_suspect(profile):
 async def ask_suspect(name: str, question: str) -> str:
     """Interrogate a suspect; record forced truths."""
     suspect = suspects[name.lower().strip()]
-    reply = await suspect.ask(question)   # Actor → Actor
+    reply = await suspect.ask(question)   # Agent → Agent
 
     for ev in await reply.history.get_events():
         if isinstance(ev, ToolResultEvent):
@@ -173,7 +173,7 @@ async def ask_suspect(name: str, question: str) -> str:
     CASE_MEMORY.add_turn(InterrogationTurn(...))
     return reply.body
 
-return Actor(
+return Agent(
     name="detective",
     config=detective_llm_config(),
     prompt=DETECTIVE_PROMPT,
@@ -235,7 +235,7 @@ CASE_MEMORY = CaseMemory()           # module-level singleton</code></pre>
 
           <div class="tour-callout">
             <span class="callout-tag">The pattern</span>
-            One Actor's tool is another Actor's <code>.ask()</code>,
+            One Agent's tool is another Agent's <code>.ask()</code>,
             and a shared in-memory store is the bus that lets the
             detective, the notebook UI, and the commentator stay in
             sync without an external broker.
@@ -244,10 +244,10 @@ CASE_MEMORY = CaseMemory()           # module-level singleton</code></pre>
 
         <!-- Page 3 — Commentator -->
         <article class="tour-page" data-page="3">
-          <h2 class="tour-title">The Commentator · A Side-Channel Actor</h2>
+          <h2 class="tour-title">The Commentator · A Side-Channel Agent</h2>
           <p class="tour-lede">
             The commentator never blocks the investigation. It runs as a
-            background Actor that wakes up whenever <code>CASE_MEMORY</code>
+            background Agent that wakes up whenever <code>CASE_MEMORY</code>
             records a new fact, then publishes a one-liner to a
             Server-Sent-Events stream.
           </p>
@@ -255,7 +255,7 @@ CASE_MEMORY = CaseMemory()           # module-level singleton</code></pre>
           <div class="tour-body">
             <div class="tour-text">
               <p>
-                It's the same <code>Actor</code> primitive, just wired
+                It's the same <code>Agent</code> primitive, just wired
                 differently. The commentator subscribes to memory
                 changes; for each new <code>VerifiedFact</code>, the
                 <code>CommentaryEngine</code> seeds a one-shot
@@ -278,7 +278,7 @@ CASE_MEMORY = CaseMemory()           # module-level singleton</code></pre>
 def peek_recent_facts(n: int = 3) -> list[dict]:
     return [...]  # last N verified facts
 
-return Actor(
+return Agent(
     name="commentator",
     config=commentator_llm_config(),
     prompt=COMMENTATOR_PROMPT,
@@ -293,7 +293,7 @@ async def on_new_fact(fact):
 
           <div class="tour-callout">
             <span class="callout-tag">Composition</span>
-            Three roles, three Actors, three different LLM configs —
+            Three roles, three Agents, three different LLM configs —
             but one shared protocol. Adding a fourth (a "judge", a
             "newspaper headline writer") is one more file.
           </div>
@@ -304,7 +304,7 @@ async def on_new_fact(fact):
           <h2 class="tour-title">The Stage · Streaming, Memory &amp; Time</h2>
           <p class="tour-lede">
             Three small pieces hold everything together: AG2's
-            <code>AGUIStream</code> (one ASGI route per Actor),
+            <code>AGUIStream</code> (one ASGI route per Agent),
             our own <code>CASE_MEMORY</code> (the shared notebook), and a
             game clock that the <code>GameMaster</code> freezes when the
             verdict lands.
@@ -314,7 +314,7 @@ async def on_new_fact(fact):
             <div class="tour-text">
               <p>
                 <strong>AGUIStream</strong> is the AG-UI bridge — wrap
-                an Actor in <code>AGUIStream(actor).build_asgi()</code>
+                an Agent in <code>AGUIStream(agent).build_asgi()</code>
                 and you get a streaming HTTP endpoint emitting
                 <code>TOOL_CALL_START</code>, <code>TOOL_CALL_ARGS</code>,
                 <code>TEXT_MESSAGE_*</code> events the browser renders
@@ -335,16 +335,16 @@ async def on_new_fact(fact):
             </div>
             <pre class="tour-code"><code>from autogen.beta.ag_ui.stream import AGUIStream
 
-# One ASGI route per Actor — streams AG-UI events
+# One ASGI route per Agent — streams AG-UI events
 # straight to the browser.
 routes.append(Route("/agent/detective",
                     AGUIStream(detective).build_asgi()))
 routes.append(Route("/agent/commentator",
                     AGUIStream(commentator).build_asgi()))
-for name, actor in suspects.items():
+for name, agent in suspects.items():
     routes.append(
         Route(f"/agent/{name}",
-              AGUIStream(actor).build_asgi()))
+              AGUIStream(agent).build_asgi()))
 
 # Notebook + clock + commentary stream to the UI:
 routes.append(Route("/notebook/stream", notebook_stream))
@@ -376,13 +376,13 @@ routes.append(Route("/commentary/stream",
                 <code>/agent/detective</code>.
               </li>
               <li><span class="step-num">2</span>
-                <code>AGUIStream</code> runs the detective Actor; the
+                <code>AGUIStream</code> runs the detective Agent; the
                 LLM picks <code>ask_suspect("eleanor", "...")</code> as
                 its first tool call.
               </li>
               <li><span class="step-num">3</span>
                 Inside that tool, <code>await suspect.ask(question)</code>
-                spins up Eleanor's Actor. Her LLM sees an
+                spins up Eleanor's Agent. Her LLM sees an
                 <em>invoked</em> question and calls
                 <code>query_dossier</code>.
               </li>
@@ -393,7 +393,7 @@ routes.append(Route("/commentary/stream",
               </li>
               <li><span class="step-num">5</span>
                 The memory observer wakes the
-                <code>CommentaryEngine</code>; the commentator Actor
+                <code>CommentaryEngine</code>; the commentator Agent
                 emits a one-liner to the SSE feed.
               </li>
               <li><span class="step-num">6</span>
@@ -411,7 +411,7 @@ routes.append(Route("/commentary/stream",
           <div class="tour-callout">
             <span class="callout-tag">Try it yourself</span>
             All of this is in <code>app/agents/</code> and
-            <code>app/server.py</code>. Swap a config, add an Actor, or
+            <code>app/server.py</code>. Swap a config, add an Agent, or
             invent a new tool — the rest of the system follows.
           </div>
         </article>
@@ -420,7 +420,7 @@ routes.append(Route("/commentary/stream",
         <article class="tour-page" data-page="6">
           <h2 class="tour-title">The System · One Diagram</h2>
           <p class="tour-lede">
-            Three Actors, one shared notebook, one ASGI bridge, one
+            Three Agents, one shared notebook, one ASGI bridge, one
             referee. Every box below is a few dozen lines of plain
             Python — the rest is AG2.
           </p>
@@ -480,9 +480,9 @@ routes.append(Route("/commentary/stream",
               <!-- AGUIStream -->
               <rect class="d-n" x="240" y="116" width="400" height="56" rx="10"/>
               <text x="440" y="142" text-anchor="middle" class="d-ttl">AGUIStream</text>
-              <text x="440" y="160" text-anchor="middle" class="d-sub">one ASGI route per Actor</text>
+              <text x="440" y="160" text-anchor="middle" class="d-sub">one ASGI route per Agent</text>
 
-              <!-- AGUIStream → 3 Actors -->
+              <!-- AGUIStream → 3 Agents -->
               <path class="d-line-g" d="M 340 172 Q 280 200 160 230" marker-end="url(#arr-g)"/>
               <path class="d-line-g" d="M 440 172 L 440 230" marker-end="url(#arr-g)"/>
               <path class="d-line-g" d="M 540 172 Q 600 200 720 230" marker-end="url(#arr-g)"/>
@@ -490,7 +490,7 @@ routes.append(Route("/commentary/stream",
               <!-- Detective -->
               <rect class="d-n-act" x="40" y="230" width="240" height="100" rx="10"/>
               <text x="160" y="258" text-anchor="middle" class="d-ttl">DETECTIVE</text>
-              <text x="160" y="278" text-anchor="middle" class="d-sub">Actor · OpenAI / Gemini</text>
+              <text x="160" y="278" text-anchor="middle" class="d-sub">Agent · OpenAI / Gemini</text>
               <text x="160" y="298" text-anchor="middle" class="d-sub">list · ask · facts · accuse</text>
 
               <!-- Suspects (stack effect) -->
@@ -498,13 +498,13 @@ routes.append(Route("/commentary/stream",
               <rect class="d-n-stk" x="345" y="235" width="220" height="90" rx="10"/>
               <rect class="d-n-act" x="340" y="230" width="220" height="90" rx="10"/>
               <text x="450" y="258" text-anchor="middle" class="d-ttl">6 SUSPECTS</text>
-              <text x="450" y="278" text-anchor="middle" class="d-sub">Actors · query_dossier()</text>
+              <text x="450" y="278" text-anchor="middle" class="d-sub">Agents · query_dossier()</text>
               <text x="450" y="298" text-anchor="middle" class="d-sub">forced truth on invoke</text>
 
               <!-- Commentator -->
               <rect class="d-n-act" x="620" y="230" width="220" height="100" rx="10"/>
               <text x="730" y="258" text-anchor="middle" class="d-ttl">COMMENTATOR</text>
-              <text x="730" y="278" text-anchor="middle" class="d-sub">Actor · live one-liners</text>
+              <text x="730" y="278" text-anchor="middle" class="d-sub">Agent · live one-liners</text>
               <text x="730" y="298" text-anchor="middle" class="d-sub">side-channel</text>
 
               <!-- Detective ↔ Suspects -->
@@ -546,7 +546,7 @@ routes.append(Route("/commentary/stream",
 
           <div class="tour-callout">
             <span class="callout-tag">The point</span>
-            Three Actors carrying their own configs and prompts, a
+            Three Agents carrying their own configs and prompts, a
             shared in-memory notebook with a tiny pub/sub, and an
             AG-UI bridge to the browser. That's the whole game.
           </div>
