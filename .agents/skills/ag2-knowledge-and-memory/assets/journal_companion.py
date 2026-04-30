@@ -81,7 +81,9 @@ async def main() -> None:
         section("Session 2 — new Agent instance, same store: memory persists")
 
         agent2 = build_agent()
-        r2 = await agent2.ask("Quick check-in: what was I working on? Answer in one line.")
+        r2 = await agent2.ask(
+            "Quick check-in: what was I working on? Answer in one line."
+        )
         print(r2.body)
     finally:
         shutil.rmtree(workdir, ignore_errors=True)

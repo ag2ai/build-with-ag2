@@ -40,7 +40,9 @@ class AlertConsole(BaseObserver):
         for event in events:
             if isinstance(event, ObserverAlert):
                 self.seen.append(event)
-                print(f"    [{event.severity.upper():<8}] {event.source}: {event.message}")
+                print(
+                    f"    [{event.severity.upper():<8}] {event.source}: {event.message}"
+                )
         return None
 
 
@@ -57,7 +59,9 @@ async def main() -> None:
 
     agent = Agent(
         "writer",
-        prompt=("Write prose the user asks for. Favour variety — never repeat the same sentence twice."),
+        prompt=(
+            "Write prose the user asks for. Favour variety — never repeat the same sentence twice."
+        ),
         config=config,
         observers=[token_monitor, loop_detector, console],
     )

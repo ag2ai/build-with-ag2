@@ -54,7 +54,9 @@ async def main() -> None:
 
     agent = Agent(
         "lexicon",
-        prompt=("Be very terse — one short sentence per reply. Answer directly without calling any tools."),
+        prompt=(
+            "Be very terse — one short sentence per reply. Answer directly without calling any tools."
+        ),
         config=config,
         assembly=[
             ConversationPolicy(),
