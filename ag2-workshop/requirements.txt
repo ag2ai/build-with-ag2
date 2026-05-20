@@ -1,31 +1,38 @@
-# AG2 Workshop - Dependencies
+# AG2 Workshop - Dependencies (AG2 Beta API)
 # Install: pip install -r requirements.txt
-# Python 3.12+ recommended (required for MCP in Ep 15)
+# Python 3.12+ recommended
 
-# Core (Ep 1-10)
-ag2[openai]>=0.10
+# Core (all episodes)
+ag2[openai]>=0.11
 python-dotenv
 
-# UI (Ep 14)
-streamlit
+# Web UI & deployment (ep21 AG-UI, ep22 plain HTML, ep29 deploy)
+starlette
+uvicorn
+httpx
 
-# RAG (Ep 12)
-chromadb
+# Voice (ep05 LiveAgent)
+sounddevice
+numpy
 
-# MCP (Ep 15) - requires Python 3.12+
+# MCP tools (ep23)
 ag2[mcp]
-arxiv
-wikipedia
 
-# Observability (Ep 16)
-opentelemetry-api
-opentelemetry-sdk
-opentelemetry-exporter-otlp
+# Telemetry / OpenTelemetry spans (ep24)
+ag2[tracing]
 
-# Testing (Ep 18)
+# A2A protocol deployment (ep29)
+ag2[a2a]
+
+# Testing (ep27)
 pytest
 pytest-asyncio
 
 # Notebooks
 jupyter
 ipykernel
+
+# Removed vs the classic workshop:
+#   chromadb  -> replaced by KnowledgeConfig + MemoryKnowledgeStore (ep19)
+#   streamlit -> replaced by AGUIStream (ep21) and a plain HTML frontend (ep22)
+#   manual OpenTelemetry setup -> replaced by the beta TelemetryMiddleware (ep24)
