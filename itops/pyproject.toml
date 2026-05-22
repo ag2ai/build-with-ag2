@@ -1,0 +1,51 @@
+[project]
+name = "ag2-it-ops"
+version = "0.1.0"
+description = "AG2-based agents and tooling for IT operations"
+requires-python = ">=3.12"
+authors = [{ name = "Mark", email = "mark@ag2.ai" }]
+dependencies = [
+    "ag2[anthropic,gemini,tracing]",
+    "fastapi",            # it_ops_app backend service
+    "uvicorn[standard]",  # ASGI server for the backend
+]
+
+[tool.uv.sources]
+ag2 = { git = "https://github.com/ag2ai/ag2.git", branch = "main" }
+
+[dependency-groups]
+dev = [
+    "mypy>=2.1.0",
+    "ruff>=0.15.14",
+    "pytest>=8",
+    "pytest-asyncio>=0.24",
+    "pre-commit>=4.6.0",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+# pycodestyle (E/W), Pyflakes (F), isort (I), pyupgrade (UP),
+# flake8-bugbear (B), flake8-comprehensions (C4)
+select = ["E", "F", "W", "I", "UP", "B", "C4"]
+# Line length is enforced by the formatter, not flagged as a lint error.
+ignore = ["E501"]
+
+[tool.ruff.format]
+docstring-code-format = true
+
+[tool.mypy]
+python_version = "3.12"
+files = ["it_ops_app", "orchestration"]
+# ag2 is pinned to git main and ships without published type stubs.
+ignore_missing_imports = true
+check_untyped_defs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+
+[tool.pytest.ini_options]
+# Async tests use bare `async def test_*` without per-test markers.
+asyncio_mode = "auto"
+testpaths = ["orchestration"]
