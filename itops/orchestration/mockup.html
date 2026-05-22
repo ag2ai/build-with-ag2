@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IT Ops Triage — AG2 Network (mockup)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        /* ── Theme variables (match the AG2 playground network_workflow demo) ── */
+        :root {
+            --bg: #0d1117;
+            --surface: #161b22;
+            --surface-2: #1c2333;
+            --border: rgba(75, 156, 214, 0.15);
+            --border-bright: rgba(75, 156, 214, 0.3);
+
+            /* Stage-1 (diagnosis) agent accent colours */
+            --c-ticketbot: #d4af37;
+            --c-intake:    #38bdf8;
+            --c-triage:    #a78bfa;
+            --c-network:   #4b9cd6;
+            --c-storage:   #d29922;
+            --c-web:       #e85d9a;
+            --c-rca:       #3fb950;
+            --c-remediation: #f59e0b;
+
+            /* Stage-2 (remediation) agent accent colours */
+            --c-remtriage: #a78bfa;   /* triage role, same family */
+            --c-infra:     #2dd4bf;   /* Infra / failover fixer */
+            --c-config:    #818cf8;   /* Config / deploy fixer */
+            --c-human:     #f778ba;   /* HumanClient / HITL escalation */
+            --c-resolve:   #3fb950;
+
+            --red:   #f85149;
+            --amber: #d29922;
+            --text:           #f0f4f8;
+            --text-secondary: #8b949e;
+            --text-muted:     rgba(139, 148, 158, 0.45);
+
+            --radius: 8px;
+            --topbar-h: 56px;
+            --tabbar-h: 45px;
+        }
+
+        html, body {
+            height: 100%;
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 13.5px;
+            line-height: 1.45;
+        }
+
+        /* ── Top bar ── */
+        .topbar {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            height: var(--topbar-h);
+            padding: 0 24px;
+            border-bottom: 1px solid var(--border);
+            background: var(--surface);
+            position: sticky; top: 0; z-index: 20;
+        }
+        .topbar h1 {
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+        }
+        .topbar h1 .sub {
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-left: 8px;
+            letter-spacing: 0.4px;
+            text-transform: uppercase;
+        }
+        .stats { display: flex; gap: 22px; margin-left: auto; }
+        .stat { display: flex; flex-direction: column; align-items: flex-end; }
+        .stat .v {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+        }
+        .stat .l {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.7px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+        .stat .v .delta {
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-left: 4px;
+        }
+        .stat.escal .v { color: var(--c-human); }
+
+        /* ── Tab bar ── */
+        .tabbar {
+            display: flex;
+            gap: 2px;
+            height: var(--tabbar-h);
+            padding: 0 16px;
+            border-bottom: 1px solid var(--border);
+            background: var(--surface);
+            position: sticky; top: var(--topbar-h); z-index: 19;
+        }
+        .tab {
+            display: flex; align-items: center; gap: 9px;
+            padding: 0 20px;
+            border: none;
+            border-bottom: 2px solid transparent;
+            background: transparent;
+            color: var(--text-secondary);
+            font: inherit; font-weight: 600; font-size: 13px;
+            cursor: pointer;
+            transition: color 0.15s, border-color 0.15s;
+        }
+        .tab:hover { color: var(--text); }
+        .tab.active { color: var(--text); }
+        .tab[data-page="diagnosis"].active   { border-bottom-color: var(--c-network); }
+        .tab[data-page="remediation"].active { border-bottom-color: var(--c-infra); }
+        .tab .badge {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px; font-weight: 700;
+            min-width: 19px; height: 19px;
+            padding: 0 6px;
+            border-radius: 10px;
+            display: inline-flex; align-items: center; justify-content: center;
+            background: var(--surface-2);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+        .tab[data-page="diagnosis"].active .badge   { background: var(--c-network); color: #0d1117; border-color: transparent; }
+        .tab[data-page="remediation"].active .badge { background: var(--c-infra);   color: #0d1117; border-color: transparent; }
+        .tab .badge.attention { background: var(--c-human); color: #0d1117; border-color: transparent; animation: badge-pulse 1.6s ease-in-out infinite; }
+        @keyframes badge-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(247,120,186,0.5);} 50% { box-shadow: 0 0 0 5px rgba(247,120,186,0);} }
+
+        /* ── Pages ── */
+        main { padding-bottom: 24px; }
+        .page { padding: 18px; display: flex; flex-direction: column; gap: 8px; }
+        .page.hidden { display: none; }
+
+        /* ── Section / panel headers ── */
+        .panel-title {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 11px; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 0.8px;
+            color: var(--text-muted);
+            margin: 10px 0 10px;
+            padding: 0 2px;
+        }
+        .panel-title:first-child { margin-top: 0; }
+        .panel-title .pill {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            padding: 1px 7px;
+            border-radius: 10px;
+            letter-spacing: 0; text-transform: none;
+        }
+        .panel-title .spacer { flex: 1; }
+        .ghost-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            font: inherit; font-size: 10px;
+            text-transform: uppercase; letter-spacing: 0.6px;
+            padding: 2px 9px; border-radius: 10px; cursor: pointer;
+        }
+        .ghost-btn:hover { color: var(--text); border-color: var(--border-bright); }
+
+        /* ── Systems / monitoring ── */
+        .systems-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+            gap: 14px;
+        }
+        .system-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 12px;
+        }
+        .system-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+        .system-name { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; }
+        .system-kind {
+            font-size: 10px; padding: 1px 7px; border-radius: 4px;
+            background: var(--surface-2); color: var(--text-secondary);
+            text-transform: uppercase; letter-spacing: 0.6px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .system-status {
+            margin-left: auto;
+            display: flex; align-items: center; gap: 6px;
+            font-size: 10.5px; color: var(--text-secondary);
+        }
+        .pulse {
+            width: 6px; height: 6px; border-radius: 50%;
+            background: var(--c-rca);
+            box-shadow: 0 0 0 0 var(--c-rca);
+            animation: pulse 1.6s ease-in-out infinite;
+        }
+        .pulse.warn { background: var(--amber); animation-name: pulse-warn; }
+        .pulse.crit { background: var(--red); animation-name: pulse-crit; }
+        @keyframes pulse      { 0%,100% { box-shadow: 0 0 0 0 rgba(63,185,80,0.55);} 50% {box-shadow: 0 0 0 6px rgba(63,185,80,0);} }
+        @keyframes pulse-warn { 0%,100% { box-shadow: 0 0 0 0 rgba(210,153,34,0.6);} 50% {box-shadow: 0 0 0 6px rgba(210,153,34,0);} }
+        @keyframes pulse-crit { 0%,100% { box-shadow: 0 0 0 0 rgba(248,81,73,0.6);} 50% {box-shadow: 0 0 0 6px rgba(248,81,73,0);} }
+
+        .inject-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+        .inject-btn {
+            padding: 4px 10px;
+            border: 1px solid var(--border-bright);
+            border-radius: 14px;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 11px; font-family: inherit;
+            cursor: pointer; transition: all 0.15s; white-space: nowrap;
+        }
+        .inject-btn:hover { background: rgba(75,156,214,0.1); color: var(--text); border-color: var(--c-network); }
+        .inject-btn.cooldown { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+
+        .log-head {
+            display: flex; align-items: center; gap: 6px;
+            font-family: 'JetBrains Mono', monospace; font-size: 10px;
+            color: var(--text-muted); letter-spacing: 0.4px;
+            cursor: pointer; user-select: none; padding: 2px;
+        }
+        .log-head .caret { transition: transform 0.15s; }
+        .log-head.collapsed .caret { transform: rotate(-90deg); }
+        .log-head .count { margin-left: auto; }
+        .log-stream {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            height: 150px;
+            overflow-y: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px; padding: 6px 8px; line-height: 1.55;
+            margin-top: 4px;
+        }
+        .log-stream.collapsed { display: none; }
+        .log-line { color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .log-line .ts { color: var(--text-muted); margin-right: 6px; }
+        .log-line.hit { color: var(--red); background: rgba(248,81,73,0.08); margin: 0 -8px; padding: 0 8px; }
+        .log-line.hit .tag {
+            background: var(--red); color: white;
+            font-size: 9px; padding: 0 5px; margin-left: 6px;
+            border-radius: 3px; letter-spacing: 0.4px;
+        }
+        .log-line.warn { color: var(--amber); }
+
+        /* ── Workflow card ── */
+        .workflow {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 12px 14px;
+            margin-bottom: 12px;
+            transition: border-color 0.2s;
+        }
+        .workflow.active      { border-color: var(--border-bright); }
+        .workflow.duplicate   { border-color: rgba(167,139,250,0.3); }
+        .workflow.resolved    { border-color: rgba(63,185,80,0.25); }
+        .workflow.recommended { border-color: rgba(245,158,11,0.3); }
+        .workflow.escalated   { border-color: rgba(247,120,186,0.45); }
+        .workflow.collapsed   { padding: 10px 14px; }
+
+        .wf-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .wf-ticket-id { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; color: var(--text); }
+        .sev {
+            font-size: 9.5px; padding: 1px 6px; border-radius: 3px;
+            font-family: 'JetBrains Mono', monospace; font-weight: 600;
+            letter-spacing: 0.6px; text-transform: uppercase;
+        }
+        .sev.sev1 { background: rgba(248,81,73,0.18); color: var(--red); }
+        .sev.sev2 { background: rgba(210,153,34,0.18); color: var(--amber); }
+        .sev.sev3 { background: rgba(75,156,214,0.18); color: var(--c-network); }
+
+        .wf-issue { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-secondary); }
+        .wf-state {
+            margin-left: auto;
+            display: flex; align-items: center; gap: 6px;
+            font-size: 10.5px; font-weight: 600;
+            letter-spacing: 0.4px; text-transform: uppercase;
+        }
+        .wf-state.active      { color: var(--c-rca); }
+        .wf-state.duplicate   { color: var(--c-triage); }
+        .wf-state.resolved    { color: var(--c-rca); }
+        .wf-state.recommended { color: var(--c-remediation); }
+        .wf-state.escalated   { color: var(--c-human); }
+        .wf-state .pulse.human { background: var(--c-human); animation-name: pulse-human; }
+        @keyframes pulse-human { 0%,100% { box-shadow: 0 0 0 0 rgba(247,120,186,0.55);} 50% {box-shadow: 0 0 0 6px rgba(247,120,186,0);} }
+
+        /* Pipeline (chevron rail) */
+        .pipeline { display: flex; align-items: stretch; gap: 6px; padding: 4px 0; flex-wrap: wrap; }
+        .pipeline.parallel-active { padding-bottom: 8px; }
+
+        .agent { display: flex; flex-direction: column; align-items: stretch; min-width: 78px; flex: 0 0 auto; }
+        .agent-chip {
+            display: flex; align-items: center; gap: 5px;
+            padding: 6px 9px; border-radius: 6px;
+            font-size: 11px; font-weight: 600;
+            border: 1px solid transparent;
+            transition: all 0.2s; line-height: 1;
+        }
+        .agent-chip .dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+        .agent-chip .name { font-family: 'JetBrains Mono', monospace; letter-spacing: 0.3px; }
+
+        .agent-chip.idle { background: transparent; border-color: var(--border); color: var(--text-muted); }
+        .agent-chip.idle .dot { background: var(--text-muted); }
+
+        .agent-chip.skipped {
+            background: transparent; border-color: rgba(139, 148, 158, 0.25);
+            border-style: dashed; color: var(--text-muted); opacity: 0.5;
+        }
+        .agent-chip.skipped .dot { background: var(--text-muted); }
+
+        .agent-chip.active {
+            border-color: var(--agent-color, var(--c-network));
+            background: color-mix(in srgb, var(--agent-color, var(--c-network)) 18%, transparent);
+            color: var(--agent-color, var(--c-network));
+            animation: chip-pulse 1.5s ease-in-out infinite;
+        }
+        .agent-chip.active .dot { background: var(--agent-color, var(--c-network)); animation: pulse 1.5s ease-in-out infinite; }
+        @keyframes chip-pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(63,185,80,0); }
+            50%      { box-shadow: 0 0 0 4px color-mix(in srgb, var(--agent-color, var(--c-network)) 25%, transparent); }
+        }
+
+        .agent-chip.done {
+            border-color: var(--agent-color, var(--c-network));
+            background: color-mix(in srgb, var(--agent-color, var(--c-network)) 22%, transparent);
+            color: var(--agent-color, var(--c-network));
+        }
+        .agent-chip.done .dot { background: var(--agent-color, var(--c-network)); }
+        .agent-chip.done::after { content: "✓"; margin-left: 2px; font-size: 10px; opacity: 0.9; }
+
+        /* Blocked-on-human state */
+        .agent-chip.blocked {
+            border-color: var(--c-human); border-style: dashed;
+            background: color-mix(in srgb, var(--c-human) 14%, transparent);
+            color: var(--c-human);
+        }
+        .agent-chip.blocked .dot { background: var(--c-human); animation: pulse-human 1.5s ease-in-out infinite; }
+        .agent-chip.blocked::after { content: "✋"; margin-left: 3px; font-size: 10px; }
+
+        .agent-meta {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 9.5px; color: var(--text-muted);
+            margin-top: 4px; padding-left: 4px; line-height: 1.3; min-height: 12px;
+        }
+        .agent.active .agent-meta { color: var(--text-secondary); }
+
+        .arrow {
+            display: flex; align-items: center; color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace; font-size: 11px;
+            padding: 0 2px; margin-top: 5px;
+        }
+
+        /* Parallel band */
+        .parallel {
+            border-left: 2px solid color-mix(in srgb, var(--c-triage) 35%, transparent);
+            padding-left: 8px;
+            display: flex; flex-direction: column; gap: 5px;
+            min-width: 240px;
+        }
+        .parallel.fixers { border-left-color: color-mix(in srgb, var(--c-infra) 45%, transparent); }
+        .parallel-label {
+            font-family: 'JetBrains Mono', monospace; font-size: 9px;
+            color: var(--c-triage); letter-spacing: 0.8px;
+            text-transform: uppercase; margin-bottom: 2px;
+        }
+        .parallel.fixers .parallel-label { color: var(--c-infra); }
+        .parallel .agent { min-width: 220px; flex-direction: row; align-items: center; gap: 8px; }
+        .parallel .agent-meta { margin-top: 0; }
+
+        /* ── HITL response box ── */
+        .hitl-box {
+            margin-top: 12px;
+            border: 1px solid color-mix(in srgb, var(--c-human) 45%, transparent);
+            background: color-mix(in srgb, var(--c-human) 8%, transparent);
+            border-radius: var(--radius);
+            padding: 12px 14px;
+        }
+        .hitl-head { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; color: var(--c-human); margin-bottom: 8px; }
+        .hitl-head .badge-mini {
+            font-family: 'JetBrains Mono', monospace; font-size: 9px;
+            background: color-mix(in srgb, var(--c-human) 22%, transparent);
+            border: 1px solid var(--c-human); color: var(--c-human);
+            border-radius: 4px; padding: 1px 6px; letter-spacing: 0.4px;
+        }
+        .hitl-q { font-size: 12.5px; color: var(--text); line-height: 1.5; margin-bottom: 12px; }
+        .hitl-q b { color: var(--c-human); }
+        .hitl-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+        .hitl-btn {
+            padding: 6px 12px; border-radius: 6px;
+            border: 1px solid var(--border-bright); background: transparent;
+            color: var(--text-secondary); font: inherit; font-size: 12px; cursor: pointer;
+        }
+        .hitl-btn:hover { color: var(--text); border-color: var(--c-human); }
+        .hitl-btn.primary {
+            background: color-mix(in srgb, var(--c-human) 22%, transparent);
+            border-color: var(--c-human); color: var(--c-human); font-weight: 600;
+        }
+        .hitl-input {
+            flex: 1; min-width: 200px;
+            padding: 6px 10px; border-radius: 6px;
+            border: 1px solid var(--border); background: var(--bg);
+            color: var(--text); font: inherit; font-size: 12px;
+        }
+        .hitl-input:focus { outline: none; border-color: var(--c-human); }
+        .hitl-send {
+            padding: 6px 16px; border-radius: 6px; border: none;
+            background: var(--c-human); color: #0d1117;
+            font: inherit; font-weight: 600; font-size: 12px; cursor: pointer;
+        }
+        .hitl-meta { margin-top: 8px; font-size: 10.5px; color: var(--text-secondary); font-family: 'JetBrains Mono', monospace; }
+        .hitl-meta .ok { color: var(--c-infra); }
+
+        /* Collapsed workflow */
+        .wf-collapsed-row { display: flex; align-items: center; gap: 10px; }
+        .wf-collapsed-row .agent-strip { display: flex; gap: 3px; }
+        .agent-mini {
+            width: 22px; height: 22px; border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace; font-size: 8.5px; font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+            border: 1px solid transparent; letter-spacing: 0;
+        }
+        .agent-mini.done { border-color: var(--agent-color); background: color-mix(in srgb, var(--agent-color) 22%, transparent); color: var(--agent-color); }
+        .agent-mini.skipped { border-color: rgba(139,148,158,0.2); background: transparent; color: var(--text-muted); opacity: 0.45; }
+        .agent-mini.human { border-color: var(--c-human); background: color-mix(in srgb, var(--c-human) 22%, transparent); color: var(--c-human); }
+        .wf-stats {
+            display: flex; gap: 14px;
+            font-family: 'JetBrains Mono', monospace; font-size: 10.5px;
+            color: var(--text-secondary); margin-left: auto;
+        }
+        .wf-stats b { color: var(--text); font-weight: 600; }
+
+        .wf-footer {
+            display: flex; gap: 18px; flex-wrap: wrap;
+            font-family: 'JetBrains Mono', monospace; font-size: 10.5px;
+            color: var(--text-secondary);
+            margin-top: 10px; padding-top: 8px;
+            border-top: 1px dashed var(--border);
+        }
+        .wf-footer b { color: var(--text); font-weight: 600; }
+        .wf-footer .ok { color: var(--c-rca); }
+        .wf-footer .human { color: var(--c-human); }
+
+        /* "Completed" divider */
+        .completed-header {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 10.5px; color: var(--text-muted);
+            text-transform: uppercase; letter-spacing: 0.7px;
+            margin: 14px 0 10px; padding-left: 2px;
+        }
+        .completed-header .line { flex: 1; height: 1px; background: var(--border); }
+
+        /* Recommendations chip block (inside workflow / ticket detail) */
+        .recs {
+            margin-top: 10px; padding-top: 8px;
+            border-top: 1px dashed var(--border);
+        }
+        .recs-title {
+            font-family: 'JetBrains Mono', monospace; font-size: 9.5px;
+            color: var(--text-muted); text-transform: uppercase;
+            letter-spacing: 0.7px; margin-bottom: 5px;
+        }
+        .recs ul { list-style: none; font-size: 11.5px; color: var(--text-secondary); padding: 0; }
+        .recs li { padding: 2px 0 2px 13px; position: relative; line-height: 1.4; }
+        .recs li::before { content: "›"; position: absolute; left: 0; color: var(--c-remediation); font-weight: 700; }
+        .inherited-banner {
+            font-size: 10px; color: var(--c-triage);
+            background: rgba(167,139,250,0.08);
+            border: 1px dashed rgba(167,139,250,0.3);
+            border-radius: 4px; padding: 4px 7px; margin-top: 6px;
+        }
+
+        /* Attention banner (page 2) */
+        .attention-banner {
+            display: flex; align-items: center; gap: 10px;
+            border: 1px solid color-mix(in srgb, var(--c-human) 45%, transparent);
+            background: color-mix(in srgb, var(--c-human) 9%, transparent);
+            border-radius: var(--radius);
+            padding: 10px 14px; margin-bottom: 4px;
+            font-size: 12px; color: var(--text);
+        }
+        .attention-banner b { color: var(--c-human); }
+        .attention-banner .pulse.human { background: var(--c-human); animation-name: pulse-human; }
+
+        /* Tickets table */
+        .tickets-table { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+        .tickets-table table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        .tickets-table th {
+            text-align: left; font-size: 10.5px; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 0.6px;
+            color: var(--text-muted); background: var(--surface-2);
+            padding: 8px 14px; border-bottom: 1px solid var(--border);
+        }
+        .tickets-table td {
+            padding: 8px 14px; border-bottom: 1px solid var(--border);
+            font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: var(--text-secondary);
+        }
+        .tickets-table tr:last-child td { border-bottom: none; }
+        .tickets-table tr:hover td { background: rgba(75,156,214,0.04); }
+        .tickets-table .ticket-id { color: var(--text); font-weight: 600; }
+        .tickets-table .status-new         { color: var(--c-intake); }
+        .tickets-table .status-diagnosing  { color: var(--c-rca); }
+        .tickets-table .status-duplicate   { color: var(--c-triage); }
+        .tickets-table .status-recommended { color: var(--c-remediation); }
+        .tickets-table .status-remediating { color: var(--c-infra); }
+        .tickets-table .status-escalated   { color: var(--c-human); }
+        .tickets-table .status-resolved    { color: var(--text-secondary); }
+
+        /* Misc */
+        .muted { color: var(--text-muted); }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(139,148,158,0.2); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(139,148,158,0.35); }
+    </style>
+</head>
+<body>
+
+<!-- ─── Top bar ─────────────────────────────────────────────────────── -->
+<header class="topbar">
+    <h1>
+        IT Ops Triage
+        <span class="sub">AG2 Network · ParallelWorkflowAdapter</span>
+    </h1>
+    <div class="stats">
+        <div class="stat"><span class="v">5</span><span class="l">Total tickets</span></div>
+        <div class="stat"><span class="v">38<span class="delta">s</span></span><span class="l">Avg time to RCA</span></div>
+        <div class="stat"><span class="v">2.1×</span><span class="l">Parallel speedup</span></div>
+        <div class="stat escal"><span class="v">1</span><span class="l">Awaiting human</span></div>
+    </div>
+</header>
+
+<!-- ─── Tab bar (badge = active workflows on that stage) ─────────────── -->
+<nav class="tabbar">
+    <button class="tab active" data-page="diagnosis">
+        Diagnosis <span class="badge">1</span>
+    </button>
+    <button class="tab" data-page="remediation">
+        Remediation <span class="badge attention">2</span>
+    </button>
+</nav>
+
+<main>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<!-- ░░ PAGE 1 — DIAGNOSIS ░░                                            -->
+<!-- Monitoring (top) → diagnosis workflows → ticket list (bottom)       -->
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<section class="page" id="page-diagnosis">
+
+    <!-- ── Monitoring ── -->
+    <div class="panel-title">
+        Monitoring <span class="pill">2 nodes</span>
+        <span class="spacer"></span>
+        <button class="ghost-btn" id="toggle-all-logs">▾ collapse all logs</button>
+    </div>
+    <div class="systems-grid">
+
+        <!-- web-edge-01 -->
+        <div class="system-card">
+            <div class="system-head">
+                <span class="system-name">web-edge-01</span>
+                <span class="system-kind">web · nginx</span>
+                <span class="system-status"><span class="pulse crit"></span> degraded</span>
+            </div>
+            <div class="inject-row">
+                <button class="inject-btn cooldown">Inject 5xx burst</button>
+                <button class="inject-btn">Inject upstream timeout</button>
+                <button class="inject-btn">Inject net unreachable</button>
+            </div>
+            <div class="log-head"><span class="caret">▾</span> regex log analysis <span class="count">5 hits</span></div>
+            <div class="log-stream">
+                <div class="log-line"><span class="ts">14:03:09</span>GET /api/v1/orders 200 134ms</div>
+                <div class="log-line"><span class="ts">14:03:10</span>GET /api/v1/cart 200 89ms</div>
+                <div class="log-line warn"><span class="ts">14:03:11</span>upstream slow: storage-node-04 p99=4.2s</div>
+                <div class="log-line hit"><span class="ts">14:03:11</span>GET /api/v1/orders 502 4200ms <span class="tag">web_5xx</span></div>
+                <div class="log-line hit"><span class="ts">14:03:12</span>upstream timed out: api.example.com <span class="tag">web_upstream_timeout</span></div>
+                <div class="log-line hit"><span class="ts">14:03:12</span>POST /api/v1/checkout 502 4180ms <span class="tag">web_5xx</span></div>
+                <div class="log-line hit"><span class="ts">14:03:13</span>GET /api/v1/orders 502 4220ms <span class="tag">web_5xx</span></div>
+                <div class="log-line"><span class="ts">14:03:13</span>GET /static/main.css 200 11ms</div>
+                <div class="log-line hit"><span class="ts">14:03:14</span>POST /api/v1/checkout 502 4150ms <span class="tag">web_5xx</span> → opened INC-007</div>
+            </div>
+        </div>
+
+        <!-- storage-node-04 -->
+        <div class="system-card">
+            <div class="system-head">
+                <span class="system-name">storage-node-04</span>
+                <span class="system-kind">storage · zfs</span>
+                <span class="system-status"><span class="pulse warn"></span> degraded</span>
+            </div>
+            <div class="inject-row">
+                <button class="inject-btn">Inject I/O errors</button>
+                <button class="inject-btn">Inject disk offline</button>
+                <button class="inject-btn">Inject high latency</button>
+            </div>
+            <div class="log-head"><span class="caret">▾</span> regex log analysis <span class="count">3 hits</span></div>
+            <div class="log-stream">
+                <div class="log-line"><span class="ts">14:03:08</span>zfs[884]: pool tank scrub in progress</div>
+                <div class="log-line warn"><span class="ts">14:03:09</span>SMART: disk-2 reallocated_sectors=42</div>
+                <div class="log-line hit"><span class="ts">14:03:10</span>I/O error on disk 2 (slot 2, serial WD-XXX) <span class="tag">storage_io_error</span></div>
+                <div class="log-line hit"><span class="ts">14:03:11</span>pool tank: I/O error on disk 2 <span class="tag">storage_io_error</span> → opened INC-008</div>
+                <div class="log-line warn"><span class="ts">14:03:11</span>latency=4280ms read pool=tank</div>
+                <div class="log-line hit"><span class="ts">14:03:12</span>latency=8200ms read pool=tank <span class="tag">storage_high_latency</span></div>
+                <div class="log-line"><span class="ts">14:03:13</span>scrub: 14 errors detected, repair attempting</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Diagnosis workflows ── -->
+    <div class="panel-title">Diagnosis workflows <span class="pill">1 active · 1 dup · 2 → remediation</span></div>
+
+    <!-- In-flight: parallel investigation (the showcase) -->
+    <div class="workflow active">
+        <div class="wf-head">
+            <span class="wf-ticket-id">INC-007</span>
+            <span class="sev sev2">sev2</span>
+            <span class="wf-issue">web_5xx</span>
+            <span class="wf-state active"><span class="pulse"></span>parallel investigation</span>
+        </div>
+
+        <div class="pipeline parallel-active">
+            <div class="agent" style="--agent-color: var(--c-ticketbot);">
+                <div class="agent-chip done"><span class="dot"></span><span class="name">TicketBot</span></div>
+                <div class="agent-meta">opened ticket</div>
+            </div>
+            <div class="arrow">→</div>
+            <div class="agent" style="--agent-color: var(--c-intake);">
+                <div class="agent-chip done"><span class="dot"></span><span class="name">IntakeLookup</span></div>
+                <div class="agent-meta">list_recent_tickets</div>
+            </div>
+            <div class="arrow">→</div>
+            <div class="agent" style="--agent-color: var(--c-intake);">
+                <div class="agent-chip done"><span class="dot"></span><span class="name">IntakeDecide</span></div>
+                <div class="agent-meta">proceed_to_triage</div>
+            </div>
+            <div class="arrow">→</div>
+            <div class="agent" style="--agent-color: var(--c-triage);">
+                <div class="agent-chip done"><span class="dot"></span><span class="name">Triage</span></div>
+                <div class="agent-meta">assign_specialists</div>
+            </div>
+            <div class="arrow">→</div>
+
+            <div class="parallel">
+                <div class="parallel-label">▼ parallel · 3 of 3 pending</div>
+                <div class="agent" style="--agent-color: var(--c-network);">
+                    <div class="agent-chip active"><span class="dot"></span><span class="name">Network</span></div>
+                    <div class="agent-meta">⏳ ping_host("web-edge-01")</div>
+                </div>
+                <div class="agent" style="--agent-color: var(--c-storage);">
+                    <div class="agent-chip active"><span class="dot"></span><span class="name">Storage</span></div>
+                    <div class="agent-meta">⏳ get_disk_status("storage-node-04")</div>
+                </div>
+                <div class="agent" style="--agent-color: var(--c-web);">
+                    <div class="agent-chip active"><span class="dot"></span><span class="name">Web</span></div>
+                    <div class="agent-meta">⏳ get_upstream_latency("web-edge-01")</div>
+                </div>
+            </div>
+
+            <div class="arrow">→</div>
+            <div class="agent" style="--agent-color: var(--c-rca);">
+                <div class="agent-chip idle"><span class="dot"></span><span class="name">RCA</span></div>
+                <div class="agent-meta">waiting for join</div>
+            </div>
+            <div class="arrow">→</div>
+            <div class="agent" style="--agent-color: var(--c-remediation);">
+                <div class="agent-chip idle"><span class="dot"></span><span class="name">Remediation</span></div>
+                <div class="agent-meta">recommends fixes</div>
+            </div>
+        </div>
+
+        <div class="wf-footer">
+            <span>elapsed: <b>23.4s</b></span>
+            <span>turn: <b>4 / 25</b></span>
+            <span>tool calls: <b>7</b></span>
+            <span>pending speakers: <b>3</b></span>
+            <span class="ok">parallel mode ACTIVE</span>
+        </div>
+    </div>
+
+    <!-- Duplicate — collapsed -->
+    <div class="workflow duplicate collapsed">
+        <div class="wf-collapsed-row">
+            <span class="wf-ticket-id">INC-008</span>
+            <span class="sev sev3">sev3</span>
+            <span class="wf-issue">storage_io_error</span>
+            <div class="agent-strip">
+                <div class="agent-mini done" style="--agent-color: var(--c-ticketbot);" title="TicketBot — active">TB</div>
+                <div class="agent-mini done" style="--agent-color: var(--c-intake);" title="IntakeLookup — active">IL</div>
+                <div class="agent-mini done" style="--agent-color: var(--c-intake);" title="IntakeDecide — mark_as_duplicate">ID</div>
+                <div class="agent-mini skipped" title="Triage — never active (duplicate path)">Tr</div>
+                <div class="agent-mini skipped" title="Network — never active">Net</div>
+                <div class="agent-mini skipped" title="Storage — never active">Sto</div>
+                <div class="agent-mini skipped" title="Web — never active">Web</div>
+                <div class="agent-mini skipped" title="RCA — never active">RCA</div>
+                <div class="agent-mini skipped" title="Remediation — never active">Rem</div>
+            </div>
+            <div class="wf-stats">
+                <span>⊃ <b style="color: var(--c-triage);">INC-006</b></span>
+                <span><b>9.1s</b></span>
+                <span>3 turns</span>
+                <span style="color: var(--c-triage);">duplicate</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="completed-header">
+        <span>Diagnosis complete → handed to Remediation</span><div class="line"></div><span>2 tickets</span>
+    </div>
+
+    <!-- Diagnosed → Remediation_Recommended (now in stage 2) -->
+    <div class="workflow recommended collapsed">
+        <div class="wf-collapsed-row">
+            <span class="wf-ticket-id">INC-006</span>
+            <span class="sev sev1">sev1</span>
+            <span class="wf-issue">storage_io_error</span>
+            <div class="agent-strip">
+                <div class="agent-mini done" style="--agent-color: var(--c-ticketbot);">TB</div>
+                <div class="agent-mini done" style="--agent-color: var(--c-intake);">IL</div>
+                <div class="agent-mini done" style="--agent-color: var(--c-intake);">ID</div>
+                <div class="agent-mini done" style="--agent-color: var(--c-triage);">Tr</div>
+                <div class="agent-mini skipped" title="Network — not assigned">Net</div>
+                <div class="agent-mini done" style="--agent-color: var(--c-storage);">Sto</div>
+                <div class="agent-mini skipped" title="Web — not assigned">Web</div>
+                <div class="agent-mini done" style="--agent-color: var(--c-rca);">RCA</div>
+                <div class="agent-mini done" style="--agent-color: var(--c-remediation);">Rem</div>
+            </div>
+            <div class="wf-stats">
+                <span>RCA: <b>32s</b></span>
+                <span>Total: <b>47.2s</b></span>
+                <span>8 turns</span>
+                <span style="color: var(--c-remediation);">→ remediation_recommended</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Diagnosed → Remediation_Recommended (since fully resolved in stage 2) -->
+    <div class="workflow recommended collapsed">
+        <div class="wf-collapsed-row">
+            <span class="wf-ticket-id">INC-005</span>
+            <span class="sev sev2">sev2</span>
+            <span class="wf-issue">web_5xx</span>
+            <div class="agent-strip">
+                <div class="agent-mini done" style="--agent-color: var(--c-ticketbot);">TB</div>
+                <div class="agent-mini done" style="--agent-color: var(--c-intake);">IL</div>
+                <div class="agent-mini done" style="--agent-color: var(--c-intake);">ID</div>
+                <div class="agent-mini done" style="--agent-color: var(--c-triage);">Tr</div>
+                <div class="agent-mini done" style="--agent-color: var(--c-network);">Net</div>
+                <div class="agent-mini done" style="--agent-color: var(--c-storage);">Sto</div>
+                <div class="agent-mini done" style="--agent-color: var(--c-web);">Web</div>
+                <div class="agent-mini done" style="--agent-color: var(--c-rca);">RCA</div>
+                <div class="agent-mini done" style="--agent-color: var(--c-remediation);">Rem</div>
+            </div>
+            <div class="wf-stats">
+                <span>RCA: <b>41s</b></span>
+                <span>Total: <b>52.0s</b></span>
+                <span>10 turns</span>
+                <span style="color: var(--c-remediation);">→ remediation_recommended</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Ticket list (all) ── -->
+    <div class="panel-title">Tickets <span class="pill">all</span></div>
+    <div class="tickets-table">
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 90px;">Ticket</th>
+                    <th style="width: 200px;">Status</th>
+                    <th style="width: 170px;">Issue</th>
+                    <th style="width: 60px;">Sev</th>
+                    <th style="width: 130px;">System</th>
+                    <th style="width: 90px;">Opened</th>
+                    <th>Outcome</th>
+                </tr>
+            </thead>
+            <tbody id="tickets-all">
+                <tr>
+                    <td class="ticket-id">INC-007</td>
+                    <td class="status-diagnosing">⚡ diagnosing</td>
+                    <td>web_5xx</td><td>sev2</td><td>web-edge-01</td><td>23s ago</td>
+                    <td>parallel investigation · 3 specialists pending</td>
+                </tr>
+                <tr>
+                    <td class="ticket-id">INC-008</td>
+                    <td class="status-duplicate">⊃ duplicate</td>
+                    <td>storage_io_error</td><td>sev3</td><td>storage-node-04</td><td>12s ago</td>
+                    <td>⊃ INC-006 · recs inherited (saved ~38s)</td>
+                </tr>
+                <tr>
+                    <td class="ticket-id">INC-006</td>
+                    <td class="status-remediating">⚙ remediating</td>
+                    <td>storage_io_error</td><td>sev1</td><td>storage-node-04</td><td>2m ago</td>
+                    <td>RCA: disk degradation · in remediation (escalated)</td>
+                </tr>
+                <tr>
+                    <td class="ticket-id">INC-005</td>
+                    <td class="status-resolved">✓ resolved</td>
+                    <td>web_5xx</td><td>sev2</td><td>web-edge-01</td><td>5m ago</td>
+                    <td>upstream latency cascade · remediated</td>
+                </tr>
+                <tr>
+                    <td class="ticket-id">INC-004</td>
+                    <td class="status-recommended">◆ remediation_recommended</td>
+                    <td>storage_high_latency</td><td>sev2</td><td>storage-node-04</td><td>6m ago</td>
+                    <td>RCA: scrub-induced latency · awaiting remediation</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<!-- ░░ PAGE 2 — REMEDIATION ░░                                          -->
+<!-- Spawned per Remediation_Recommended ticket. Parallel fixers +       -->
+<!-- HumanClient escalation. Ticket list (filtered) at the bottom.       -->
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<section class="page hidden" id="page-remediation">
+
+    <div class="attention-banner">
+        <span class="pulse human"></span>
+        <span><b>1 workflow needs your input</b> — INC-006 · the Storage fixer escalated a disk hot-swap approval. Other fixers are still working.</span>
+    </div>
+
+    <!-- ── Remediation workflows ── -->
+    <div class="panel-title">Remediation workflows <span class="pill">2 active · 1 closed</span></div>
+
+    <!-- Active + escalated to human (the HITL showcase) -->
+    <div class="workflow escalated">
+        <div class="wf-head">
+            <span class="wf-ticket-id">INC-006</span>
+            <span class="sev sev1">sev1</span>
+            <span class="wf-issue">storage_io_error</span>
+            <span class="wf-state escalated"><span class="pulse human"></span>awaiting human input</span>
+        </div>
+
+        <div class="pipeline parallel-active">
+            <div class="agent" style="--agent-color: var(--c-remediation);">
+                <div class="agent-chip done"><span class="dot"></span><span class="name">Ticket</span></div>
+                <div class="agent-meta">remediation_recommended</div>
+            </div>
+            <div class="arrow">→</div>
+            <div class="agent" style="--agent-color: var(--c-remtriage);">
+                <div class="agent-chip done"><span class="dot"></span><span class="name">RemTriage</span></div>
+                <div class="agent-meta">assign_fixers</div>
+            </div>
+            <div class="arrow">→</div>
+
+            <div class="parallel fixers">
+                <div class="parallel-label">▼ parallel fixers · 1 done · 1 working · 1 blocked</div>
+                <div class="agent" style="--agent-color: var(--c-infra);">
+                    <div class="agent-chip done"><span class="dot"></span><span class="name">Infra</span></div>
+                    <div class="agent-meta">failover to standby complete</div>
+                </div>
+                <div class="agent" style="--agent-color: var(--c-storage);">
+                    <div class="agent-chip blocked"><span class="dot"></span><span class="name">Storage</span></div>
+                    <div class="agent-meta">escalated: hot-swap approval needed</div>
+                </div>
+                <div class="agent" style="--agent-color: var(--c-config);">
+                    <div class="agent-chip active"><span class="dot"></span><span class="name">Config</span></div>
+                    <div class="agent-meta">⏳ raising nginx upstream timeout</div>
+                </div>
+                <div class="agent" style="--agent-color: var(--c-human);">
+                    <div class="agent-chip active"><span class="dot"></span><span class="name">Human</span></div>
+                    <div class="agent-meta">⏳ awaiting your response</div>
+                </div>
+            </div>
+
+            <div class="arrow">→</div>
+            <div class="agent" style="--agent-color: var(--c-resolve);">
+                <div class="agent-chip idle"><span class="dot"></span><span class="name">Resolver</span></div>
+                <div class="agent-meta">↳ writes resolution · sets status</div>
+            </div>
+        </div>
+
+        <!-- The on-screen HITL response area -->
+        <div class="hitl-box">
+            <div class="hitl-head">
+                ✋ Human input requested
+                <span class="badge-mini">Storage fixer</span>
+                <span class="badge-mini">INC-006</span>
+            </div>
+            <div class="hitl-q">
+                Replacing the failing disk in <b>slot 2</b> (serial WD-XXX) requires either taking pool
+                <b>tank</b> offline for ~90s, or a hot-swap if the chassis supports it. SMART shows
+                <b>health=FAIL</b> with 7 pending sectors. Approve a hot-swap now, or schedule a maintenance window?
+            </div>
+            <div class="hitl-actions">
+                <button class="hitl-btn primary">Approve hot-swap</button>
+                <button class="hitl-btn">Schedule window</button>
+                <input class="hitl-input" placeholder="…or type a response to the Storage fixer">
+                <button class="hitl-send">Send</button>
+            </div>
+            <div class="hitl-meta">
+                <span class="ok">Infra ✓ done</span> · <span class="ok">Config working</span> —
+                the unblocked fixers keep going while this is pending. Once all fixers finish and you respond, the <b style="color:var(--c-resolve);">Resolver</b> writes up the ticket and sets its final status.
+            </div>
+        </div>
+
+        <div class="wf-footer">
+            <span>elapsed: <b>1m 12s</b></span>
+            <span>turn: <b>6 / 25</b></span>
+            <span>pending speakers: <b>2</b> <span class="muted">(Config, Human)</span></span>
+            <span class="human">HUMAN ESCALATION ACTIVE</span>
+        </div>
+    </div>
+
+    <!-- Active, just picked up -->
+    <div class="workflow active">
+        <div class="wf-head">
+            <span class="wf-ticket-id">INC-004</span>
+            <span class="sev sev2">sev2</span>
+            <span class="wf-issue">storage_high_latency</span>
+            <span class="wf-state active"><span class="pulse"></span>triaging fixers</span>
+        </div>
+        <div class="pipeline">
+            <div class="agent" style="--agent-color: var(--c-remediation);">
+                <div class="agent-chip done"><span class="dot"></span><span class="name">Ticket</span></div>
+                <div class="agent-meta">remediation_recommended</div>
+            </div>
+            <div class="arrow">→</div>
+            <div class="agent" style="--agent-color: var(--c-remtriage);">
+                <div class="agent-chip active"><span class="dot"></span><span class="name">RemTriage</span></div>
+                <div class="agent-meta">⏳ choosing fixers from RCA</div>
+            </div>
+            <div class="arrow">→</div>
+            <div class="agent" style="--agent-color: var(--c-infra);">
+                <div class="agent-chip idle"><span class="dot"></span><span class="name">Infra</span></div>
+                <div class="agent-meta">—</div>
+            </div>
+            <div class="agent" style="--agent-color: var(--c-storage);">
+                <div class="agent-chip idle"><span class="dot"></span><span class="name">Storage</span></div>
+                <div class="agent-meta">—</div>
+            </div>
+            <div class="agent" style="--agent-color: var(--c-config);">
+                <div class="agent-chip idle"><span class="dot"></span><span class="name">Config</span></div>
+                <div class="agent-meta">—</div>
+            </div>
+            <div class="arrow">→</div>
+            <div class="agent" style="--agent-color: var(--c-resolve);">
+                <div class="agent-chip idle"><span class="dot"></span><span class="name">Resolver</span></div>
+                <div class="agent-meta">—</div>
+            </div>
+        </div>
+        <div class="wf-footer">
+            <span>elapsed: <b>4.2s</b></span>
+            <span>turn: <b>1 / 25</b></span>
+            <span>spawned from INC-004 (remediation_recommended)</span>
+        </div>
+    </div>
+
+    <div class="completed-header">
+        <span>Closed after remediation</span><div class="line"></div><span>1 ticket</span>
+    </div>
+
+    <!-- Closed after remediation — collapsed -->
+    <div class="workflow resolved collapsed">
+        <div class="wf-collapsed-row">
+            <span class="wf-ticket-id">INC-005</span>
+            <span class="sev sev2">sev2</span>
+            <span class="wf-issue">web_5xx</span>
+            <div class="agent-strip">
+                <div class="agent-mini done" style="--agent-color: var(--c-remediation);" title="Ticket">Tk</div>
+                <div class="agent-mini done" style="--agent-color: var(--c-remtriage);" title="RemTriage">RT</div>
+                <div class="agent-mini done" style="--agent-color: var(--c-infra);" title="Infra fixer">Inf</div>
+                <div class="agent-mini done" style="--agent-color: var(--c-storage);" title="Storage fixer">Sto</div>
+                <div class="agent-mini done" style="--agent-color: var(--c-config);" title="Config fixer">Cfg</div>
+                <div class="agent-mini skipped" title="Human — no escalation needed">Hum</div>
+                <div class="agent-mini done" style="--agent-color: var(--c-resolve);" title="Resolver — wrote resolution, set status=resolved">Res</div>
+            </div>
+            <div class="wf-stats">
+                <span>3 fixers</span>
+                <span>no escalation</span>
+                <span><b>58s</b></span>
+                <span style="color: var(--c-rca);">resolved</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Remediation queue (filtered ticket list) ── -->
+    <div class="panel-title">Remediation queue <span class="pill">recommended · remediating · closed</span></div>
+    <div class="tickets-table">
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 90px;">Ticket</th>
+                    <th style="width: 200px;">Status</th>
+                    <th style="width: 170px;">Issue</th>
+                    <th style="width: 60px;">Sev</th>
+                    <th style="width: 130px;">System</th>
+                    <th style="width: 90px;">Recommended</th>
+                    <th>Remediation</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="ticket-id">INC-006</td>
+                    <td class="status-escalated">✋ escalated</td>
+                    <td>storage_io_error</td><td>sev1</td><td>storage-node-04</td><td>1m ago</td>
+                    <td>Infra ✓ · Config ⏳ · Storage ✋ awaiting human approval</td>
+                </tr>
+                <tr>
+                    <td class="ticket-id">INC-004</td>
+                    <td class="status-remediating">⚙ remediating</td>
+                    <td>storage_high_latency</td><td>sev2</td><td>storage-node-04</td><td>30s ago</td>
+                    <td>RemTriage choosing fixers from RCA recommendations</td>
+                </tr>
+                <tr>
+                    <td class="ticket-id">INC-005</td>
+                    <td class="status-resolved">✓ resolved</td>
+                    <td>web_5xx</td><td>sev2</td><td>web-edge-01</td><td>4m ago</td>
+                    <td>3 fixers applied · no human escalation · closed in 58s</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+</main>
+
+<script>
+    // ── Tab switching. Badge on each tab = active workflows on that stage. ──
+    const tabs = document.querySelectorAll('.tab');
+    const pages = {
+        diagnosis:   document.getElementById('page-diagnosis'),
+        remediation: document.getElementById('page-remediation'),
+    };
+    tabs.forEach((tab) => {
+        tab.addEventListener('click', () => {
+            tabs.forEach((t) => t.classList.remove('active'));
+            tab.classList.add('active');
+            const target = tab.dataset.page;
+            Object.entries(pages).forEach(([name, el]) => {
+                el.classList.toggle('hidden', name !== target);
+            });
+        });
+    });
+
+    // ── Collapsible log streams (per node + collapse-all). ──
+    function setLogCollapsed(head, collapsed) {
+        const stream = head.nextElementSibling;
+        head.classList.toggle('collapsed', collapsed);
+        if (stream && stream.classList.contains('log-stream')) {
+            stream.classList.toggle('collapsed', collapsed);
+        }
+    }
+    document.querySelectorAll('.log-head').forEach((head) => {
+        head.addEventListener('click', () => {
+            setLogCollapsed(head, !head.classList.contains('collapsed'));
+        });
+    });
+    const toggleAll = document.getElementById('toggle-all-logs');
+    if (toggleAll) {
+        let allCollapsed = false;
+        toggleAll.addEventListener('click', () => {
+            allCollapsed = !allCollapsed;
+            document.querySelectorAll('#page-diagnosis .log-head')
+                .forEach((head) => setLogCollapsed(head, allCollapsed));
+            toggleAll.textContent = allCollapsed ? '▸ expand all logs' : '▾ collapse all logs';
+        });
+    }
+
+    // ── Inject buttons: cooldown + demonstrate "issue creates a ticket". ──
+    let nextInc = 9;
+    document.querySelectorAll('.inject-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            if (btn.classList.contains('cooldown')) return;
+            const label = btn.textContent;
+            btn.classList.add('cooldown');
+            btn.textContent = label + ' · cooling';
+
+            // Prepend a freshly-created New ticket to the diagnosis table.
+            const id = 'INC-' + String(nextInc++).padStart(3, '0');
+            const card = btn.closest('.system-card');
+            const sysName = card ? card.querySelector('.system-name').textContent : '—';
+            const issue = label.toLowerCase().includes('5xx') ? 'web_5xx'
+                        : label.toLowerCase().includes('timeout') ? 'web_upstream_timeout'
+                        : label.toLowerCase().includes('i/o') ? 'storage_io_error'
+                        : label.toLowerCase().includes('offline') ? 'storage_disk_offline'
+                        : label.toLowerCase().includes('latency') ? 'storage_high_latency'
+                        : 'net_unreachable';
+            const tbody = document.getElementById('tickets-all');
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td class="ticket-id">${id}</td>`
+                + `<td class="status-new">＋ new</td>`
+                + `<td>${issue}</td><td>sev2</td><td>${sysName}</td><td>just now</td>`
+                + `<td>regex match → ticket opened → diagnosis queued</td>`;
+            tbody.insertBefore(tr, tbody.firstChild);
+
+            setTimeout(() => {
+                btn.classList.remove('cooldown');
+                btn.textContent = label;
+            }, 4000);
+        });
+    });
+
+    // ── HITL response box (mockup: acknowledge + clear escalation). ──
+    document.querySelectorAll('.hitl-box').forEach((box) => {
+        const finish = (msg) => {
+            box.innerHTML = `<div class="hitl-head" style="margin:0;">✓ Response sent — ${msg}. `
+                + `Storage fixer resuming; ticket will close once all fixers finish.</div>`;
+            box.style.borderColor = 'rgba(63,185,80,0.4)';
+            box.style.background = 'rgba(63,185,80,0.06)';
+        };
+        box.querySelectorAll('.hitl-btn').forEach((b) =>
+            b.addEventListener('click', () => finish(b.textContent.trim())));
+        const send = box.querySelector('.hitl-send');
+        const input = box.querySelector('.hitl-input');
+        if (send && input) {
+            send.addEventListener('click', () => finish(input.value.trim() ? `“${input.value.trim()}”` : 'reply'));
+        }
+    });
+
+    // ── Collapsed workflow rows hint that they expand in the live demo. ──
+    document.querySelectorAll('.workflow.collapsed').forEach((card) => {
+        card.style.cursor = 'pointer';
+        card.title = 'Click to expand (mockup — no-op)';
+    });
+</script>
+
+</body>
+</html>
