@@ -9,9 +9,9 @@ inject incident
    │
    ▼  Stage 1 · Diagnosis            Stage 2 · Remediation (auto-spawned)
    ┌──────────────────────────┐      ┌──────────────────────────────────────┐
-   │ Intake (dedup) → Triage  │      │ RemTriage → Infra / Storage / Config  │
-   │ → Network ∥ Storage ∥ Web│ ───► │   fixers  ∥  Operator (human sign-off)│ ───► Resolved
-   │ → RCA → Recommend        │      │ → Resolver                            │
+   │ Intake (dedup) > Triage  │      │ RemTriage → Infra / Storage / Config │
+   │ > Network . Storage . Web│  >   │  fixers  .  Operator (human sign-off)│ >  Resolved
+   │ > RCA → Recommend        │      │ → Resolver                           │
    └──────────────────────────┘      └──────────────────────────────────────┘
         ticket: Remediation_Recommended            ticket: Resolved / Partially Resolved
 ```
