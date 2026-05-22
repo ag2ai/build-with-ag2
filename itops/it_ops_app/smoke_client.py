@@ -40,9 +40,13 @@ async def main() -> int:
             if kind == "envelope":
                 tool = f" {p.get('tool')}()" if p.get("tool") else ""
                 txt = f" {p['text'][:50]!r}" if p.get("text") else ""
-                print(f"  envelope   {p.get('sender'):>12}  {p.get('event_type')}{tool}{txt}")
+                print(
+                    f"  envelope   {p.get('sender'):>12}  {p.get('event_type')}{tool}{txt}"
+                )
             elif kind == "channel_opened":
-                print(f"  channel    OPENED  stage={p.get('stage')} ticket={p.get('ticket_id')}")
+                print(
+                    f"  channel    OPENED  stage={p.get('stage')} ticket={p.get('ticket_id')}"
+                )
             elif kind == "ticket_status":
                 print(f"  ticket     {p.get('id')} → {p.get('status')}")
                 if p.get("status") in terminal:
@@ -64,7 +68,9 @@ async def main() -> int:
                 )
                 print("  → HITL     operator response sent")
             elif kind == "hitl_resolved":
-                print(f"  HITL       resolved (decision sent={bool(p.get('decision'))})")
+                print(
+                    f"  HITL       resolved (decision sent={bool(p.get('decision'))})"
+                )
             elif kind == "channel_closed":
                 print(f"  channel    CLOSED  reason={p.get('reason')}")
             elif kind == "error":

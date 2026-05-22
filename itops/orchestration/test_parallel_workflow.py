@@ -334,9 +334,9 @@ def test_first_specialist_submit_does_NOT_route_to_rca():
     # First specialist submits — should NOT advance to RCA.
     s4 = adapter.fold(packet(NET, tool="submit_findings"), s3)
 
-    assert s4.expected_next_speaker is None, (
-        "RCA must not yet be the expected next speaker — Storage hasn't submitted"
-    )
+    assert (
+        s4.expected_next_speaker is None
+    ), "RCA must not yet be the expected next speaker — Storage hasn't submitted"
     assert s4.pending_speakers == (STOR,), "Only Storage should remain pending"
 
 
@@ -359,9 +359,9 @@ def test_last_specialist_submit_releases_to_rca():
     s4 = adapter.fold(packet(NET, tool="submit_findings"), s3)
     s5 = adapter.fold(packet(STOR, tool="submit_findings"), s4)
 
-    assert s5.expected_next_speaker == RCA, (
-        "Join should release to RCA after the last pending speaker"
-    )
+    assert (
+        s5.expected_next_speaker == RCA
+    ), "Join should release to RCA after the last pending speaker"
     assert s5.pending_speakers == ()
 
 
@@ -462,7 +462,11 @@ def test_wal_replay_charter():
     # Storage (Network submits first, then Storage); RCA + Remediation
     # close it out.
     wal: list[Envelope] = [
-        packet(TICKETBOT, kind="text", body="INC-007: web 5xx burst, also high storage latency"),
+        packet(
+            TICKETBOT,
+            kind="text",
+            body="INC-007: web 5xx burst, also high storage latency",
+        ),
         packet(INTAKE, tool="proceed_to_triage", body="No recent matches"),
         packet(
             TRIAGE,
@@ -471,9 +475,13 @@ def test_wal_replay_charter():
             body="Ambiguous — both could be culprit",
         ),
         packet(NET, tool="submit_findings", body="Routes healthy"),
-        packet(STOR, tool="submit_findings", body="Disk smart errors on storage-node-04"),
+        packet(
+            STOR, tool="submit_findings", body="Disk smart errors on storage-node-04"
+        ),
         packet(RCA, tool="submit_rca", body="Disk failure on storage-node-04"),
-        packet(REMEDIATION, tool="post_recommendations", body="Failover, replace disk, ..."),
+        packet(
+            REMEDIATION, tool="post_recommendations", body="Failover, replace disk, ..."
+        ),
     ]
 
     # Validate, fold, snapshot at each step.
@@ -502,13 +510,15 @@ def test_wal_replay_charter():
 
     # Byte-equivalence at every step. If any state diverges, we have
     # hidden state somewhere.
-    for i, (live, replay) in enumerate(zip(live_snapshots, replay_snapshots, strict=True)):
+    for i, (live, replay) in enumerate(
+        zip(live_snapshots, replay_snapshots, strict=True)
+    ):
         # JSON-encode both for a deterministic byte comparison.
         live_bytes = json.dumps(live, sort_keys=True).encode("utf-8")
         replay_bytes = json.dumps(replay, sort_keys=True).encode("utf-8")
-        assert live_bytes == replay_bytes, (
-            f"WAL replay diverged at step {i}\n  live   = {live}\n  replay = {replay}"
-        )
+        assert (
+            live_bytes == replay_bytes
+        ), f"WAL replay diverged at step {i}\n  live   = {live}\n  replay = {replay}"
 
     # Also assert: a completely fresh adapter instance (no shared state
     # with the one used for the live drive) can replay correctly too.
@@ -520,9 +530,9 @@ def test_wal_replay_charter():
         fresh_state = fresh_adapter.fold(env, fresh_state)
     fresh_final = state_snapshot(fresh_state)
     live_final = live_snapshots[-1]
-    assert json.dumps(fresh_final, sort_keys=True) == json.dumps(live_final, sort_keys=True), (
-        "Fresh-adapter replay diverged from live drive"
-    )
+    assert json.dumps(fresh_final, sort_keys=True) == json.dumps(
+        live_final, sort_keys=True
+    ), "Fresh-adapter replay diverged from live drive"
 
 
 def test_wal_replay_with_duplicate_path():
@@ -562,8 +572,12 @@ def test_graph_serialisation_round_trip():
     g2 = TransitionGraph.loads(decoded)
 
     # Find the DynamicParallelTarget in both
-    dyn_orig = next(t.then for t in g.transitions if isinstance(t.then, DynamicParallelTarget))
-    dyn_loaded = next(t.then for t in g2.transitions if isinstance(t.then, DynamicParallelTarget))
+    dyn_orig = next(
+        t.then for t in g.transitions if isinstance(t.then, DynamicParallelTarget)
+    )
+    dyn_loaded = next(
+        t.then for t in g2.transitions if isinstance(t.then, DynamicParallelTarget)
+    )
     assert dyn_loaded.from_tool_arg == dyn_orig.from_tool_arg
     assert dyn_loaded.nickname_to_agent_id == dyn_orig.nickname_to_agent_id
 
@@ -632,7 +646,9 @@ def test_build_round_envelope_attaches_tool_args():
     # assign_specialists, with JSON-encoded arguments.
     tool_call = ToolCallEvent(
         name="assign_specialists",
-        arguments=json.dumps({"specialists": ["network", "storage"], "reason": "ambiguous"}),
+        arguments=json.dumps(
+            {"specialists": ["network", "storage"], "reason": "ambiguous"}
+        ),
     )
     reply = SimpleNamespace(body="Routing investigation")
 

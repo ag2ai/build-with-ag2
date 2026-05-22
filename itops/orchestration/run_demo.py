@@ -231,7 +231,9 @@ class TicketStore:
         t.history.append(status + (f" · {note}" if note else ""))
         return self._write(t)
 
-    def set_needs_human(self, ticket_id: str, needs: bool, prompt: str = "") -> Ticket | None:
+    def set_needs_human(
+        self, ticket_id: str, needs: bool, prompt: str = ""
+    ) -> Ticket | None:
         t = self.get(ticket_id)
         if t is None:
             return None
@@ -283,7 +285,9 @@ class TicketStore:
 
 
 @tool
-async def list_recent_tickets(system: str, issue_type: str, lookback_minutes: int = 15) -> str:
+async def list_recent_tickets(
+    system: str, issue_type: str, lookback_minutes: int = 15
+) -> str:
     """REQUIRED FIRST STEP for the Intake Agent. Returns recent tickets
     matching this system + issue_type opened in the last N minutes,
     including their resolution status and any findings/recommendations.
@@ -783,14 +787,20 @@ class _ConsolePrinter(BaseHubListener):
             if len(body_preview) > 80:
                 body_preview = body_preview[:77] + "..."
             if tool_name:
-                args_preview = ", ".join(f"{k}={v!r}" for k, v in args.items()) if args else ""
+                args_preview = (
+                    ", ".join(f"{k}={v!r}" for k, v in args.items()) if args else ""
+                )
                 if len(args_preview) > 80:
                     args_preview = args_preview[:77] + "..."
-                print(f"{self._stamp()} {sender:>12}  CALL  {tool_name}({args_preview})")
+                print(
+                    f"{self._stamp()} {sender:>12}  CALL  {tool_name}({args_preview})"
+                )
                 if body_preview:
                     print(f"{'':>24}      └─ body: {body_preview}")
             else:
-                print(f"{self._stamp()} {sender:>12}  {kind.upper():>5}  {body_preview}")
+                print(
+                    f"{self._stamp()} {sender:>12}  {kind.upper():>5}  {body_preview}"
+                )
 
     async def on_channel_event(self, channel_id, kind, payload) -> None:
         if kind == "closed":
@@ -876,7 +886,10 @@ async def run_diagnosis(
 
     try:
         intake_lookup_agent = Agent(
-            "IntakeLookup", prompt=INTAKE_LOOKUP_PROMPT, config=GEMINI, tools=[list_recent_tickets]
+            "IntakeLookup",
+            prompt=INTAKE_LOOKUP_PROMPT,
+            config=GEMINI,
+            tools=[list_recent_tickets],
         )
         intake_decide_agent = Agent(
             "IntakeDecide",
@@ -903,30 +916,50 @@ async def run_diagnosis(
             "Web",
             prompt=WEB_PROMPT,
             config=GEMINI,
-            tools=[get_recent_5xx, get_upstream_latency, get_active_connections, submit_findings],
+            tools=[
+                get_recent_5xx,
+                get_upstream_latency,
+                get_active_connections,
+                submit_findings,
+            ],
         )
         rca_agent = Agent("RCA", prompt=RCA_PROMPT, config=GEMINI, tools=[submit_rca])
         remediation_agent = Agent(
-            "Remediation", prompt=REMEDIATION_PROMPT, config=GEMINI, tools=[post_recommendations]
+            "Remediation",
+            prompt=REMEDIATION_PROMPT,
+            config=GEMINI,
+            tools=[post_recommendations],
         )
 
         ticketbot = await hc["ticketbot"].register_human(
             Passport(name=f"TicketBot-{tok}", kind="human")
         )
         intake_lookup = await hc["intake_lookup"].register(
-            intake_lookup_agent, Passport(name=f"IntakeLookup-{tok}"), Resume(), attach_plugin=False
+            intake_lookup_agent,
+            Passport(name=f"IntakeLookup-{tok}"),
+            Resume(),
+            attach_plugin=False,
         )
         intake_decide = await hc["intake_decide"].register(
-            intake_decide_agent, Passport(name=f"IntakeDecide-{tok}"), Resume(), attach_plugin=False
+            intake_decide_agent,
+            Passport(name=f"IntakeDecide-{tok}"),
+            Resume(),
+            attach_plugin=False,
         )
         triage = await hc["triage"].register(
             triage_agent, Passport(name=f"Triage-{tok}"), Resume(), attach_plugin=False
         )
         network = await hc["network"].register(
-            network_agent, Passport(name=f"Network-{tok}"), Resume(), attach_plugin=False
+            network_agent,
+            Passport(name=f"Network-{tok}"),
+            Resume(),
+            attach_plugin=False,
         )
         storage = await hc["storage"].register(
-            storage_agent, Passport(name=f"Storage-{tok}"), Resume(), attach_plugin=False
+            storage_agent,
+            Passport(name=f"Storage-{tok}"),
+            Resume(),
+            attach_plugin=False,
         )
         web = await hc["web"].register(
             web_agent, Passport(name=f"Web-{tok}"), Resume(), attach_plugin=False
@@ -935,7 +968,10 @@ async def run_diagnosis(
             rca_agent, Passport(name=f"RCA-{tok}"), Resume(), attach_plugin=False
         )
         remediation = await hc["remediation"].register(
-            remediation_agent, Passport(name=f"Remediation-{tok}"), Resume(), attach_plugin=False
+            remediation_agent,
+            Passport(name=f"Remediation-{tok}"),
+            Resume(),
+            attach_plugin=False,
         )
 
         id_to_name.update(
@@ -956,10 +992,17 @@ async def run_diagnosis(
             initial_speaker=ticketbot.agent_id,
             transitions=[
                 Transition(
-                    when=ToolCalled("list_recent_tickets"), then=AgentTarget(intake_decide.agent_id)
+                    when=ToolCalled("list_recent_tickets"),
+                    then=AgentTarget(intake_decide.agent_id),
                 ),
-                Transition(when=ToolCalled("mark_as_duplicate"), then=TerminateTarget("duplicate")),
-                Transition(when=ToolCalled("proceed_to_triage"), then=AgentTarget(triage.agent_id)),
+                Transition(
+                    when=ToolCalled("mark_as_duplicate"),
+                    then=TerminateTarget("duplicate"),
+                ),
+                Transition(
+                    when=ToolCalled("proceed_to_triage"),
+                    then=AgentTarget(triage.agent_id),
+                ),
                 Transition(
                     when=ToolCalled("assign_specialists"),
                     then=DynamicParallelTarget(
@@ -971,8 +1014,13 @@ async def run_diagnosis(
                         },
                     ),
                 ),
-                Transition(when=ToolCalled("submit_findings"), then=AgentTarget(rca.agent_id)),
-                Transition(when=ToolCalled("submit_rca"), then=AgentTarget(remediation.agent_id)),
+                Transition(
+                    when=ToolCalled("submit_findings"), then=AgentTarget(rca.agent_id)
+                ),
+                Transition(
+                    when=ToolCalled("submit_rca"),
+                    then=AgentTarget(remediation.agent_id),
+                ),
                 # Diagnosis terminates by *recommending* remediation — a
                 # separate workflow applies it.
                 Transition(
@@ -980,7 +1028,8 @@ async def run_diagnosis(
                     then=TerminateTarget("remediation_recommended"),
                 ),
                 Transition(
-                    when=FromSpeaker(ticketbot.agent_id), then=AgentTarget(intake_lookup.agent_id)
+                    when=FromSpeaker(ticketbot.agent_id),
+                    then=AgentTarget(intake_lookup.agent_id),
                 ),
             ],
             default_target=TerminateTarget("no_match"),
@@ -1012,7 +1061,9 @@ async def run_diagnosis(
                 },
             )
 
-        _banner("STAGE 1 · DIAGNOSIS", f"{ticket.id} · {ticket.issue} on {ticket.system}")
+        _banner(
+            "STAGE 1 · DIAGNOSIS", f"{ticket.id} · {ticket.issue} on {ticket.system}"
+        )
         await ticketbot.send(channel.channel_id, kickoff)
 
         close_env = await ticketbot.next_envelope(
@@ -1028,7 +1079,9 @@ async def run_diagnosis(
         if reason == "duplicate":
             dup = _wal_tool_args(wal, "mark_as_duplicate")
             store.update(ticket_id, parent=dup.get("parent_ticket_id"))
-            store.set_status(ticket_id, "Duplicate", f"of {dup.get('parent_ticket_id')}")
+            store.set_status(
+                ticket_id, "Duplicate", f"of {dup.get('parent_ticket_id')}"
+            )
         elif reason == "remediation_recommended":
             rca_args = _wal_tool_args(wal, "submit_rca")
             rec_args = _wal_tool_args(wal, "post_recommendations")
@@ -1039,11 +1092,15 @@ async def run_diagnosis(
                 confidence=rca_args.get("confidence", ""),
                 recommendations=steps,
             )
-            store.set_status(ticket_id, "Remediation_Recommended", f"{len(steps)} step(s)")
+            store.set_status(
+                ticket_id, "Remediation_Recommended", f"{len(steps)} step(s)"
+            )
 
         latest = store.get(ticket_id)
         status = latest.status if latest else "?"
-        print(f"\n  Stage 1 closed: reason={reason!r} → ticket {ticket_id} is now {status}\n")
+        print(
+            f"\n  Stage 1 closed: reason={reason!r} → ticket {ticket_id} is now {status}\n"
+        )
         return {"reason": reason, "ticket_id": ticket_id}
 
     finally:
@@ -1096,7 +1153,9 @@ async def _operator_respond(operator, channel_id: str, ticket: Ticket, decide) -
     except Exception:
         return  # never fanned out — nothing to sign off
 
-    fixers = ((env.event_data.get("routing") or {}).get("tool_args") or {}).get("fixers") or []
+    fixers = ((env.event_data.get("routing") or {}).get("tool_args") or {}).get(
+        "fixers"
+    ) or []
     if "human" not in fixers:
         return  # operator wasn't routed in; posting now would be rejected
 
@@ -1183,24 +1242,38 @@ async def run_remediation(
             "Resolver", prompt=RESOLVER_PROMPT, config=GEMINI, tools=[close_ticket]
         )
 
-        rembot = await hc["rembot"].register_human(Passport(name=f"RemBot-{tok}", kind="human"))
+        rembot = await hc["rembot"].register_human(
+            Passport(name=f"RemBot-{tok}", kind="human")
+        )
         operator = await hc["operator"].register_human(
             Passport(name=f"Operator-{tok}", kind="human")
         )
         remtriage = await hc["remtriage"].register(
-            remtriage_agent, Passport(name=f"RemTriage-{tok}"), Resume(), attach_plugin=False
+            remtriage_agent,
+            Passport(name=f"RemTriage-{tok}"),
+            Resume(),
+            attach_plugin=False,
         )
         infra = await hc["infra"].register(
             infra_agent, Passport(name=f"Infra-{tok}"), Resume(), attach_plugin=False
         )
         storage = await hc["storage"].register(
-            storage_agent, Passport(name=f"StorageFix-{tok}"), Resume(), attach_plugin=False
+            storage_agent,
+            Passport(name=f"StorageFix-{tok}"),
+            Resume(),
+            attach_plugin=False,
         )
         config = await hc["config"].register(
-            config_agent, Passport(name=f"ConfigFix-{tok}"), Resume(), attach_plugin=False
+            config_agent,
+            Passport(name=f"ConfigFix-{tok}"),
+            Resume(),
+            attach_plugin=False,
         )
         resolver = await hc["resolver"].register(
-            resolver_agent, Passport(name=f"Resolver-{tok}"), Resume(), attach_plugin=False
+            resolver_agent,
+            Passport(name=f"Resolver-{tok}"),
+            Resume(),
+            attach_plugin=False,
         )
 
         id_to_name.update(
@@ -1219,7 +1292,10 @@ async def run_remediation(
             initial_speaker=rembot.agent_id,
             transitions=[
                 # Kickoff → RemTriage
-                Transition(when=FromSpeaker(rembot.agent_id), then=AgentTarget(remtriage.agent_id)),
+                Transition(
+                    when=FromSpeaker(rembot.agent_id),
+                    then=AgentTarget(remtriage.agent_id),
+                ),
                 # RemTriage fans out fixers + the human operator, in parallel
                 Transition(
                     when=ToolCalled("assign_fixers"),
@@ -1236,12 +1312,17 @@ async def run_remediation(
                 # Join → Resolver. The last pending speaker to post triggers
                 # the join: it is either a fixer (submit_fix) or the operator
                 # (a plain text sign-off) — cover both so order doesn't matter.
-                Transition(when=ToolCalled("submit_fix"), then=AgentTarget(resolver.agent_id)),
                 Transition(
-                    when=FromSpeaker(operator.agent_id), then=AgentTarget(resolver.agent_id)
+                    when=ToolCalled("submit_fix"), then=AgentTarget(resolver.agent_id)
+                ),
+                Transition(
+                    when=FromSpeaker(operator.agent_id),
+                    then=AgentTarget(resolver.agent_id),
                 ),
                 # Resolver closes the ticket
-                Transition(when=ToolCalled("close_ticket"), then=TerminateTarget("resolved")),
+                Transition(
+                    when=ToolCalled("close_ticket"), then=TerminateTarget("resolved")
+                ),
             ],
             default_target=TerminateTarget("no_match"),
             max_turns=30,
@@ -1270,7 +1351,9 @@ async def run_remediation(
             )
         store.set_status(ticket_id, "Remediating", "stage-2 workflow spawned")
 
-        recs = "\n".join(f"  - {s}" for s in ticket.recommendations) or "  (none recorded)"
+        recs = (
+            "\n".join(f"  - {s}" for s in ticket.recommendations) or "  (none recorded)"
+        )
         kickoff = (
             f"{ticket.id} ({ticket.sev}): {ticket.issue} on {ticket.system}.\n"
             f"RCA: {ticket.rca} (confidence={ticket.confidence}).\n"
@@ -1278,7 +1361,10 @@ async def run_remediation(
             "Apply these steps. Disruptive/irreversible steps require operator sign-off."
         )
 
-        _banner("STAGE 2 · REMEDIATION", f"{ticket.id} · spawned from Remediation_Recommended")
+        _banner(
+            "STAGE 2 · REMEDIATION",
+            f"{ticket.id} · spawned from Remediation_Recommended",
+        )
         await rembot.send(channel.channel_id, kickoff)
 
         # The operator runs concurrently with the autonomous fixers.
@@ -1303,7 +1389,9 @@ async def run_remediation(
         store.update(ticket_id, resolution=close_args.get("summary", ""))
         store.set_status(ticket_id, nice_status, "stage-2 complete")
 
-        print(f"\n  Stage 2 closed: reason={reason!r} → ticket {ticket_id} is now {nice_status}\n")
+        print(
+            f"\n  Stage 2 closed: reason={reason!r} → ticket {ticket_id} is now {nice_status}\n"
+        )
         return {"reason": reason, "status": nice_status}
 
     finally:
@@ -1381,12 +1469,16 @@ async def main() -> None:
     hub.register_listener(_ConsolePrinter(id_to_name))
 
     try:
-        diagnosis = await run_diagnosis(hub, link, id_to_name, store, get_incident(args.incident))
+        diagnosis = await run_diagnosis(
+            hub, link, id_to_name, store, get_incident(args.incident)
+        )
 
         if diagnosis["reason"] == "remediation_recommended":
             await run_remediation(hub, link, id_to_name, store, diagnosis["ticket_id"])
         elif diagnosis["reason"] == "duplicate":
-            print("  Diagnosis short-circuited as a duplicate — no remediation workflow spawned.\n")
+            print(
+                "  Diagnosis short-circuited as a duplicate — no remediation workflow spawned.\n"
+            )
 
         print_ticket_summary(store)
 

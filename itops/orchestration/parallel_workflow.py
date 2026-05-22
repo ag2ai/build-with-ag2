@@ -199,7 +199,9 @@ class ParallelWorkflowAdapter:
         except WorkflowGraphError as exc:
             raise ProtocolError(f"invalid workflow graph: {exc}") from exc
 
-        order = [p.agent_id for p in sorted(metadata.participants, key=lambda p: p.order)]
+        order = [
+            p.agent_id for p in sorted(metadata.participants, key=lambda p: p.order)
+        ]
         if graph.initial_speaker not in order:
             raise ProtocolError(
                 f"parallel_workflow initial_speaker {graph.initial_speaker!r} "
@@ -270,7 +272,10 @@ class ParallelWorkflowAdapter:
             return
 
         # Scalar mode: gate on expected_next_speaker.
-        if state.expected_next_speaker and envelope.sender_id != state.expected_next_speaker:
+        if (
+            state.expected_next_speaker
+            and envelope.sender_id != state.expected_next_speaker
+        ):
             raise ProtocolError(
                 f"parallel_workflow {metadata.channel_id!r} expects "
                 f"{state.expected_next_speaker!r} to speak, got "
@@ -323,7 +328,9 @@ class ParallelWorkflowAdapter:
         # holds: any matching transition is *not* fired until the last
         # pending speaker has posted.
         if state.pending_speakers:
-            remaining = tuple(aid for aid in state.pending_speakers if aid != envelope.sender_id)
+            remaining = tuple(
+                aid for aid in state.pending_speakers if aid != envelope.sender_id
+            )
             new_state.pending_speakers = remaining
             if remaining:
                 # Still pending more speakers; stay in parallel mode.

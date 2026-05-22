@@ -369,9 +369,9 @@ async def test_e2e_full_path_with_parallel_specialists():
             timeout=15.0,
         )
 
-        assert close_env.event_data.get("reason") == "resolved", (
-            f"Expected reason='resolved', got {close_env.event_data.get('reason')!r}"
-        )
+        assert (
+            close_env.event_data.get("reason") == "resolved"
+        ), f"Expected reason='resolved', got {close_env.event_data.get('reason')!r}"
 
         # ── Inspect the WAL ─────────────────────────────────────────
         wal = await hub.read_wal(channel.channel_id)
@@ -409,7 +409,9 @@ async def test_e2e_full_path_with_parallel_specialists():
 
         # The two specialists may have spoken in either order — both
         # must precede RCA, and RCA must precede Remediation.
-        positions = {name: i for i, name in enumerate(senders) if name not in ("TicketBot",)}
+        positions = {
+            name: i for i, name in enumerate(senders) if name not in ("TicketBot",)
+        }
         assert positions["Intake"] < positions["Triage"]
         assert positions["Triage"] < positions["Network"]
         assert positions["Triage"] < positions["Storage"]
@@ -509,15 +511,26 @@ async def test_e2e_duplicate_path():
         triage_agent = Agent(
             "Triage", prompt="...", config=TestConfig(), tools=[assign_specialists]
         )
-        network_agent = Agent("Network", prompt="...", config=TestConfig(), tools=[submit_findings])
-        storage_agent = Agent("Storage", prompt="...", config=TestConfig(), tools=[submit_findings])
-        web_agent = Agent("Web", prompt="...", config=TestConfig(), tools=[submit_findings])
+        network_agent = Agent(
+            "Network", prompt="...", config=TestConfig(), tools=[submit_findings]
+        )
+        storage_agent = Agent(
+            "Storage", prompt="...", config=TestConfig(), tools=[submit_findings]
+        )
+        web_agent = Agent(
+            "Web", prompt="...", config=TestConfig(), tools=[submit_findings]
+        )
         rca_agent = Agent("RCA", prompt="...", config=TestConfig(), tools=[submit_rca])
         remediation_agent = Agent(
-            "Remediation", prompt="...", config=TestConfig(), tools=[post_recommendations]
+            "Remediation",
+            prompt="...",
+            config=TestConfig(),
+            tools=[post_recommendations],
         )
 
-        ticketbot = await ticketbot_hc.register_human(Passport(name="TicketBot", kind="human"))
+        ticketbot = await ticketbot_hc.register_human(
+            Passport(name="TicketBot", kind="human")
+        )
         intake = await intake_hc.register(
             intake_agent, Passport(name="Intake"), Resume(), attach_plugin=False
         )
@@ -530,17 +543,30 @@ async def test_e2e_duplicate_path():
         storage = await storage_hc.register(
             storage_agent, Passport(name="Storage"), Resume(), attach_plugin=False
         )
-        web = await web_hc.register(web_agent, Passport(name="Web"), Resume(), attach_plugin=False)
-        rca = await rca_hc.register(rca_agent, Passport(name="RCA"), Resume(), attach_plugin=False)
+        web = await web_hc.register(
+            web_agent, Passport(name="Web"), Resume(), attach_plugin=False
+        )
+        rca = await rca_hc.register(
+            rca_agent, Passport(name="RCA"), Resume(), attach_plugin=False
+        )
         remediation = await remediation_hc.register(
-            remediation_agent, Passport(name="Remediation"), Resume(), attach_plugin=False
+            remediation_agent,
+            Passport(name="Remediation"),
+            Resume(),
+            attach_plugin=False,
         )
 
         graph = TransitionGraph(
             initial_speaker=ticketbot.agent_id,
             transitions=[
-                Transition(when=ToolCalled("mark_as_duplicate"), then=TerminateTarget("duplicate")),
-                Transition(when=ToolCalled("proceed_to_triage"), then=AgentTarget(triage.agent_id)),
+                Transition(
+                    when=ToolCalled("mark_as_duplicate"),
+                    then=TerminateTarget("duplicate"),
+                ),
+                Transition(
+                    when=ToolCalled("proceed_to_triage"),
+                    then=AgentTarget(triage.agent_id),
+                ),
                 Transition(
                     when=ToolCalled("assign_specialists"),
                     then=DynamicParallelTarget(
@@ -552,12 +578,21 @@ async def test_e2e_duplicate_path():
                         },
                     ),
                 ),
-                Transition(when=ToolCalled("submit_findings"), then=AgentTarget(rca.agent_id)),
-                Transition(when=ToolCalled("submit_rca"), then=AgentTarget(remediation.agent_id)),
                 Transition(
-                    when=ToolCalled("post_recommendations"), then=TerminateTarget("resolved")
+                    when=ToolCalled("submit_findings"), then=AgentTarget(rca.agent_id)
                 ),
-                Transition(when=FromSpeaker(ticketbot.agent_id), then=AgentTarget(intake.agent_id)),
+                Transition(
+                    when=ToolCalled("submit_rca"),
+                    then=AgentTarget(remediation.agent_id),
+                ),
+                Transition(
+                    when=ToolCalled("post_recommendations"),
+                    then=TerminateTarget("resolved"),
+                ),
+                Transition(
+                    when=FromSpeaker(ticketbot.agent_id),
+                    then=AgentTarget(intake.agent_id),
+                ),
             ],
             default_target=TerminateTarget("no_match"),
             max_turns=22,

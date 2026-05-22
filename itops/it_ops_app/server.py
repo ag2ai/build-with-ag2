@@ -161,7 +161,9 @@ class WSListener(BaseHubListener):
 
     async def on_envelope_posted(self, envelope, metadata) -> None:
         routing = (
-            (envelope.event_data.get("routing") or {}) if envelope.event_type == EV_PACKET else {}
+            (envelope.event_data.get("routing") or {})
+            if envelope.event_type == EV_PACKET
+            else {}
         )
         emit(
             "envelope",
@@ -171,7 +173,9 @@ class WSListener(BaseHubListener):
                 "sender": self.id_to_name.get(envelope.sender_id, envelope.sender_id),
                 "event_type": envelope.event_type,
                 "text": (
-                    envelope.event_data.get("text") if envelope.event_type == EV_TEXT else None
+                    envelope.event_data.get("text")
+                    if envelope.event_type == EV_TEXT
+                    else None
                 ),
                 "tool": routing.get("tool"),
                 "tool_args": routing.get("tool_args"),
@@ -393,7 +397,9 @@ async def world() -> dict:
     return {
         "systems": mw.SYSTEMS,
         "ambient_logs": mw.AMBIENT_LOGS,
-        "incidents": [{k: v for k, v in inc.items() if k != "kickoff"} for inc in mw.INCIDENTS],
+        "incidents": [
+            {k: v for k, v in inc.items() if k != "kickoff"} for inc in mw.INCIDENTS
+        ],
     }
 
 
@@ -418,11 +424,15 @@ async def ws(websocket: WebSocket) -> None:
                 if now - S.last_inject.get(incident_key, 0) < INJECT_DEBOUNCE_SECONDS:
                     emit(
                         "inject_ignored",
-                        {"incident": incident_key, "reason": "debounced — injected a moment ago"},
+                        {
+                            "incident": incident_key,
+                            "reason": "debounced — injected a moment ago",
+                        },
                     )
                 elif len(S.flows) >= MAX_CONCURRENT_FLOWS:
                     emit(
-                        "inject_ignored", {"incident": incident_key, "reason": "at concurrency cap"}
+                        "inject_ignored",
+                        {"incident": incident_key, "reason": "at concurrency cap"},
                     )
                 else:
                     S.last_inject[incident_key] = now
