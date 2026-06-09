@@ -20,6 +20,7 @@ New to AG2? The [AG2 Workshop](ag2-workshop/) takes you from first agent to prod
 4. **Add a UI** → Explore [AG-UI Examples](#%EF%B8%8F-ag-ui-examples) to connect your agents to a browser frontend.
 5. **Deep dive** → Work through the [7-module workshop](ag2-workshop/) for a comprehensive hands-on course.
 6. **Go to production** → Use the [GCP Agent Starter Pack](gcp-agent-starter-pack/templates/ag2/) to deploy your agent to Google's Cloud Run with CI/CD and observability.
+
 | Section | Episodes | What You Build |
 |---------|----------|---------------|
 | **Basics** | 1-4 | Your first agent, tools, two-agent collaboration |
