@@ -1,15 +1,17 @@
-# AG2 Workshop: Building Multi-Agent Systems
+# AG2 Workshop: Building Agents with the AG2 Beta API
 
-A hands-on workshop teaching you to build, orchestrate, test, and deploy multi-agent AI systems using AG2.
+A hands-on workshop teaching you to build, orchestrate, test, and deploy AI agent systems using the **AG2 Beta API** (`autogen.beta`).
 
-23 episodes covering fundamentals through production deployment. Designed for YouTube (3-4 min per episode) and university programs (5 lectures).
+34 episodes across 7 groups, from a first agent through production deployment. Designed for YouTube (3–4 min per episode) and university programs (5 lectures).
+
+> **Beta-only.** This workshop teaches the current, async-first AG2 Beta API exclusively. If you've used the classic AG2 API, Episode 33 maps every classic pattern to its beta equivalent.
 
 ## Prerequisites
 
-- Python 3.12+ recommended (3.12+ required for Episode 15 MCP)
-- Basic Python proficiency
+- Python 3.12+ recommended
+- Basic Python proficiency (including `async`/`await`)
 - An OpenAI API key ([get one here](https://platform.openai.com/api-keys))
-- Estimated API cost for all 23 episodes: **$3-5** (using gpt-4o-mini)
+- Estimated API cost for all 34 episodes: **$5–8** (using `gpt-4.1-mini`)
 
 ## Getting Started
 
@@ -29,69 +31,103 @@ pip install -r requirements.txt
 jupyter notebook episodes/ep01_why_agents.ipynb
 ```
 
-> **Note:** The `.env` file lives in `ag2-workshop/` (one level above `episodes/`). Python-dotenv searches parent directories automatically, so `load_dotenv()` in notebooks will find it.
+> **Note:** The `.env` file lives in `ag2-workshop/`. `python-dotenv` searches parent directories, so `load_dotenv()` in any episode notebook will find it.
+
+## The Beta API in one minute
+
+```python
+from autogen.beta import Agent
+from autogen.beta.config import OpenAIConfig
+
+agent = Agent(
+    "assistant",
+    prompt="You are a helpful assistant.",
+    config=OpenAIConfig(model="gpt-4.1-mini"),
+)
+
+reply = await agent.ask("Hello!")
+print(reply.body)
+```
+
+Everything else — tools, middleware, structured output, multi-agent networking — plugs into that same `Agent` constructor.
 
 ## Episodes
 
-### Basics (Episodes 1-4)
+### Group 1 — Fundamentals (Episodes 1–5)
 
 | # | Title | What You Build |
-|---|-------|---------------|
-| 1 | [Why Multi-Agent Systems?](episodes/ep01_why_agents.ipynb) | See agents in action (demo) |
-| 2 | [Your First Agent](episodes/ep02_first_agent.ipynb) | A single AI agent that chats |
-| 3 | [Give Your Agent Tools](episodes/ep03_tools.ipynb) | An agent that checks the weather |
-| 4 | [Two Agents Working Together](episodes/ep04_two_agents.ipynb) | Researcher + reviewer collaboration |
+|---|-------|----------------|
+| 1 | [Why Agents?](episodes/ep01_why_agents.ipynb) | See agents in action (demo) |
+| 2 | [Your First Agent](episodes/ep02_first_agent.ipynb) | A single agent and the `ask()` loop |
+| 3 | [Tools](episodes/ep03_tools.ipynb) | An agent that calls functions you write |
+| 4 | [Task & Sub-Agent Delegation](episodes/ep04_task_delegation.ipynb) | A coordinator that delegates to specialists |
+| 5 | [LiveAgent: Real-Time Voice](episodes/ep05_live_agent.ipynb) | A voice assistant you can talk to |
 
-### Patterns (Episodes 5-9)
-
-| # | Title | What You Build |
-|---|-------|---------------|
-| 5 | [Team of Agents: Taking Turns](episodes/ep05_round_robin.ipynb) | 3-agent debate with round-robin |
-| 6 | [Team of Agents: Smart Speaker Selection](episodes/ep06_auto_pattern.ipynb) | LLM-driven speaker selection |
-| 7 | [Routing Agents: Conditions, Handoffs & Escalation](episodes/ep07_handoffs.ipynb) | Customer support triage system |
-| 8 | [Pipelines & Hierarchies](episodes/ep08_pipelines.ipynb) | Document pipeline + research hierarchy |
-| 9 | [Choosing the Right Pattern](episodes/ep09_choosing_patterns.ipynb) | Decision framework (theory) |
-
-### Applications (Episodes 10-15)
+### Group 2 — Agent Harness (Episodes 6–9)
 
 | # | Title | What You Build |
-|---|-------|---------------|
-| 10 | [Build a Customer Service System](episodes/ep10_real_app.ipynb) | Complete multi-agent app (guided) |
-| 11 | [Build a Research Assistant](episodes/ep11_research.ipynb) | 3-agent research pipeline |
-| 12 | [Give Your Agents a Knowledge Base](episodes/ep12_knowledge_base.ipynb) | RAG-powered document Q&A |
-| 13 | [Web Browsing Agents](episodes/ep13_web_browsing.ipynb) | Agent that fetches web content |
-| 14 | [Give Your Agent a UI](episodes/ep14_agent_ui.ipynb) | Streamlit + AG-UI frontend |
-| 15 | [Connect to External Tools (MCP)](episodes/ep15_mcp.ipynb) | MCP server integration |
+|---|-------|----------------|
+| 6 | Anatomy of an Agent | A tour of every constructor slot |
+| 7 | Middleware | Request/response interceptors |
+| 8 | Assembly & Policies | Control what enters each prompt |
+| 9 | Structured Output | Typed Pydantic responses |
 
-### Production (Episodes 16-20)
+### Group 3 — Multi-Agent Networking (Episodes 10–15)
 
 | # | Title | What You Build |
-|---|-------|---------------|
-| 16 | [See What Your Agents Are Doing](episodes/ep16_observability.ipynb) | Logging + OpenTelemetry tracing |
-| 17 | [Security & Safe Code Execution](episodes/ep17_security.ipynb) | Input validation + approval gates |
-| 18 | [Testing Agents](episodes/ep18_testing.ipynb) | Unit tests + evaluation framework |
-| 19 | [Control Your Agent Costs](episodes/ep19_cost_optimization.ipynb) | Token tracking + model tiering |
-| 20 | [Deploy to Production (GCP)](episodes/ep20_deploy.ipynb) | Docker + Cloud Run deployment |
+|---|-------|----------------|
+| 10 | The Hub | Register autonomous agents on a Hub |
+| 11 | Consulting Adapter | Strict one-question / one-answer channels |
+| 12 | Conversation Adapter | Free-form two-party dialogue |
+| 13 | Discussion Adapter | Round-robin N-party debate |
+| 14 | Workflow & TransitionGraph | Declarative orchestration |
+| 15 | Coordinator Pattern | LLM-driven routing with explicit control |
 
-### Specialized Patterns (Episodes 21-22)
+### Group 4 — Choosing the Right Pattern (Episode 16)
 
 | # | Title | What You Build |
-|---|-------|---------------|
-| 21 | [Multiple Agents, One Task: Redundancy & Nested Chats](episodes/ep21_redundant.ipynb) | Parallel agents + evaluator |
-| 22 | [Make Agents Think Harder: Tree of Thoughts](episodes/ep22_reasoning.ipynb) | ReasoningAgent with search strategies |
+|---|-------|----------------|
+| 16 | Choosing the Right Pattern | A decision framework for all patterns |
 
-### Closing
+### Group 5 — Applications (Episodes 17–23)
 
-| # | Title | What You Learn |
-|---|-------|---------------|
-| 23 | [What's Next](episodes/ep23_whats_next.ipynb) | AG2 Beta, ecosystem, future directions |
+| # | Title | What You Build |
+|---|-------|----------------|
+| 17 | Customer Service System | A triage-and-delegate support app |
+| 18 | Research with Feedback Loop | Parallel research + writer/reviewer loop |
+| 19 | Knowledge Base | RAG with `KnowledgeConfig` |
+| 20 | Web Browsing | An agent that searches and fetches the web |
+| 21 | Agent UI (AG-UI) | A streaming chat UI |
+| 22 | Plain HTML Frontend | A framework-free HTML + `fetch` frontend |
+| 23 | MCP Tools | Connect to Model Context Protocol servers |
+
+### Group 6 — Production (Episodes 24–29)
+
+| # | Title | What You Build |
+|---|-------|----------------|
+| 24 | Telemetry | Event streams + OpenTelemetry spans |
+| 25 | Observers | Safety hooks that raise alerts |
+| 26 | Security | Approval gates and audit trails |
+| 27 | Testing | Deterministic tests with `TestConfig` |
+| 28 | Cost Optimization | Budgets, monitoring, and compaction |
+| 29 | Deployment | Ship via AG-UI and the A2A protocol |
+
+### Group 7 — Advanced (Episodes 30–34)
+
+| # | Title | What You Build |
+|---|-------|----------------|
+| 30 | Redundancy & Voting | Parallel workers with consensus |
+| 31 | Reasoning | Structured chain-of-thought |
+| 32 | Events | The event system in depth |
+| 33 | Migration Guide | Classic AG2 / AutoGen / LangChain → Beta |
+| 34 | What's Next | Where the ecosystem is heading |
 
 ## Notebook Structure
 
-Each episode notebook has two sections:
+Each episode notebook has two parts:
 
-- **Core content** — Essential concepts + one hands-on build. This is what YouTube episodes cover.
-- **Additional content** — Deeper dives, alternative approaches, design rationale. For university lectures and self-study.
+- **Core content** — Essential concepts plus one hands-on build. This is what the YouTube episodes cover.
+- **Additional content** — Deeper dives, alternative approaches, and design rationale. For university lectures and self-study.
 
 ## For Instructors
 
@@ -99,11 +135,11 @@ This workshop maps to 5 university lectures:
 
 | Lecture | Episodes | Focus |
 |---------|----------|-------|
-| 1. Foundations | 1-4 | Agent basics, tools, two-agent systems |
-| 2. Orchestration | 5-9 | Patterns, handoffs, decision framework |
-| 3. Applications | 10-15 | Real apps, RAG, web, UI, MCP |
-| 4. Production | 16-20 | Observability, security, testing, costs, deployment |
-| 5. Advanced | 21-23 | Specialized patterns, reasoning, future |
+| 1. Foundations | 1–9 | Agents, tools, delegation, the harness |
+| 2. Multi-Agent Systems | 10–16 | The Hub, channel adapters, choosing patterns |
+| 3. Applications | 17–23 | Real apps, RAG, web, UIs, MCP |
+| 4. Production | 24–29 | Telemetry, observers, security, testing, cost, deploy |
+| 5. Advanced | 30–34 | Redundancy, reasoning, events, migration, future |
 
 ## Troubleshooting
 
@@ -112,7 +148,7 @@ See [episodes/troubleshooting.md](episodes/troubleshooting.md) for common issues
 ## Resources
 
 - [AG2 Documentation](https://docs.ag2.ai)
-- [AG2 Playground](https://playground.ag2.ai) — try patterns interactively, no setup needed
+- [AG2 Playground](https://playground.ag2.ai) — runnable beta walkthroughs; many episodes cross-reference specific demos
 - [AG2 GitHub](https://github.com/ag2ai/ag2)
 - [AG2 Discord](https://discord.gg/sNGSwQME3x)
 - [More Examples](https://github.com/ag2ai/build-with-ag2)
