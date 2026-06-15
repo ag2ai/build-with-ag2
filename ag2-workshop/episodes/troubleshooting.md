@@ -1,6 +1,6 @@
 # Troubleshooting Guide
 
-Common issues when working through the AG2 Workshop episodes.
+Common issues when working through the AG2 Beta Workshop episodes.
 
 ---
 
@@ -118,7 +118,7 @@ Then select "ag2-workshop" kernel in Jupyter.
 
 ## Getting Help
 
-- AG2 Documentation: https://docs.ag2.ai
+- AG2 Documentation: https://docs.ag2.ai/latest/docs/beta/agents/
 - AG2 GitHub Issues: https://github.com/ag2ai/ag2/issues
-- AG2 Discord: https://discord.gg/sNGSwQME3x
+- AG2 Discord: https://discord.com/invite/pAbnFJrkgZ
 - AG2 Playground: https://playground.ag2.ai

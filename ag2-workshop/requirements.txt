@@ -2,8 +2,11 @@
 # Install: pip install -r requirements.txt
 # Python 3.12+ recommended
 
-# Core (all episodes)
-ag2[openai]>=0.11
+# Core + all extras the workshop uses, pinned to the verified version:
+#   mcp     -> ep23 MCP tools
+#   tracing -> ep24 OpenTelemetry spans
+#   a2a     -> ep29 A2A protocol deployment
+ag2[openai,mcp,tracing,a2a]>=0.13.4
 python-dotenv
 
 # Web UI & deployment (ep21 AG-UI, ep22 plain HTML, ep29 deploy)
@@ -14,15 +17,6 @@ httpx
 # Voice (ep05 LiveAgent)
 sounddevice
 numpy
-
-# MCP tools (ep23)
-ag2[mcp]
-
-# Telemetry / OpenTelemetry spans (ep24)
-ag2[tracing]
-
-# A2A protocol deployment (ep29)
-ag2[a2a]
 
 # Testing (ep27)
 pytest
