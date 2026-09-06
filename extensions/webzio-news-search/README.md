@@ -34,7 +34,7 @@ TAGS: news-search, webzio, webz, mcp, research-assistant, tools, automation
 
 ```bash
 git clone https://github.com/ag2ai/build-with-ag2.git
-cd build-with-ag2/webzio-news-search
+cd build-with-ag2/extensions/webzio-news-search
 pip install -r requirements.txt
 cp .env.example .env
 # Fill in OPENAI_API_KEY and WEBZ_API_TOKEN
