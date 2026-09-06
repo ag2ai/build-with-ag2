@@ -60,7 +60,7 @@ The top 3 open-source multi-agent frameworks in 2026 are …
 | Live per-researcher progress | Manual queue + print lock | `MemoryStream` subscribers via `StreamFactory` |
 | Cited synthesis | Regex-extract JSON from chat | Coordinator sees all sub-results as tool results |
 | Follow-ups carry context | Separate Q&A loop, re-reads files | `reply.ask()` — native |
-| Lines of code | ~700 (see `due-diligence-with-tinyfish/main.py`) | ~230 |
+| Lines of code | ~700 (see `extensions/due-diligence-with-tinyfish/main.py`) | ~230 |
 
 ## Stack
 

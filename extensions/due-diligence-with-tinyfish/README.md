@@ -50,7 +50,7 @@ TAGS: due-diligence, multi-agent, web-scraping, tinyfish, parallel-agents, resea
 
    ```bash
    git clone https://github.com/ag2ai/build-with-ag2.git
-   cd build-with-ag2/due-diligence-with-tinyfish
+   cd build-with-ag2/extensions/due-diligence-with-tinyfish
    ```
 
 2. Install dependencies:
