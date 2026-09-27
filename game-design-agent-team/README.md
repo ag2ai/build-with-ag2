@@ -1,16 +1,14 @@
 # AI Game Design Agent Team
 
-> ⚠️ **BROKEN**: This project is currently not working. The latest release of AG2 0.9 introduced breaking changes. A fix is pending — contributions welcome!
-
 - This project is collected and modified (with permission to include here) from the [awesome-llm-apps](https://github.com/Shubhamsaboo/awesome-llm-apps) repository. Check out the original code [here](https://github.com/Shubhamsaboo/awesome-llm-apps/tree/main/ai_agent_tutorials/ai_game_design_agent_team).
 - By [Shubham](https://x.com/Saboo_Shubham_)
 
-The AI Game Design Agent Team is a collaborative game design system that generates comprehensive game concepts through the coordination of multiple specialized AI agents, each focusing on different aspects of game design based on user inputs such as game type, target audience, art style, and technical requirements. This is built on AG2's new [swarm feature](https://docs.ag2.ai/notebooks/agentchat_swarm#swarm-orchestration-with-ag2) run through initiate_swarm_chat() method.
+The AI Game Design Agent Team is a collaborative game design system that generates comprehensive game concepts through the coordination of multiple specialized AI agents, each focusing on different aspects of game design based on user inputs such as game type, target audience, art style, and technical requirements. It is built on AG2 (v1.1.0+) and its [network](https://docs.ag2.ai/docs/user-guide/network/pattern_cookbook/pattern_cookbook) feature: the team runs as a `workflow` channel whose `TransitionGraph.sequence([...])` pipeline hands the brief from agent to agent, and each agent's section is collected from the channel's write-ahead log.
 
 ## Description
 
 **Agents and Workflow**
-We initialize context variables (e.g., project details, user inputs) to store the relevant game design requirements. The AI Game Design Agent Team comprises the following specialized agents:
+A user's game design requirements (game type, audience, art style, platforms, budget, and so on) are collected into a task brief and posted to a workflow channel. The AI Game Design Agent Team comprises the following specialized agents:
 
 - 🎭 Story Agent:
   Focuses on narrative design and world-building. Responsible for character backgrounds, lore, plot arcs, and dialogue.
@@ -21,18 +19,18 @@ We initialize context variables (e.g., project details, user inputs) to store th
 - ⚙️ Tech Agent:
   Provides technical architecture and implementation guidance—engine selection, optimization strategies, networking requirements, platform constraints, and development roadmap.
 
-When a user provides high-level game requirements (e.g., game type, setting, audience, visuals, platform), we start the swarm to allocate requirements to the respective specialized agents. Each agent elaborates on its area of expertise, and final outputs are combined into a cohesive game design proposal.
+When a user provides high-level game requirements (e.g., game type, setting, audience, visuals, platform), a non-LLM `HumanClient` posts the brief to a `workflow` channel, and the transition graph routes it through the pipeline: story agent → gameplay agent → visuals agent → tech agent, one turn each. Each agent sees the sections its teammates wrote before it, so the outputs combine into a cohesive game design proposal.
 
 ## AG2 Features
 
 This project demonstrates the following AG2 features:
 
-- [Swarm Orchestration](https://docs.ag2.ai/docs/user-guide/advanced-concepts/swarm-deep-dive)
-- [Dynamic system message](https://docs.ag2.ai/docs/user-guide/advanced-concepts/enhanced-swarm#agents-with-dynamic-system-message)
+- [Workflow orchestration](https://docs.ag2.ai/docs/user-guide/network/pattern_cookbook/pattern_cookbook) — a `workflow` channel driven by a declarative `TransitionGraph` (the modern replacement for the classic swarm/`GroupChat` patterns)
+- Multi-agent network primitives — `Hub`, `HumanClient` seeding, and replaying the conversation from the channel's write-ahead log
 
 ## TAGS
 
-TAGS: game design, swarm, dynamic system message, ai-assisted creativity, game development, narrative design, gameplay mechanics
+TAGS: game design, workflow orchestration, transition graph, multi-agent pipeline, ai-assisted creativity, game development, narrative design, gameplay mechanics
 
 ## Installation
 
@@ -40,7 +38,7 @@ TAGS: game design, swarm, dynamic system message, ai-assisted creativity, game d
 
 ```bash
 git clone https://github.com/ag2ai/build-with-ag2.git
-cd build-with-ag2/game_design_agent_team
+cd build-with-ag2/game-design-agent-team
 ```
 
 2. Install the required dependencies:
@@ -53,7 +51,7 @@ The two dependencies are the ag2 (AG2) library and streamlit.
 
 ## Run the code
 
-Before you start, go to [OpenAI's platform](https://platform.openai.com/) to get an API key if you don't have one.
+Before you start, get an API key — either from [OpenAI's platform](https://platform.openai.com/) or from [OpenRouter](https://openrouter.ai/).
 
 Run the Streamlit app to start a web interface for the AI Game Design Agent Team.
 
@@ -61,7 +59,10 @@ Run the Streamlit app to start a web interface for the AI Game Design Agent Team
 streamlit run main.py
 ```
 
-In the web interface to the left, put your OpenAI API key in the sidebar.
+In the sidebar, pick your provider:
+
+- **OpenAI** (default) — enter your OpenAI API key (uses `gpt-4o-mini`).
+- **OpenRouter** — enter your OpenRouter API key and any `<vendor>/<model>` id (e.g. `openai/gpt-4o-mini`) to route through [OpenRouter](https://openrouter.ai/)'s OpenAI-compatible API.
 
 Now you can interact with it through your browser, and click `Generate Game Concept` to receive a comprehensive design output from the specialized agents.
 
