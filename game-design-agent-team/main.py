@@ -1,21 +1,141 @@
+import asyncio
+
 import streamlit as st
 
-from autogen.agentchat.contrib.swarm_agent import (
-    SwarmAgent,
-    SwarmResult,
-    initiate_swarm_chat,
-    AFTER_WORK,
+from ag2 import Agent
+from ag2.config import OpenAIConfig
+from ag2.knowledge import MemoryKnowledgeStore
+from ag2.network import (
+    EV_CHANNEL_CLOSED,
+    EV_PACKET,
+    Hub,
+    HubClient,
+    HumanClient,
+    LocalLink,
+    Passport,
+    Resume,
+    TransitionGraph,
 )
-from autogen import UpdateSystemMessage
-from agent_utils import update_system_message_func  # import helper function
+
+from agent_utils import system_messages  # import the agents' system prompts
+
+# Agents speak once each, in this order, then the channel terminates.
+AGENT_NAMES = ["story_agent", "gameplay_agent", "visuals_agent", "tech_agent"]
+
+# Maps each agent to its output slot in st.session_state and its section title.
+SECTION_INFO = {
+    "story_agent": ("story", "Story Design"),
+    "gameplay_agent": ("gameplay", "Gameplay Mechanics"),
+    "visuals_agent": ("visuals", "Visual and Audio Design"),
+    "tech_agent": ("tech", "Technical Recommendations"),
+}
+
+
+def build_prompt(agent_name: str) -> str:
+    """System prompt for one agent of the team."""
+    section_title = SECTION_INFO[agent_name][1]
+    return f"""{system_messages[agent_name].strip()}
+
+You are one agent in a four-agent game design team collaborating on a single
+game concept. The brief and the sections your teammates wrote before you
+appear in the conversation. Write only your own section of the report, do not
+include any other parts, and do not use XML tags. Build on what your teammates
+have already written and stay consistent with it.
+
+Start your response with: '## {section_title}'.
+"""
+
+
+async def run_game_design_team(
+    task: str, api_key: str, model: str, base_url: str | None = None
+) -> dict[str, str]:
+    """Run the pipeline: story -> gameplay -> visuals -> tech, one turn each.
+
+    The brief is seeded by a HumanClient (a non-LLM participant), so the
+    workflow channel routes it to the story agent, which starts the pipeline.
+    Each agent's reply lands on the channel, so the next agent sees it.
+
+    ``base_url`` points the OpenAI-compatible client at another provider,
+    e.g. https://openrouter.ai/api/v1 for OpenRouter.
+    """
+    config = OpenAIConfig(model=model, api_key=api_key, base_url=base_url)
+
+    hub = await Hub.open(MemoryKnowledgeStore(), ttl_sweep_interval=0)
+    link = LocalLink(hub)
+    user_hc = HubClient(link, hub=hub)
+    agent_hcs = [HubClient(link, hub=hub) for _ in AGENT_NAMES]
+
+    try:
+        # Non-LLM seeder: its only job is to post the brief as its turn.
+        user = await user_hc.register_human(Passport(name="user", kind="human"))
+
+        # Build each Agent, then register it with the hub (attach no plugin
+        # tools — these are pure pipeline workers, routing is in the graph).
+        clients = {}
+        for agent_name, hc in zip(AGENT_NAMES, agent_hcs):
+            agent = Agent(agent_name, prompt=build_prompt(agent_name), config=config)
+            clients[agent_name] = await hc.register(
+                agent, Passport(name=agent_name), Resume(), attach_plugin=False
+            )
+
+        # user (brief) -> story -> gameplay -> visuals -> tech -> terminate.
+        graph = TransitionGraph.sequence(
+            [user.agent_id] + [clients[name].agent_id for name in AGENT_NAMES]
+        )
+
+        channel = await user.open(
+            type="workflow",
+            target=[clients[name].agent_id for name in AGENT_NAMES],
+            knobs={"graph": graph.to_dict()},
+        )
+        await channel.send(task)
+
+        # The last step's transition terminates the channel automatically
+        # with reason "sequence_complete" — wait for that envelope.
+        await user.next_envelope(
+            predicate=lambda e: e.event_type == EV_CHANNEL_CLOSED,
+            timeout=600.0,
+        )
+
+        # Collect each agent's section from the channel's write-ahead log.
+        output = {key: "" for _, (key, _) in SECTION_INFO.items()}
+        wal = await hub.read_wal(channel.channel_id)
+        for envelope in wal:
+            if envelope.event_type != EV_PACKET:
+                continue
+            for agent_name, client in clients.items():
+                if envelope.sender_id == client.agent_id:
+                    output[SECTION_INFO[agent_name][0]] = envelope.event_data.get(
+                        "body", ""
+                    )
+        return output
+    finally:
+        await user_hc.close()
+        for hc in agent_hcs:
+            await hc.close()
+        await hub.close()
+
 
 # Initialize session state
 if "output" not in st.session_state:
     st.session_state.output = {"story": "", "gameplay": "", "visuals": "", "tech": ""}
 
-# Sidebar for API key input
-st.sidebar.title("API Key")
-api_key = st.sidebar.text_input("Enter your OpenAI API Key", type="password")
+# Sidebar for provider, API key, and model input
+st.sidebar.title("API key")
+provider = st.sidebar.segmented_control(
+    "Provider", ["OpenAI", "OpenRouter"], default="OpenAI"
+)
+
+if provider == "OpenRouter":
+    api_key = st.sidebar.text_input("OpenRouter API key", type="password")
+    # OpenRouter model ids are <vendor>/<model>, e.g. openai/gpt-4o-mini
+    model = st.sidebar.text_input("Model", "openai/gpt-4o-mini")
+    # OpenRouter exposes an OpenAI-compatible API
+    base_url = "https://openrouter.ai/api/v1"
+else:
+    api_key = st.sidebar.text_input("OpenAI API key", type="password")
+    model = "gpt-4o-mini"
+    base_url = None
 
 # Add guidance in sidebar
 st.sidebar.success(
@@ -159,7 +279,7 @@ depth = st.selectbox("Level of Detail in Response", ["Low", "Medium", "High"])
 if st.button("Generate Game Concept"):
     # Check if API key is provided
     if not api_key:
-        st.error("Please enter your OpenAI API key.")
+        st.error(f"Please enter your {provider} API key.")
     else:
         with st.spinner("🤖 AI Agents are collaborating on your game concept..."):
             # Prepare the task based on user inputs
@@ -182,108 +302,9 @@ if st.button("Generate Game Concept"):
             - Detail Level: {depth}
             """
 
-            llm_config = {"config_list": [{"model": "gpt-4o-mini", "api_key": api_key}]}
-
-            # initialize context variables
-            context_variables = {
-                "story": None,
-                "gameplay": None,
-                "visuals": None,
-                "tech": None,
-            }
-
-            # define functions to be called by the agents
-            def update_story_overview(
-                story_summary: str, context_variables: dict
-            ) -> SwarmResult:
-                """Keep the summary as short as possible."""
-                context_variables["story"] = story_summary
-                st.sidebar.success("Story overview: " + story_summary)
-                return SwarmResult(
-                    agent="gameplay_agent", context_variables=context_variables
-                )
-
-            def update_gameplay_overview(
-                gameplay_summary: str, context_variables: dict
-            ) -> SwarmResult:
-                """Keep the summary as short as possible."""
-                context_variables["gameplay"] = gameplay_summary
-                st.sidebar.success("Gameplay overview: " + gameplay_summary)
-                return SwarmResult(
-                    agent="visuals_agent", context_variables=context_variables
-                )
-
-            def update_visuals_overview(
-                visuals_summary: str, context_variables: dict
-            ) -> SwarmResult:
-                """Keep the summary as short as possible."""
-                context_variables["visuals"] = visuals_summary
-                st.sidebar.success("Visuals overview: " + visuals_summary)
-                return SwarmResult(
-                    agent="tech_agent", context_variables=context_variables
-                )
-
-            def update_tech_overview(
-                tech_summary: str, context_variables: dict
-            ) -> SwarmResult:
-                """Keep the summary as short as possible."""
-                context_variables["tech"] = tech_summary
-                st.sidebar.success("Tech overview: " + tech_summary)
-                return SwarmResult(
-                    agent="story_agent", context_variables=context_variables
-                )
-
-            state_update = UpdateSystemMessage(update_system_message_func)
-
-            # Define agents
-            story_agent = SwarmAgent(
-                "story_agent",
-                llm_config=llm_config,
-                functions=update_story_overview,
-                update_agent_state_before_reply=[state_update],
+            st.session_state.output = asyncio.run(
+                run_game_design_team(task, api_key, model, base_url)
             )
-
-            gameplay_agent = SwarmAgent(
-                "gameplay_agent",
-                llm_config=llm_config,
-                functions=update_gameplay_overview,
-                update_agent_state_before_reply=[state_update],
-            )
-
-            visuals_agent = SwarmAgent(
-                "visuals_agent",
-                llm_config=llm_config,
-                functions=update_visuals_overview,
-                update_agent_state_before_reply=[state_update],
-            )
-
-            tech_agent = SwarmAgent(
-                name="tech_agent",
-                llm_config=llm_config,
-                functions=update_tech_overview,
-                update_agent_state_before_reply=[state_update],
-            )
-
-            story_agent.register_hand_off(AFTER_WORK(gameplay_agent))
-            gameplay_agent.register_hand_off(AFTER_WORK(visuals_agent))
-            visuals_agent.register_hand_off(AFTER_WORK(tech_agent))
-            tech_agent.register_hand_off(AFTER_WORK(story_agent))
-
-            result, _, _ = initiate_swarm_chat(
-                initial_agent=story_agent,
-                agents=[story_agent, gameplay_agent, visuals_agent, tech_agent],
-                user_agent=None,
-                messages=task,
-                max_rounds=13,
-            )
-
-            # Update session state with the individual responses
-            st.session_state.output = {
-                "story": result.chat_history[-4]["content"],
-                "gameplay": result.chat_history[-3]["content"],
-                "visuals": result.chat_history[-2]["content"],
-                "tech": result.chat_history[-1]["content"],
-            }
 
         # Display success message after completion
         st.success("✨ Game concept generated successfully!")
