@@ -1,4 +1,4 @@
-from autogen import SwarmAgent, OpenAIWrapper
+"""System prompts for the game design agent team."""
 
 system_messages = {
     "story_agent": """
@@ -41,36 +41,3 @@ You are a technical director with extensive game development experience. Your ta
 7. Plan for multiplayer infrastructure if applicable.
     """,
 }
-
-
-def update_system_message_func(agent: SwarmAgent, messages) -> str:
-    """"""
-    system_prompt = system_messages[agent.name]
-
-    current_gen = agent.name.split("_")[0]
-    if agent._context_variables.get(current_gen) is None:
-        system_prompt += f"Call the update function provided to first provide a 2-3 sentence summary of your ideas on {current_gen.upper()} based on the context provided."
-        agent.llm_config["tool_choice"] = {
-            "type": "function",
-            "function": {"name": f"update_{current_gen}_overview"},
-        }
-        agent.client = OpenAIWrapper(**agent.llm_config)
-    else:
-        # remove the tools to avoid the agent from using it and reduce cost
-        agent.llm_config["tools"] = None
-        agent.llm_config["tool_choice"] = None
-        agent.client = OpenAIWrapper(**agent.llm_config)
-        # the agent has given a summary, now it should generate a detailed response
-        system_prompt += f"\n\nYour task\nYou task is write the {current_gen} part of the report. Do not include any other parts. Do not use XML tags.\nStart your response with: '## {current_gen.capitalize()} Design'."
-
-        # Remove all messages except the first one with less cost
-        k = list(agent._oai_messages.keys())[-1]
-        agent._oai_messages[k] = agent._oai_messages[k][:1]
-
-    system_prompt += "\n\n\nBelow are some context for you to refer to:"
-    # Add context variables to the prompt
-    for k, v in agent._context_variables.items():
-        if v is not None:
-            system_prompt += f"\n{k.capitalize()} Summary:\n{v}"
-
-    return system_prompt
