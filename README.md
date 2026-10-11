@@ -47,6 +47,8 @@ New to AG2? The [AG2 Workshop](ag2-workshop/) takes you from first agent to prod
 - 🎮 [AI Game Design Agent Team](game-design-agent-team) ⚠️ _(currently broken — pending fix for AG2 0.9+)_: A collaborative game design system that generates comprehensive game concepts through the coordination of multiple specialized AI agents.
 - ☑ [Manage Todos With Realtime Agent](manage-todos-with-realtime-agent): A voice-controlled todo assistant with real-time interaction.
 - 🔍 [Due Diligence with TinyFish](due-diligence-with-tinyfish): A multi-agent due diligence pipeline that automatically researches a company from a single URL using AG2 and TinyFish for deep web scraping.
+- 🖥️ [ScreenContext Agent for AG2](screen-context-agent): A local screen-history search example using AG2's stdio MCPToolkit with explicit opt-in and a single allowlisted read-only tool.
+
 - 🛠️ [IT-Ops Triage](itops): IT Operations reference design using AG2 Beta agent network — parallel diagnosis specialists, human-in-the-loop sign-off as a parallel participant, real persisted tickets with duplication detection, and a live React UI over WebSocket.
 
 ## 🔌 Arcade SDK Examples
